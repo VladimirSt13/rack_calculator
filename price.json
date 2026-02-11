@@ -1,0 +1,76 @@
+{
+  "supports": {
+    "215": {
+      "name": "PGL1 (215mm)",
+      "edge": { "price": 600.0, "weight": 2.0 },
+      "intermediate": { "price": 620.0, "weight": 2.05 }
+    },
+    "290": {
+      "name": "PGS1 (290mm)",
+      "edge": { "price": 780.0, "weight": 2.6 },
+      "intermediate": { "price": 800.0, "weight": 2.65 }
+    },
+    "430": {
+      "name": "PGL2 (430mm)",
+      "edge": { "price": 930.0, "weight": 3.27 },
+      "intermediate": { "price": 980.0, "weight": 3.33 }
+    },
+    "580": {
+      "name": "PGS2 (580mm)",
+      "edge": { "price": 1020.0, "weight": 3.9 },
+      "intermediate": { "price": 1070.0, "weight": 3.95 }
+    },
+    "645": {
+      "name": "PGL3 (645mm)",
+      "edge": { "price": 1240.0, "weight": 4.3 },
+      "intermediate": { "price": 1290.0, "weight": 4.35 }
+    },
+    "860": {
+      "name": "Support 860mm",
+      "edge": { "price": 1230.0, "weight": 5.7 },
+      "intermediate": { "price": 1270.0, "weight": 5.75 }
+    },
+    "1190": {
+      "name": "1190",
+      "edge": { "price": 1400.0, "weight": null },
+      "intermediate": { "price": 1440.0, "weight": null }
+    },
+    "430C": {
+      "name": "SGL2 (430 step)",
+      "edge": { "price": 1140.0, "weight": 3.9 },
+      "intermediate": { "price": 1190.0, "weight": 3.95 }
+    },
+    "580C": {
+      "name": "SGS2 (580mm step)",
+      "edge": { "price": 1380.0, "weight": 4.65 },
+      "intermediate": { "price": 1420.0, "weight": 4.7 }
+    },
+    "645C": {
+      "name": "SGL3 (645 step)",
+      "edge": { "price": 1730.0, "weight": null },
+      "intermediate": { "price": 1980.0, "weight": null }
+    }
+  },
+  "beams": {
+    "600": { "name": "600", "price": 500.0, "weight": 1.6 },
+    "750": { "name": "750", "price": 630.0, "weight": 2.1 },
+    "900": { "name": "900", "price": 730.0, "weight": 2.56 },
+    "950": { "name": "950", "price": 750.0, "weight": 2.7 },
+    "1000": { "name": "1000", "price": 790.0, "weight": 2.83 },
+    "1050": { "name": "1050", "price": 810.0, "weight": null },
+    "1200": { "name": "1200", "price": 870.0, "weight": 3.4 },
+    "1500": { "name": "1500", "price": 980.0, "weight": 4.28 }
+  },
+  "vertical_supports": {
+    "632": { "name": "632", "price": 630.0, "weight": 1.8 },
+    "1190": { "name": "1190", "price": 1150.0, "weight": 3.4 },
+    "1500": { "name": "1500", "price": 1450.0, "weight": 4.3 },
+    "2000": { "name": "2000", "price": 0.0, "weight": 5.7 }
+  },
+  "diagonal_brace": {
+    "diagonal_brace": { "name": "Diagonal brace", "price": 380.0, "weight": 1 }
+  },
+  "isolator": {
+    "isolator": { "name": "Isolator", "price": 55.0, "weight": 0.1 }
+  }
+}
