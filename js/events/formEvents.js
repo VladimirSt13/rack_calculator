@@ -17,7 +17,7 @@ export const initFormEvents = async () => {
   refs.rackForm.addEventListener("click", handler, 150);
 };
 
-const handleFormEvent = (e) => {
+const handleFormEvent = (e, removeBeam) => {
   const target = e.target;
 
   if (target.matches("input, select")) handleInputChange(target);
