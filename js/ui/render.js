@@ -5,14 +5,18 @@ import { refs } from "./dom.js";
 // --- Рендер ---
 export const render = () => {
     const { floors, rows, supports, beams, verticalSupports } = rackState;
-    const beamsArray = Array.from(beams.values());
+
+    // Безпечне перетворення Map у масив
+    const beamsArray = [...beams.values()];
+
+    // Перевірка на наявність всіх необхідних даних
     const isComplete =
         floors &&
         (floors === 1 || verticalSupports) &&
         rows &&
         supports &&
         beamsArray.length > 0 &&
-        beamsArray.every((v) => v.item && v.quantity) > 0;
+        beamsArray.every((v) => v.item && v.quantity);
 
     if (!isComplete) {
         refs.rackName.textContent = "---";
@@ -20,6 +24,7 @@ export const render = () => {
         return;
     }
 
+    // Розрахунок компонентів
     const { currentRack } = calculateComponents({
         ...rackState,
         beams: beamsArray,
@@ -34,7 +39,6 @@ export const render = () => {
 // --- Назва стелажа ---
 const renderRackName = ({ description, abbreviation }) => {
     if (!description || !abbreviation) return;
-
     refs.rackName.textContent = `${description} ${abbreviation}`;
 };
 
@@ -42,44 +46,50 @@ const renderRackName = ({ description, abbreviation }) => {
 const renderComponentsTable = ({ components, totalCost }) => {
     if (!components) return;
 
-    const tableRows = Object.keys(components)
-        .map((c) => {
-            if (Array.isArray(components[c])) {
-                return components[c].map(
-                    (comp) => `
-          <tr>
-            <td>${comp.name}</td>
-            <td>${comp.amount}</td>
-            <td>${comp.price}</td>
-            <td>${comp.price * comp.amount}</td>
-          </tr>
-        `,
+    const tableRows = Object.values(components)
+        .flatMap((comp) => {
+            if (Array.isArray(comp)) {
+                return comp.map(
+                    (c) => `
+                    <tr>
+                        <td>${c.name}</td>
+                        <td>${c.amount}</td>
+                        <td>${c.price}</td>
+                        <td>${c.price * c.amount}</td>
+                    </tr>`,
                 );
             } else {
                 return `
-        <tr>
-          <td>${components[c].name}</td>
-          <td>${components[c].amount}</td>
-          <td>${components[c].price}</td>
-          <td>${components[c].price * components[c].amount}</td>
-        </tr>
-      `;
+                    <tr>
+                        <td>${comp.name}</td>
+                        <td>${comp.amount}</td>
+                        <td>${comp.price}</td>
+                        <td>${comp.price * comp.amount}</td>
+                    </tr>`;
             }
         })
         .join("");
 
-    refs.componentsTable.innerHTML = `<table>
+    const isolatorsTotal =
+        (components.isolators?.amount || 0) *
+        (components.isolators?.price || 0);
+
+    refs.componentsTable.innerHTML = `
+        <table>
             <thead>
-            <tr>
-            <th>Компонент</th>
-            <th>Кількість</th>
-            <th>Ціна за одиницю</th>
-            <th>Загальна вартість</th>
-            </tr></thead>
-            <tbody>${tableRows}</tbody>
-           </table>
-           <p class="total">Загальна вартість без ізоляторів: ${totalCost - (components.isolators?.amount * components.isolators?.price || 0)}</p>
-           <p class="total">Загальна вартість: ${totalCost}</p>
-           <p class="total">Нульова ціна АЕ (+ПДВ +націнка): ${totalCost * 1.2 * 1.2}</p>        
-           `;
+                <tr>
+                    <th>Компонент</th>
+                    <th>Кількість</th>
+                    <th>Ціна за одиницю</th>
+                    <th>Загальна вартість</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
+        <p class="total">Загальна вартість без ізоляторів: ${totalCost - isolatorsTotal}</p>
+        <p class="total">Загальна вартість: ${totalCost}</p>
+        <p class="total">Нульова ціна АЕ (+ПДВ +націнка): ${Math.round(totalCost * 1.2 * 1.2)}</p>
+    `;
 };

@@ -15,6 +15,4 @@ import { render } from "./ui/render.js";
     );
 
     initFormEvents(componentsPrice);
-
-    render();
 })();
