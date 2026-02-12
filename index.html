@@ -1,74 +1,98 @@
 <!doctype html>
 <html lang="uk">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Розрахунок стелажу</title>
-    <link rel="stylesheet" href="styles/style.css" />
-  </head>
-  <body>
-    <div class="">
-      <h2>Параметри стелажу</h2>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Розрахунок стелажу</title>
+        <link rel="stylesheet" href="styles/style.css" />
+    </head>
+    <body>
+        <div class="">
+            <h2>Параметри стелажу</h2>
 
-      <form id="rackForm">
-        <div class="form-row">
-          <label
-            >Кількість поверхів:
-            <input type="number" id="floors" min="1" max="10" value="1" required />
-          </label>
+            <form id="rackForm">
+                <div class="form-row">
+                    <label
+                        >Кількість поверхів:
+                        <input
+                            type="number"
+                            id="floors"
+                            min="1"
+                            max="10"
+                            value="1"
+                            required
+                        />
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label
+                        >Вертикальна опора:
+                        <select id="verticalSupports">
+                            <option value="" disabled selected>
+                                Оберіть вертикальну опору
+                            </option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label
+                        >Опора:
+                        <select id="supports">
+                            <option value="" disabled selected>
+                                Оберіть опору
+                            </option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label
+                        >Кількість рядів:
+                        <input
+                            type="number"
+                            id="rows"
+                            min="1"
+                            max="4"
+                            value="1"
+                            required
+                        />
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label
+                        >Кількість балок на один ряд:
+                        <input
+                            type="number"
+                            id="beamsPerRow"
+                            min="2"
+                            max="4"
+                            value="2"
+                            step="1"
+                            required
+                        />
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label>Прольоти:</label>
+                    <div id="beamsContainer"></div>
+                    <button type="button" id="addBeam">+ Додати проліт</button>
+                </div>
+            </form>
+
+            <div class="rack-name">
+                <strong>Назва стелажа: </strong>
+                <span id="rackName">---</span>
+            </div>
+
+            <div class="components-section">
+                <h3>Таблиця компонентів стелажа</h3>
+                <div id="componentsTable"></div>
+            </div>
         </div>
 
-        <div class="form-row">
-          <label
-            >Вертикальна опора:
-            <select id="verticalSupport">
-              <option value="" disabled selected>Оберіть вертикальну опору</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label
-            >Опора:
-            <select id="support">
-              <option value="" disabled selected>Оберіть опору</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label
-            >Кількість рядів:
-            <input type="number" id="rows" min="1" max="4" value="1" required />
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label
-            >Кількість балок на один ряд:
-            <input type="number" id="beamsPerRow" min="2" max="4" value="2" step="1" required />
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label>Прольоти:</label>
-          <div id="beamsContainer"></div>
-          <button type="button" id="addBeam">+ Додати проліт</button>
-        </div>
-      </form>
-
-      <div class="rack-name">
-        <strong>Назва стелажа: </strong>
-        <span id="rackName">---</span>
-      </div>
-
-      <div class="components-section">
-        <h3>Таблиця компонентів стелажа</h3>
-        <div id="componentsTable">
-          <!-- Таблиця буде сформована скриптом -->
-        </div>
-      </div>
-    </div>
-
-    <script src="js/main.js" type="module"></script>
-  </body>
+        <script src="js/main.js" type="module"></script>
+    </body>
 </html>

@@ -1,6 +1,14 @@
 import { getPrice } from "../state/priceState.js";
-import { calculateBeams, calculateRackLength, calculateTotalSpans } from "./utils/beams.js";
-import { calculateBraces, supportFn, verticalSupportsFn } from "./utils/supports.js";
+import {
+    calculateBeams,
+    calculateRackLength,
+    calculateTotalSpans,
+} from "./utils/beams.js";
+import {
+    calculateBraces,
+    supportsFn,
+    verticalSupportsFn,
+} from "./utils/supports.js";
 import { rackNameFn } from "./utils/rackName.js";
 
 /**
@@ -9,89 +17,115 @@ import { rackNameFn } from "./utils/rackName.js";
  * @returns {number} total cost of the components
  */
 const totalCostCalculation = (components) => {
-  return components.reduce(
-    (sum, c) =>
-      Array.isArray(c) ? sum + c.reduce((s, item) => s + item.amount * item.price, 0) : sum + c.amount * c.price,
-    0,
-  );
+    return components.reduce(
+        (sum, c) =>
+            Array.isArray(c)
+                ? sum + c.reduce((s, item) => s + item.amount * item.price, 0)
+                : sum + c.amount * c.price,
+        0,
+    );
 };
 
 /**
  * Головна функція розрахунку компонентів
- * @param {Object} rackConfig - { floors, rows, beamsPerRow, verticalSupport, support, beams }
+ * @param {Object} rackConfig - { floors, rows, beamsPerRow, verticalSupports, support, beams }
  * @param {Object} rackComponents - дані прайсу
  * @returns {Object} { components: Array<{name, amount, price, totalPrice}>, totalLength: number, totalCost: number }
  */
 const calculateComponents = (rackConfig) => {
-  const { floors, rows, beams, support, verticalSupport, beamsPerRow } = rackConfig;
-  const componentsPrice = getPrice();
+    const { floors, rows, beams, supports, verticalSupports, beamsPerRow } =
+        rackConfig;
+    const componentsPrice = getPrice();
 
-  if (componentsPrice === null) return { components: {}, totalLength: 0, totalCost: 0 };
+    const isEnoughDataForCalculation =
+        componentsPrice !== null ||
+        floors ||
+        rows ||
+        beams.length ||
+        supports ||
+        beamsPerRow ||
+        !(floors > 1 && verticalSupports);
 
-  if (!floors || !rows || !beams.length || !support || (floors > 1 && !verticalSupport)) {
-    return { components: {}, totalLength: 0, totalCost: 0 };
-  }
+    if (!isEnoughDataForCalculation)
+        return { components: {}, totalLength: 0, totalCost: 0 };
 
-  const totalSpans = calculateTotalSpans(beams);
-  const totalLength = calculateRackLength(beams);
-  const { description, abbreviation } = rackNameFn({ totalLength, floors, rows, support });
-  const { edgeSupports, intermediateSupports, supportsData } = supportFn(floors, totalSpans, componentsPrice, support);
-  const beamsData = calculateBeams({
-    beams,
-    rows,
-    beamsPerRow,
-    beamsData: Object.entries(componentsPrice.beams),
-    floors,
-  });
+    const totalSpans = calculateTotalSpans(beams);
+    const totalLength = calculateRackLength(beams);
+    const { description, abbreviation } = rackNameFn({
+        totalLength,
+        floors,
+        rows,
+        supports,
+    });
 
-  // --- Вертикальні стійки та розкоси ---
-  const verticalSupportsData = verticalSupportsFn(Object.entries(componentsPrice.vertical_supports), verticalSupport);
+    const { edgeSupports, intermediateSupports, supportsData } = supportsFn(
+        floors,
+        totalSpans,
+        componentsPrice,
+        supports,
+    );
 
-  const bracesObj = Object.entries(componentsPrice.diagonal_brace).find((b) => b[0] === "diagonal_brace");
-  const bracesData = {
-    name: "Розкос",
-    amount: 0,
-    price: bracesObj?.[1]?.price || 0,
-  };
+    const beamsData = calculateBeams({
+        beams,
+        rows,
+        beamsPerRow,
+        beamsData: Object.entries(componentsPrice.beams),
+        floors,
+    });
 
-  if (floors > 1) {
-    const spans = totalSpans + 1;
-    verticalSupportsData.amount = spans * 2;
-    bracesData.amount = calculateBraces(spans);
-  }
+    // --- Вертикальні стійки та розкоси ---
+    const verticalSupportsData = verticalSupportsFn(
+        Object.entries(componentsPrice.vertical_supports),
+        verticalSupports,
+    );
 
-  // --- Ізолятори ---
-  const isolatorObj = componentsPrice.isolator;
-  const isolatorsData = {
-    name: "Ізолятор",
-    amount: 0,
-    price: isolatorObj.isolator?.price || 0,
-  };
-  if (floors === 1) {
-    isolatorsData.amount = (edgeSupports + intermediateSupports) * 2;
-  }
+    const bracesObj = Object.entries(componentsPrice.diagonal_brace).find(
+        (b) => b[0] === "diagonal_brace",
+    );
+    const bracesData = {
+        name: "Розкос",
+        amount: 0,
+        price: bracesObj?.[1]?.price || 0,
+    };
 
-  // --- Фінальний масив компонентів ---
-  const components = {
-    supports: supportsData,
-    beams: beamsData,
-    ...(floors > 1 ? { verticalSupports: verticalSupportsData } : {}),
-    ...(floors > 1 ? { braces: bracesData } : {}),
-    ...(floors === 1 ? { isolators: isolatorsData } : {}),
-  };
+    if (floors > 1) {
+        const spans = totalSpans + 1;
+        verticalSupportsData.amount = spans * 2;
+        bracesData.amount = calculateBraces(spans);
+    }
 
-  // --- Розрахунок totalCost для кожного компонента та загальної вартості ---
-  const totalCost = totalCostCalculation(Object.values(components));
+    // --- Ізолятори ---
+    const isolatorObj = componentsPrice.isolator;
+    const isolatorsData = {
+        name: "Ізолятор",
+        amount: 0,
+        price: isolatorObj.isolator?.price || 0,
+    };
+    if (floors === 1) {
+        isolatorsData.amount = (edgeSupports + intermediateSupports) * 2;
+    }
 
-  const currentRack = {
-    description,
-    abbreviation,
-    components,
-    totalLength,
-    totalCost,
-  };
+    // --- Фінальний масив компонентів ---
+    const components = {
+        supports: supportsData,
+        beams: beamsData,
+        ...(floors > 1 ? { verticalSupports: verticalSupportsData } : {}),
+        ...(floors > 1 ? { braces: bracesData } : {}),
+        ...(floors === 1 ? { isolators: isolatorsData } : {}),
+    };
 
-  return { currentRack };
+    // --- Розрахунок totalCost для кожного компонента та загальної вартості ---
+    const totalCost = totalCostCalculation(Object.values(components));
+
+    const currentRack = {
+        description,
+        abbreviation,
+        components,
+        totalLength,
+        totalCost,
+    };
+
+    return { currentRack };
 };
 
 export { calculateComponents };
