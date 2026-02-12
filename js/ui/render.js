@@ -4,39 +4,49 @@ import { refs } from "./dom.js";
 
 // --- Рендер ---
 export const render = () => {
-  const { floors, rows, support, beams } = rackState;
-  const beamsArray = Array.from(beams.values());
-  const isComplete =
-    floors && rows && support && beamsArray.length > 0 && beamsArray.every((v) => v.item && v.quantity);
+    const { floors, rows, supports, beams, verticalSupports } = rackState;
+    const beamsArray = Array.from(beams.values());
+    const isComplete =
+        floors &&
+        (floors === 1 || verticalSupports) &&
+        rows &&
+        supports &&
+        beamsArray.length > 0 &&
+        beamsArray.every((v) => v.item && v.quantity) > 0;
 
-  if (!isComplete) {
-    refs.rackName.textContent = "---";
-    refs.componentsTable.innerHTML = `<p>Недостатньо даних.</p>`;
-    return;
-  }
-  const { currentRack } = calculateComponents({ ...rackState, beams: beamsArray });
-  const { components, totalCost, description, abbreviation } = currentRack;
+    if (!isComplete) {
+        refs.rackName.textContent = "---";
+        refs.componentsTable.innerHTML = `<p>Недостатньо даних.</p>`;
+        return;
+    }
 
-  renderRackName({ description, abbreviation });
-  renderComponentsTable({ components, totalCost });
+    const { currentRack } = calculateComponents({
+        ...rackState,
+        beams: beamsArray,
+    });
+
+    const { components, totalCost, description, abbreviation } = currentRack;
+
+    renderRackName({ description, abbreviation });
+    renderComponentsTable({ components, totalCost });
 };
 
 // --- Назва стелажа ---
 const renderRackName = ({ description, abbreviation }) => {
-  if (!description || !abbreviation) return;
+    if (!description || !abbreviation) return;
 
-  refs.rackName.textContent = `${description} ${abbreviation}`;
+    refs.rackName.textContent = `${description} ${abbreviation}`;
 };
 
 // --- Таблиця компонентів ---
 const renderComponentsTable = ({ components, totalCost }) => {
-  if (!components) return;
+    if (!components) return;
 
-  const tableRows = Object.keys(components)
-    .map((c) => {
-      if (Array.isArray(components[c])) {
-        return components[c].map(
-          (comp) => `
+    const tableRows = Object.keys(components)
+        .map((c) => {
+            if (Array.isArray(components[c])) {
+                return components[c].map(
+                    (comp) => `
           <tr>
             <td>${comp.name}</td>
             <td>${comp.amount}</td>
@@ -44,9 +54,9 @@ const renderComponentsTable = ({ components, totalCost }) => {
             <td>${comp.price * comp.amount}</td>
           </tr>
         `,
-        );
-      } else {
-        return `
+                );
+            } else {
+                return `
         <tr>
           <td>${components[c].name}</td>
           <td>${components[c].amount}</td>
@@ -54,11 +64,11 @@ const renderComponentsTable = ({ components, totalCost }) => {
           <td>${components[c].price * components[c].amount}</td>
         </tr>
       `;
-      }
-    })
-    .join("");
+            }
+        })
+        .join("");
 
-  refs.componentsTable.innerHTML = `<table>
+    refs.componentsTable.innerHTML = `<table>
             <thead>
             <tr>
             <th>Компонент</th>

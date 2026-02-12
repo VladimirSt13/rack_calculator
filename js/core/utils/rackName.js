@@ -12,16 +12,16 @@ import { numberToWord } from "./numToWord.js";
  *   support: "430",
  * });
  */
-export const rackNameFn = ({ totalLength, floors, rows, support }) => {
-  const hasC = support.includes("C");
-  const description = [
-    `Стелаж ${numberToWord(floors, "floors")}`,
-    numberToWord(rows, "rows"),
-    hasC ? "ступінчатий" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+export const rackNameFn = ({ totalLength, floors, rows, supports }) => {
+    const hasC = supports.includes("C");
+    const description = [
+        `Стелаж ${numberToWord(floors, "floors")}`,
+        numberToWord(rows, "rows"),
+        hasC ? "ступінчатий" : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
 
-  const name = `L${floors}A${rows}${hasC ? "C" : ""}-${totalLength}/${support.replace("C", "")}`;
-  return { description, abbreviation: name };
+    const name = `L${floors}A${rows}${hasC ? "C" : ""}-${totalLength}/${supports.replace("C", "")}`;
+    return { description, abbreviation: name };
 };

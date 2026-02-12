@@ -3,50 +3,53 @@
  * @param {number} floors - кiлькість поверхів
  * @param {number} totalSpans - загальна довжина стелажа
  * @param {Object} rackComponents - об'єкт з даними прайсу
- * @param {string} support - ключ опори
+ * @param {string} supports - ключ опори
  * @returns {{edgeSupports: number, intermediateSupports: number, supportsData: Array<{name: string, amount: number, price: number}>}}
  * @example
  * const res = supportFn(2, 3000, rackComponents, "215");
- * console.log(res.supportsData); // [{name: "Опора 215", amount: 4, price: 600.0}, {name: "Опора 215 пром", amount: 2, price: 620.0}]
  */
-export const supportFn = (floors, totalSpans, rackComponents, support) => {
-  const edgeSupports = 2 * floors;
-  const intermediateSupports = Math.max(0, totalSpans + 1 - 2) * floors;
+export const supportsFn = (floors, totalSpans, rackComponents, supports) => {
+    const edgeSupports = 2 * floors;
+    const intermediateSupports = Math.max(0, totalSpans + 1 - 2) * floors;
 
-  const supportObj = Object.entries(rackComponents.supports).find((s) => s[0] === support);
+    const supportsObj = Object.entries(rackComponents.supports).find(
+        (s) => s[0] === supports,
+    );
 
-  const supportsData = [
-    {
-      name: `Опора ${support}`,
-      amount: edgeSupports,
-      price: supportObj?.[1]?.edge?.price || 0,
-    },
-    {
-      name: `Опора ${support} пром`,
-      amount: intermediateSupports,
-      price: supportObj?.[1]?.intermediate?.price || 0,
-    },
-  ];
-  return { edgeSupports, intermediateSupports, supportsData };
+    const supportsData = [
+        {
+            name: `Опора ${supports}`,
+            amount: edgeSupports,
+            price: supportsObj?.[1]?.edge?.price || 0,
+        },
+        {
+            name: `Опора ${supports} пром`,
+            amount: intermediateSupports,
+            price: supportsObj?.[1]?.intermediate?.price || 0,
+        },
+    ];
+    return { edgeSupports, intermediateSupports, supportsData };
 };
 
 /**
  * Функція для розрахунку кiлькості вертикальних стійок
  * @param {Object} rackComponents - об'єкт з даними прайсу
- * @param {string} verticalSupport - ключ вертикальної стійки
+ * @param {string}  verticalSupports- ключ вертикальної стійки
  * @returns {{name: string, amount: number, price: number}}
  * @example
  * const res = verticalSupportsFn(rackComponents, "632");
  */
-export const verticalSupportsFn = (verticalSupportsData, verticalSupport) => {
-  const verticalObj = verticalSupportsData.find((v) => v[0] === verticalSupport);
+export const verticalSupportsFn = (verticalSupportsData, verticalSupports) => {
+    const verticalObj = verticalSupportsData.find(
+        (v) => v[0] === verticalSupports,
+    );
 
-  const res = {
-    name: `Верт. стійка ${verticalSupport}`,
-    amount: 0,
-    price: verticalObj?.[1]?.price || 0,
-  };
-  return res;
+    const res = {
+        name: `Верт. стійка ${verticalSupports}`,
+        amount: 0,
+        price: verticalObj?.[1]?.price || 0,
+    };
+    return res;
 };
 
 /**
@@ -55,7 +58,7 @@ export const verticalSupportsFn = (verticalSupportsData, verticalSupport) => {
  * @returns {number} кількість розкосів
  */
 export const calculateBraces = (spans) => {
-  if (!spans || spans < 2) return 0;
-  if (spans <= 2) return 2;
-  return (spans - 3) * 2 + 2;
+    if (!spans || spans < 2) return 0;
+    if (spans <= 2) return 2;
+    return (spans - 3) * 2 + 2;
 };
