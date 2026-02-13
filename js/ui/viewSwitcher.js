@@ -1,5 +1,4 @@
-import { initBatteryPage } from "../battery/battery.js";
-import { initRackPage } from "../racks/racks.js";
+import { activatePage } from "./pageManager.js";
 
 export const initViewSwitcher = () => {
   const navButtons = document.querySelectorAll("header nav button");
@@ -12,7 +11,10 @@ export const initViewSwitcher = () => {
     btn.disabled = false;
   });
 
-  const defaultBtn = document.querySelector('header nav button[data-view="battery"]');
+  const defaultPage = "battery";
+
+  const defaultBtn = document.querySelector(`header nav button[data-view="${defaultPage}"]`);
+  activatePage(defaultPage);
   defaultBtn.classList.add("active");
   defaultBtn.disabled = true;
 
@@ -21,28 +23,16 @@ export const initViewSwitcher = () => {
     btn.addEventListener("click", async () => {
       const viewToShow = btn.dataset.view;
 
-      // Показуємо потрібну секцію
       views.forEach((v) => (v.hidden = v.id !== "view-" + viewToShow));
 
-      // Ініціалізація сторінки
-      switch (viewToShow) {
-        case "rack":
-          await initRackPage();
-          break;
-        case "battery":
-          initBatteryPage();
-          break;
-        default:
-          console.warn(`Немає ініціалізації для секції: ${viewToShow}`);
-      }
+      await activatePage(viewToShow);
 
-      // Підсвічування і дизейбл кнопок
       navButtons.forEach((b) => {
         b.classList.remove("active");
-        b.disabled = false; // <--- тепер правильно
+        b.disabled = false;
       });
       btn.classList.add("active");
-      btn.disabled = true; // кнопка активної сторінки неактивна
+      btn.disabled = true;
     });
   });
 };

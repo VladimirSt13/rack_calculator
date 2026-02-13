@@ -1,3 +1,5 @@
+@import "batteryRackTable.css";
+
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
@@ -58,5 +60,40 @@ button:hover {
 header nav button.active {
   background-color: #007acc;
   color: #fff;
+  border-radius: 4px;
+}
+
+/* --- Підсвічування полів з помилками --- */
+input.error,
+select.error {
+  border: 2px solid #e74c3c; /* яскраво-червоний бордер */
+  background-color: #fdecea; /* легкий червоний фон */
+  outline: none;
+}
+
+/* Підказка при наведенні курсора */
+input.error:hover,
+select.error:hover {
+  cursor: help;
+}
+
+/* Текст повідомлення про помилку поряд з полем */
+.error-message {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 2px;
+  display: block;
+}
+
+/* Кнопка "Підібрати" дизейбл при некоректній формі */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Додатково можна підсвічувати форму в цілому */
+form.invalid {
+  border: 1px solid #e74c3c;
+  padding: 8px;
   border-radius: 4px;
 }

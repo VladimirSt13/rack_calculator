@@ -1,8 +1,11 @@
 import { rackState, resetRackState } from "../state/rackState.js";
-import { refs } from "./dom.js";
+import { clearBeamsUI } from "./beams.js";
+import { getRacksRefs } from "./dom.js";
 
-export const resetForm = () => {
+export const resetRackForm = () => {
+  const refs = getRacksRefs();
   resetRackState();
+  clearBeamsUI();
 
   refs.rackForm.querySelectorAll("input, select").forEach((el) => {
     const key = el.id;
