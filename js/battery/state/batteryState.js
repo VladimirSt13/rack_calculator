@@ -1,6 +1,7 @@
-import { renderBatteryTable } from "./templates/batteryRackTable.js";
+// import { batteryStateLivePanel } from "../battery.js";
+import { renderBatteryTable } from "../ui/templates/batteryRackTable.js";
 
-const initialBatteryState = {
+export const initialBatteryState = {
   width: 0,
   length: 0,
   height: 0,
@@ -11,7 +12,7 @@ const initialBatteryState = {
 };
 
 // Проксі для масиву результатів (якщо знадобиться динамічне оновлення)
-const createProxiedArray = (arr) =>
+const createProxiedArray = (arr /*onChange*/) =>
   new Proxy(arr, {
     get(target, prop, receiver) {
       const value = target[prop];
@@ -20,6 +21,7 @@ const createProxiedArray = (arr) =>
           const result = value.apply(target, args);
           if (["push", "splice", "pop", "shift", "unshift", "clear"].includes(prop)) {
             renderBatteryTable(target);
+            // onChange?.();
           }
           return result;
         };
@@ -34,6 +36,12 @@ const state = {
 };
 
 export const batteryState = new Proxy(state, {
+  /**
+   * @param {Object} target - об'єкт, до якого здійснюється доступ
+   * @param {string} prop - назва властивості, до якої здійснюється доступ
+   * @param {*} value - значення, яке встановлюється для властивості
+   * @returns {boolean} - true, якщо встановлення відбулося успішно
+   */
   set(target, prop, value) {
     target[prop] = value;
     // render викликаємо лише для результатів, а не при зміні форми
@@ -42,12 +50,3 @@ export const batteryState = new Proxy(state, {
 });
 
 // Скидання стану перед новим розрахунком
-export const resetBatteryState = () => {
-  batteryState.width = initialBatteryState.width;
-  batteryState.length = initialBatteryState.length;
-  batteryState.height = initialBatteryState.height;
-  batteryState.weight = initialBatteryState.weight;
-  batteryState.gap = initialBatteryState.gap;
-  batteryState.count = initialBatteryState.count;
-  batteryState.results.length = 0; // очищуємо результати
-};

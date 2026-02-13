@@ -11,7 +11,10 @@ export const initViewSwitcher = () => {
     btn.disabled = false;
   });
 
-  const defaultBtn = document.querySelector('header nav button[data-view="battery"]');
+  const defaultPage = "battery";
+
+  const defaultBtn = document.querySelector(`header nav button[data-view="${defaultPage}"]`);
+  activatePage(defaultPage);
   defaultBtn.classList.add("active");
   defaultBtn.disabled = true;
 

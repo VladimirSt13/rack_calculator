@@ -6,6 +6,6 @@ export const battRefs = {
   batteryWeight: document.getElementById("batteryWeight"),
   batteryGap: document.getElementById("batteryGap"),
   batteryCount: document.getElementById("batteryCount"),
-  batteryCalculateBtn: document.getElementById("battbatteryCalculateBtneryCalculate"),
+  batteryCalculateBtn: document.getElementById("batteryCalculateBtn"),
   batteryRackTable: document.getElementById("batteryRackTable"),
 };
