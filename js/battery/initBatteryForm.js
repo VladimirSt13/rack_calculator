@@ -3,7 +3,6 @@ import { validateBatteryForm } from "./validateBatteryForm.js";
 import { renderErrors } from "./ui/formInit.js";
 import { addListener } from "../ui/eventManager.js";
 import { updateBatteryState } from "./actions/batteryFormAction.js";
-// import { batteryStateLivePanel } from "./battery.js";
 
 export const initBatteryForm = () => {
   // Скидання кнопки та форми
@@ -22,7 +21,6 @@ export const initBatteryForm = () => {
     }
 
     // Форма валідна — можна робити подальший розрахунок
-    console.log("Форма валідна:", values);
-    updateBatteryState(values /*batteryStateLivePanel*/);
+    updateBatteryState(values);
   });
 };
