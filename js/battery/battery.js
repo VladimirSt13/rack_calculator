@@ -1,25 +1,9 @@
-// js/battery/batteryForm.js
-// import { batteryState } from "./batteryState.js";
-// import { calculateBatteryOptions } from "./batteryCalculator.js";
-// import { renderBatteryTable } from "./templates/batteryRackTable.js";
+import { registerPageModule } from "../ui/pageManager.js";
 
-export const initBatteryPage = () => {
-  const form = document.getElementById("batteryForm");
+const init = () => {};
 
-  // --- Скидаємо форму і стан ---
-  // batteryState.reset();
+const activate = () => {};
 
-  // --- Прив'язуємо обробник форми ---
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+const deactivate = () => {};
 
-    // оновлюємо стан з даних форми
-    // batteryState.updateFromForm(form);
-
-    // робимо розрахунок можливих стелажів
-    // const options = calculateBatteryOptions(batteryState.data);
-
-    // рендеримо таблицю результатів
-    // renderBatteryTable(options);
-  });
-};
+registerPageModule({ id: "battery", init, activate, deactivate });

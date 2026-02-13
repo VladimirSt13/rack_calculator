@@ -1,4 +1,6 @@
-import { refs } from "./dom.js";
+import { getRacksRefs } from "./dom.js";
+
+const refs = getRacksRefs();
 
 export const updateRackName = (html) => (refs.rackName.innerHTML = html);
 
