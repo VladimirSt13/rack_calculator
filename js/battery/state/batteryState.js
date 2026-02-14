@@ -8,7 +8,7 @@ export const initialBatteryState = {
   length: 108,
   height: 600,
   weight: 50,
-  gap: 80,
+  gap: 10,
   count: 26,
   results: [], // результати розрахунку стелажів
 };
