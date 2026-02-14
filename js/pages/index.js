@@ -1,6 +1,6 @@
 // js/pages/index.js
 import { batteryPage } from "./battery.js";
-import { rackPage } from "./racks.js";
+import { rackPage } from "./rackPage.js";
 import { registerPage } from "../ui/router.js";
 
 const pages = [batteryPage, rackPage];

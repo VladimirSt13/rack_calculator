@@ -1,5 +1,5 @@
+// js/pages/racks/events/formEvents.js
 import { getRacksRefs } from "../ui/dom.js";
-import { rackActions } from "../state/rackActions.js";
 import { insertBeamUI, removeBeamUI, toggleVerticalSupportsUI } from "../ui/beams.js";
 
 /**
@@ -7,9 +7,10 @@ import { insertBeamUI, removeBeamUI, toggleVerticalSupportsUI } from "../ui/beam
  * @param {Object} params
  * @param {Object} params.price - ціни компонентів
  * @param {function} params.addListener - функція для реєстрації event listener
- * @returns {void}
+ * @param {Object} params.rackActions - actions для роботи з локальним state
+ * @param {Object} [params.rackSelectors] - селектори (необов'язково, якщо потрібні)
  */
-export const initFormEvents = ({ price, addListener }) => {
+export const initFormEvents = ({ price, addListener, rackActions }) => {
   const refs = getRacksRefs();
   const beamsData = Object.keys(price.beams || {});
 

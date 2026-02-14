@@ -1,20 +1,20 @@
-// js/racks/state/rackActions.js
-import { rackState, initialRackState } from "./rackState.js";
-
 /**
- * Actions для роботи зі state сторінки racks
+ * Фабрика actions для сторінки racks
+ * @param {Object} stateInstance - інстанс state сторінки
+ * @param {Object} initialState - початковий state
+ * @returns {Object} rackActions
  */
-export const rackActions = {
+export const createRackActions = (stateInstance, initialState) => ({
   /**
    * Оновлення кількості поверхів
    * @param {number|string} value
    */
   updateFloors(value) {
     const floors = Number(value) || 1;
-    rackState.updateField("floors", floors);
+    stateInstance.updateField("floors", floors);
 
     // Блокування вертикальних стійок, якщо поверхів менше 2
-    if (floors < 2) rackState.updateField("verticalSupports", "");
+    if (floors < 2) stateInstance.updateField("verticalSupports", "");
   },
 
   /**
@@ -22,7 +22,7 @@ export const rackActions = {
    * @param {number|string} value
    */
   updateRows(value) {
-    rackState.updateField("rows", Number(value) || 1);
+    stateInstance.updateField("rows", Number(value) || 1);
   },
 
   /**
@@ -30,7 +30,7 @@ export const rackActions = {
    * @param {number|string} value
    */
   updateBeamsPerRow(value) {
-    rackState.updateField("beamsPerRow", Number(value) || 2);
+    stateInstance.updateField("beamsPerRow", Number(value) || 2);
   },
 
   /**
@@ -38,7 +38,7 @@ export const rackActions = {
    * @param {string} value
    */
   updateVerticalSupports(value) {
-    rackState.updateField("verticalSupports", value || "");
+    stateInstance.updateField("verticalSupports", value || "");
   },
 
   /**
@@ -46,7 +46,7 @@ export const rackActions = {
    * @param {string} value
    */
   updateSupports(value) {
-    rackState.updateField("supports", value || "");
+    stateInstance.updateField("supports", value || "");
   },
 
   /**
@@ -54,12 +54,12 @@ export const rackActions = {
    * @returns {number} id доданої балки
    */
   addBeam() {
-    const state = rackState.get();
+    const state = stateInstance.get();
     const nextBeams = new Map(state.beams);
     const id = state.nextBeamId;
 
     nextBeams.set(id, { item: "", quantity: null });
-    rackState.set({ beams: nextBeams, nextBeamId: id + 1 });
+    stateInstance.set({ beams: nextBeams, nextBeamId: id + 1 });
 
     return id;
   },
@@ -69,12 +69,12 @@ export const rackActions = {
    * @param {number} id
    */
   removeBeam(id) {
-    const state = rackState.get();
+    const state = stateInstance.get();
     if (!state.beams.has(id)) return;
 
     const nextBeams = new Map(state.beams);
     nextBeams.delete(id);
-    rackState.set({ beams: nextBeams });
+    stateInstance.set({ beams: nextBeams });
   },
 
   /**
@@ -83,20 +83,20 @@ export const rackActions = {
    * @param {Partial<{item: string, quantity: number|null}>} patch
    */
   updateBeam(id, patch) {
-    const state = rackState.get();
+    const state = stateInstance.get();
     const old = state.beams.get(id);
     if (!old) return;
 
     const nextBeams = new Map(state.beams);
     nextBeams.set(id, { ...old, ...patch });
-    rackState.set({ beams: nextBeams });
+    stateInstance.set({ beams: nextBeams });
   },
 
   /**
    * Скидання state до початкового
    */
   reset() {
-    rackState.set({ ...initialRackState, beams: new Map() });
+    stateInstance.set({ ...initialState, beams: new Map() });
   },
 
   /**
@@ -104,6 +104,6 @@ export const rackActions = {
    * @param {Object} patch
    */
   batch(patch) {
-    rackState.set({ ...rackState.get(), ...patch });
+    stateInstance.set({ ...stateInstance.get(), ...patch });
   },
-};
+});

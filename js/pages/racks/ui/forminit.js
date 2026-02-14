@@ -1,5 +1,3 @@
-import { rackSelectors } from "../state/rackSelectors.js";
-import { rackActions } from "../state/rackActions.js";
 import { clearBeamsUI } from "./beams.js";
 import { getRacksRefs } from "./dom.js";
 
@@ -7,11 +5,8 @@ import { getRacksRefs } from "./dom.js";
  * Скидання форми racks до початкового стану
  * @returns {void}
  */
-export const resetRackForm = () => {
+export const resetRackForm = (rackSelectors) => {
   const refs = getRacksRefs();
-
-  // Скидаємо state через actions
-  rackActions.reset();
 
   // Очищаємо UI для балок
   clearBeamsUI();
