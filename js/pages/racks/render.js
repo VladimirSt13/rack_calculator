@@ -1,13 +1,21 @@
 import { calculateComponents } from "./core/calculator.js";
-import { rackState } from "./state/rackState.js";
+import { rackSelectors } from "./state/rackSelectors.js";
 import { generateComponentsTableHTML } from "./ui/templates/componentsTable.js";
 import { generateRackNameHTML } from "./ui/templates/rackName.js";
 import { updateRackName, updateComponentsTable } from "./ui/rack.js";
 
+/**
+ * Render сторінки racks на основі поточного state через selectors
+ * @returns {void}
+ */
 export const render = () => {
-  const { floors, rows, supports, beams, verticalSupports } = rackState;
-  const beamsArray = [...beams.values()];
+  const floors = rackSelectors.getFloors();
+  const rows = rackSelectors.getRows();
+  const supports = rackSelectors.getSupports();
+  const verticalSupports = rackSelectors.getVerticalSupports();
+  const beamsArray = rackSelectors.getBeams().map(([, b]) => b); // Map → масив
 
+  // Перевірка на повноту даних
   const isComplete =
     floors &&
     (floors === 1 || verticalSupports) &&
@@ -22,8 +30,12 @@ export const render = () => {
     return;
   }
 
+  // Розрахунок компонентів
   const { currentRack } = calculateComponents({
-    ...rackState,
+    floors,
+    rows,
+    supports,
+    verticalSupports,
     beams: beamsArray,
   });
 

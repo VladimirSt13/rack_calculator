@@ -1,4 +1,4 @@
-import { rackState } from "../state/rackState.js";
+import { rackState } from "./rackState.js";
 
 let id = 0;
 

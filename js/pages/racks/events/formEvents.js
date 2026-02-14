@@ -1,29 +1,25 @@
-import { getPrice } from "../state/priceState.js";
 import { getRacksRefs } from "../ui/dom.js";
-
-import { addBeamAction, removeBeamAction, updateBeamAction } from "../actions/beamActions.js";
-
-import {
-  updateFloors,
-  updateRows,
-  updateBeamsPerRow,
-  updateVerticalSupports,
-  updateSupports,
-} from "../actions/rackActions.js";
-
+import { rackActions } from "../state/rackActions.js";
 import { insertBeamUI, removeBeamUI, toggleVerticalSupportsUI } from "../ui/beams.js";
-import { addListener } from "../../ui/eventManager.js";
 
-export const initFormEvents = async () => {
+/**
+ * Ініціалізація подій форми сторінки racks
+ * @param {Object} params
+ * @param {Object} params.price - ціни компонентів
+ * @param {function} params.addListener - функція для реєстрації event listener
+ * @returns {void}
+ */
+export const initFormEvents = ({ price, addListener }) => {
   const refs = getRacksRefs();
-  const price = await getPrice();
-  const beamsData = Object.keys(price.beams);
+  const beamsData = Object.keys(price.beams || {});
 
+  /** Додати нову балку */
   const insertBeam = () => {
-    const id = addBeamAction();
+    const id = rackActions.addBeam();
     insertBeamUI(id, beamsData);
   };
 
+  /** Обробка кліків по кнопках видалення балок */
   const handleClick = (e) => {
     if (!e.target.matches(".beam-row > button")) return;
 
@@ -31,9 +27,10 @@ export const initFormEvents = async () => {
     const id = Number(row.dataset.id);
 
     removeBeamUI(id);
-    removeBeamAction(id);
+    rackActions.removeBeam(id);
   };
 
+  /** Обробка змін полів input/select */
   const handleInput = (e) => {
     const target = e.target;
     if (!target.matches("input, select")) return;
@@ -42,24 +39,24 @@ export const initFormEvents = async () => {
 
     switch (id) {
       case "floors":
-        updateFloors(value);
+        rackActions.updateFloors(value);
         toggleVerticalSupportsUI(Number(value) || 0);
         return;
 
       case "rows":
-        updateRows(value);
+        rackActions.updateRows(value);
         return;
 
       case "beamsPerRow":
-        updateBeamsPerRow(value);
+        rackActions.updateBeamsPerRow(value);
         return;
 
       case "verticalSupports":
-        updateVerticalSupports(value);
+        rackActions.updateVerticalSupports(value);
         return;
 
       case "supports":
-        updateSupports(value);
+        rackActions.updateSupports(value);
         return;
     }
 
@@ -69,19 +66,16 @@ export const initFormEvents = async () => {
     const beamId = Number(row.dataset.id);
 
     if (tagName === "SELECT") {
-      updateBeamAction(beamId, { item: value || "" });
+      rackActions.updateBeam(beamId, { item: value || "" });
     }
 
     if (tagName === "INPUT") {
-      updateBeamAction(beamId, {
-        quantity: Number(value) || null,
-      });
+      rackActions.updateBeam(beamId, { quantity: Number(value) || null });
     }
   };
 
+  /** Реєстрація слухачів */
   addListener(refs.addBeamBtn, "click", insertBeam);
-
   addListener(refs.rackForm, "input", handleInput);
-
   addListener(refs.rackForm, "click", handleClick);
 };
