@@ -1,16 +1,24 @@
-import { battRefs } from "./ui/dom.js";
+import { getBatteryRefs } from "./ui/dom.js";
 import { validateBatteryForm } from "./validateBatteryForm.js";
-import { renderErrors } from "./ui/formInit.js";
+import { renderErrors } from "./ui/formErrors.js";
+import { generateRackVariants } from "./core/batteryRackCalculator.js";
 
-import { updateBatteryState } from "./actions/batteryFormAction.js";
-
-export const initBatteryForm = ({ addListener }) => {
+export const initBatteryForm = ({ addListener, batteryActions, batterySelectors }) => {
   // Скидання кнопки та форми
-  battRefs.batteryCalculateBtn.disabled = false;
-  battRefs.batteryForm.reset();
+  const refs = getBatteryRefs();
+  refs.batteryCalculateBtn.disabled = false;
+  refs.batteryForm.reset();
+
+  const initialValues = batterySelectors.getFormValues();
+  Object.entries(initialValues).forEach(([key, value]) => {
+    const refKey = `battery${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+    if (refs[refKey]) {
+      refs[refKey].value = value ?? 0;
+    }
+  });
 
   // Підключаємо submit
-  addListener(battRefs.batteryForm, "submit", (e) => {
+  addListener(refs.batteryForm, "submit", (e) => {
     e.preventDefault();
 
     const { valid, errors, values } = validateBatteryForm();
@@ -21,6 +29,20 @@ export const initBatteryForm = ({ addListener }) => {
     }
 
     // Форма валідна — можна робити подальший розрахунок
-    updateBatteryState(values);
+    batteryActions.updateFields(values);
+
+    const element = {
+      width: values.width,
+      length: values.length,
+      height: values.height,
+    };
+
+    const results = generateRackVariants({
+      element,
+      totalCount: values.count,
+      gap: values.gap,
+    });
+
+    batteryActions.addResults(results);
   });
 };

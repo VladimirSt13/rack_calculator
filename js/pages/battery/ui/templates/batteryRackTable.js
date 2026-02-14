@@ -4,11 +4,10 @@ const SPAN_ICONS = {
   BALANCED: "⚖",
 };
 
-export const renderBatteryTable = (rackConfigs) => {
+export const renderBatteryTable = (batterySelectors) => {
   const table = document.querySelector("#batteryRackTable");
   const thead = table.querySelector("thead");
   const tbody = table.querySelector("tbody");
-  console.log("rackConfigs", rackConfigs);
   const headers = [
     "№",
     "Поверхи",
@@ -21,6 +20,8 @@ export const renderBatteryTable = (rackConfigs) => {
 
   thead.innerHTML = "<tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr>";
   tbody.innerHTML = "";
+
+  const rackConfigs = batterySelectors.getResults();
 
   if (!Array.isArray(rackConfigs) || rackConfigs.length === 0) {
     const tr = document.createElement("tr");

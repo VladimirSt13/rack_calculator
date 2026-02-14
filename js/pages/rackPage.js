@@ -1,6 +1,6 @@
 // js/pages/rackPage.js
 import { createPageModule } from "../ui/createPageModule.js";
-import { createRackState, initialRackState } from "./racks/state/rackState.js";
+import { initialRackState } from "./racks/state/rackState.js";
 import { createRackActions } from "./racks/state/rackActions.js";
 import { createRackSelectors } from "./racks/state/rackSelectors.js";
 import { resetRackForm } from "./racks/ui/forminit.js";
@@ -8,11 +8,12 @@ import { initFormEvents } from "./racks/events/formEvents.js";
 import { loadPrice } from "./racks/state/priceState.js";
 import { populateDropdowns } from "./racks/ui/dropdowns.js";
 import { render } from "./racks/render.js";
+import { createState } from "../state/createState.js";
 
 let componentsPrice = null;
 
 // Створюємо state, селектори та actions прямо на сторінці
-const rackState = createRackState({ ...initialRackState });
+const rackState = createState({ ...initialRackState });
 let unsubscribe = null;
 export const rackSelectors = createRackSelectors(rackState);
 export const rackActions = createRackActions(rackState, initialRackState);

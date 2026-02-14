@@ -1,5 +1,5 @@
 // js/pages/index.js
-import { batteryPage } from "./battery.js";
+import { batteryPage } from "./batteryPage.js";
 import { rackPage } from "./rackPage.js";
 import { registerPage } from "../ui/router.js";
 

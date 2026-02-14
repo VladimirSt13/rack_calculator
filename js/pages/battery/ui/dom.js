@@ -1,4 +1,4 @@
-export const battRefs = {
+export const getBatteryRefs = () => ({
   batteryForm: document.getElementById("batteryForm"),
   batteryWidth: document.getElementById("batteryWidth"),
   batteryLength: document.getElementById("batteryLength"),
@@ -8,4 +8,4 @@ export const battRefs = {
   batteryCount: document.getElementById("batteryCount"),
   batteryCalculateBtn: document.getElementById("batteryCalculateBtn"),
   batteryRackTable: document.getElementById("batteryRackTable"),
-};
+});

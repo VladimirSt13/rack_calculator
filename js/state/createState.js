@@ -1,55 +1,124 @@
+// js/state/createState.js
+
 /**
- * Створює інстанс state з геттерами, actions і підпискою
+ * Створює state з геттерами, actions і підпискою
  * @param {Object} initialData - початковий стан
- * @returns {Object} state API
+ * @returns {{
+ *   get: () => Object,
+ *   set: (patch: Object) => void,
+ *   updateField: (key: string, value: any) => void,
+ *   reset: () => void,
+ *   subscribe: (listener: Function) => Function
+ * }}
  */
 export const createState = (initialData = {}) => {
   let state = { ...initialData };
-  const subscribers = new Set();
+  const listeners = new Set();
 
-  /**
-   * Отримати копію всього state
-   * @returns {Object}
-   */
-  const get = () => ({ ...state });
+  // Просте shallow порівняння
+  const shallowEqual = (a, b) => {
+    if (a === b) return true;
 
-  /**
-   * Оновити state через updater (action)
-   * @param {Function|Object} updater - нові поля або callback
-   * @returns {void}
-   */
-  const set = (updater) => {
-    const newState = typeof updater === "function" ? updater({ ...state }) : updater;
-    state = { ...state, ...newState };
-    subscribers.forEach((fn) => fn({ ...state }));
+    // Масиви
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      return a.every((v, i) => v === b[i]);
+    }
+
+    // Map
+    if (a instanceof Map && b instanceof Map) {
+      if (a.size !== b.size) return false;
+      for (const [key, val] of a) {
+        if (!b.has(key) || b.get(key) !== val) return false;
+      }
+      return true;
+    }
+
+    // Прості об'єкти
+    if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {
+      const keysA = Object.keys(a);
+      const keysB = Object.keys(b);
+      if (keysA.length !== keysB.length) return false;
+      return keysA.every((key) => a[key] === b[key]);
+    }
+
+    return false;
   };
 
-  /**
-   * Підписка на зміни state
-   * @param {Function} fn - callback на зміни state
-   * @returns {Function} unsubscribe
-   */
-  const subscribe = (fn) => {
-    subscribers.add(fn);
-    return () => subscribers.delete(fn); // відписка
+  const notify = () => listeners.forEach((fn) => fn(state));
+
+  return {
+    /**
+     * Повертає копію state
+     * @returns {Object}
+     */
+    get() {
+      // Для Map і масивів повертаємо shallow копії
+      const copy = {};
+      Object.entries(state).forEach(([key, val]) => {
+        if (Array.isArray(val)) copy[key] = [...val];
+        else if (val instanceof Map) copy[key] = new Map(val);
+        else copy[key] = val;
+      });
+      return copy;
+    },
+
+    /**
+     * Встановлює patch в state
+     * @param {Object} patch
+     */
+    set(patch) {
+      const nextState = { ...state, ...patch };
+      let changed = false;
+      for (const key of Object.keys(nextState)) {
+        if (!shallowEqual(nextState[key], state[key])) {
+          changed = true;
+          break;
+        }
+      }
+      if (changed) {
+        state = nextState;
+        notify();
+      }
+    },
+
+    /**
+     * Оновлення одного поля
+     * @param {string} key
+     * @param {any} value
+     */
+    updateField(key, value) {
+      if (!shallowEqual(state[key], value)) {
+        state = { ...state, [key]: value };
+        notify();
+      }
+    },
+
+    /**
+     * Скидання state до початкового
+     */
+    reset() {
+      let changed = false;
+      for (const key of Object.keys(initialData)) {
+        if (!shallowEqual(state[key], initialData[key])) {
+          changed = true;
+          break;
+        }
+      }
+      if (changed) {
+        state = { ...initialData };
+        notify();
+      }
+    },
+
+    /**
+     * Підписка на зміни state
+     * @param {Function} listener
+     * @returns {Function} unsubscribe
+     */
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
   };
-
-  /**
-   * Скидання state на початковий
-   * @returns {void}
-   */
-  const reset = () => {
-    state = { ...initialData };
-    subscribers.forEach((fn) => fn({ ...state }));
-  };
-
-  /**
-   * Оновити конкретне поле
-   * @param {string} field - ключ поля
-   * @param {*} value - нове значення
-   * @returns {void}
-   */
-  const updateField = (field, value) => set((prev) => ({ ...prev, [field]: value }));
-
-  return { get, set, subscribe, reset, updateField };
 };

@@ -1,13 +1,14 @@
-import { battRefs } from "./ui/dom.js";
+import { getBatteryRefs } from "./ui/dom.js";
 
 export const validateBatteryForm = () => {
+  const refs = getBatteryRefs();
   const values = {
-    width: Number(battRefs.batteryWidth.value),
-    length: Number(battRefs.batteryLength.value),
-    height: Number(battRefs.batteryHeight.value),
-    weight: Number(battRefs.batteryWeight.value),
-    gap: Number(battRefs.batteryGap.value) || 0,
-    count: Number(battRefs.batteryCount.value),
+    width: Number(refs.batteryWidth.value),
+    length: Number(refs.batteryLength.value),
+    height: Number(refs.batteryHeight.value),
+    weight: Number(refs.batteryWeight.value),
+    gap: Number(refs.batteryGap.value) || 0,
+    count: Number(refs.batteryCount.value),
   };
 
   const errors = {};

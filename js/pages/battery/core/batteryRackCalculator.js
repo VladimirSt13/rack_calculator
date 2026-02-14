@@ -184,7 +184,7 @@ export const buildRackConfig = (element, totalCount, floors, rows, gap) => {
 // -------------------------
 // Генерація варіантів стелажів
 // -------------------------
-export const generateRackVariants = (element, totalCount, gap) => {
+export const generateRackVariants = ({ element, totalCount, gap }) => {
   const variants = [];
 
   [1, 2].forEach((floors) => {

@@ -1,6 +1,6 @@
 // state/rackState.js
 
-import { createState } from "../../../state/createState.js";
+// import { createState } from "../../../state/createState.js";
 
 /**
  * Початковий state сторінки racks
@@ -14,5 +14,3 @@ export const initialRackState = {
   beams: new Map(),
   nextBeamId: 1, // тепер id для балок в state
 };
-
-export const createRackState = () => createState({ ...initialRackState });
