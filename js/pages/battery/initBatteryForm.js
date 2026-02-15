@@ -2,6 +2,7 @@ import { getBatteryRefs } from "./ui/dom.js";
 import { validateBatteryForm } from "./validateBatteryForm.js";
 import { renderErrors } from "./ui/formErrors.js";
 import { generateRackVariants } from "./core/batteryRackCalculator.js";
+import { debounce } from "../../utils/debounce.js";
 
 export const initBatteryForm = ({ addListener, batteryActions, batterySelectors }) => {
   // Скидання кнопки та форми
@@ -16,6 +17,14 @@ export const initBatteryForm = ({ addListener, batteryActions, batterySelectors 
       refs[refKey].value = value ?? 0;
     }
   });
+
+  addListener(
+    refs.batteryForm,
+    "input",
+    debounce(() => {
+      batteryActions.clearResults();
+    }, 200),
+  );
 
   // Підключаємо submit
   addListener(refs.batteryForm, "submit", (e) => {

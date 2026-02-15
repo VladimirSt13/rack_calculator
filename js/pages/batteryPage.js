@@ -2,7 +2,6 @@
 
 import { createPageModule } from "../ui/createPageModule.js";
 import { initialBatteryState } from "./battery/state/batteryState.js";
-import { renderBatteryTable } from "./battery/ui/templates/batteryRackTable.js";
 import { createState } from "../state/createState.js";
 import { initBatteryForm } from "./battery/initBatteryForm.js";
 import { createBatteryActions } from "./battery/state/batteryAction.js";
@@ -17,14 +16,13 @@ export const batteryActions = createBatteryActions(batteryState, initialBatteryS
 export const batteryPage = createPageModule({
   id: "battery",
 
-  init: () => {
-    // Підписка на зміни state для рендера таблиці
-    unsubscribe = batteryState.subscribe(() => render(batterySelectors));
-  },
+  init: () => {},
 
   activate: (addListener) => {
+    // Підписка на зміни state для рендера таблиці
+    unsubscribe = batteryState.subscribe(() => render(batterySelectors));
     // Скидання state і форми
-    batteryState.reset();
+    batteryActions.reset();
 
     // Ініціалізація подій форми
     initBatteryForm({ addListener, batteryActions, batterySelectors });

@@ -8,27 +8,46 @@
  */
 export const createBatteryActions = (stateInstance, initialState) => ({
   /**
-   * Оновлення полів state
-   * @param {Object} values
+   * Batch-оновлення полів state
+   * @param {Object} values - значення форми
+   * @returns {void}
    */
   updateFields(values) {
-    Object.entries(values).forEach(([key, value]) => stateInstance.updateField(key, value));
+    stateInstance.batch(() => {
+      Object.entries(values).forEach(([key, value]) => {
+        stateInstance.updateField(key, value);
+      });
+
+      // 🔥 очищення таблиці при зміні полів форми
+      stateInstance.updateField("results", []);
+    });
   },
 
   /**
-   * Додає масив результатів до існуючих
-   * @param {Array} resultsArray
+   * Зберігає результати розрахунку
+   * @param {Array} resultsArray - масив конфігурацій стелажів
+   * @returns {void}
    */
   addResults(resultsArray) {
-    const state = stateInstance.get();
-    stateInstance.updateField("results", [...resultsArray]);
+    stateInstance.batch(() => {
+      stateInstance.updateField("results", Array.isArray(resultsArray) ? resultsArray : []);
+    });
+  },
+  clearResults() {
+    stateInstance.batch(() => {
+      stateInstance.updateField("results", []);
+    });
   },
 
   /**
    * Скидання state до початкового
+   * @returns {void}
    */
+
   reset() {
-    const resetValues = { ...initialState, results: [] };
-    stateInstance.set(resetValues);
+    console.log("reset battery & results");
+    stateInstance.batch(() => {
+      stateInstance.set({ ...initialState, results: [] });
+    });
   },
 });
