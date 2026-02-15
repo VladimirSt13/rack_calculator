@@ -33,8 +33,8 @@ export const generateComponentsTableHTML = ({ components, totalCost, isolatorsCo
         ${tableRows}
       </tbody>
     </table>
-    <p class="total">Загальна вартість без ізоляторів: ${totalWithoutIsolators}</p>
+    <p class="price">Загальна вартість без ізоляторів: ${totalWithoutIsolators}</p>
     <p class="total">Загальна вартість: ${totalCost}</p>
-    <p class="total">Нульова ціна АЕ (+ПДВ +націнка): ${zeroCost}</p>
+    <p class="zero-cost">Нульова ціна АЕ (+ПДВ +націнка): ${zeroCost}</p>
   `;
 };
