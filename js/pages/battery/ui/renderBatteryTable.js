@@ -1,19 +1,21 @@
 // js/pages/battery/ui/renderBatteryTable.js
 
-import { batteryTableRowTemplate, emptyBatteryTableTemplate } from "./templates/batteryTableTemplate.js";
+import {
+  batteryTableHeaderTemplate,
+  batteryTableRowTemplate,
+  emptyBatteryTableTemplate,
+} from "./templates/batteryTableTemplate.js";
 
 /**
- * Рендер таблиці результатів
- * @param {HTMLElement} table
- * @param {Array} results
- * @returns {void}
+ * Ініціалізація таблиці результатів
+ * @param {HTMLElement} table - Таблиця результатів
+ *
+ * Функція ініціаліза таблицю результатів, додаючи заголовок
+ * за допомогою batteryTableHeaderTemplate та порожній рядок за допомогою
+ * emptyBatteryTableTemplate
  */
-export const renderBatteryTable = (table, results) => {
+export const initBatteryTable = (table) => {
   if (!table) return;
-
-  const thead = table.querySelector("thead");
-  const tbody = table.querySelector("tbody");
-
   const headers = [
     "№",
     "Поверхи",
@@ -23,13 +25,29 @@ export const renderBatteryTable = (table, results) => {
     "Висота стелажа, мм",
     "Варіанти прольотів",
   ];
+  const thead = table.querySelector("thead");
+  const tbody = table.querySelector("tbody");
+  if (thead) thead.innerHTML = batteryTableHeaderTemplate(headers);
+  if (tbody) tbody.innerHTML = emptyBatteryTableTemplate(headers.length);
+};
 
-  thead.innerHTML = "<tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr>";
+/**
+ * Рендер таблиці результатів
+ * @param {HTMLElement} table - Таблиця результатів
+ * @param {Array<Object>} results - Масив результатів
+ *
+ * Функція рендерить таблицю результатів, додаючи заголовок
+ * за допомогою batteryTableHeaderTemplate та порожній рядок за допомогою
+ * emptyBatteryTableTemplate
+ */
 
-  if (!Array.isArray(results) || results.length === 0) {
-    tbody.innerHTML = emptyBatteryTableTemplate(headers.length);
-    return;
-  }
-
-  tbody.innerHTML = results.map((rack, index) => batteryTableRowTemplate(rack, index)).join("");
+export const renderBatteryTable = ({ tableRef, results = [] }) => {
+  if (!tableRef) return;
+  const tbody = tableRef.querySelector("tbody");
+  if (!tbody) return;
+  const resultsTable =
+    results.length > 0
+      ? results.map((rack, index) => batteryTableRowTemplate({ rack, index })).join("")
+      : emptyBatteryTableTemplate(tbody.closest("table").querySelectorAll("th").length);
+  tbody.innerHTML = resultsTable;
 };

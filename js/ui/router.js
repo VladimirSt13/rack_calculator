@@ -29,7 +29,6 @@ export const registerPage = ({ id, init, activate, deactivate, onStateChange }) 
  * @returns {Promise<void>}
  */
 export const navigate = async (id) => {
-  console.log(`Navigating to page ${id}`);
   const page = modules.get(id);
   if (!page) return console.warn(`Page ${id} not found`);
 

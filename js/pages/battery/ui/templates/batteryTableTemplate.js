@@ -1,19 +1,22 @@
 // js/pages/battery/ui/templates/batteryTableTemplate.js
 
-const SPAN_ICONS = {
-  BEST_FIT: "✅",
-  SYMMETRIC: "🔹",
-  BALANCED: "⚖",
-};
+/**
+ * Генерує шаблон заголовка таблиці
+ * @param {Array<string>} headers - Массив назв колонок
+ * @returns {string} HTML рядка <tr> для thead
+ */
+export const batteryTableHeaderTemplate = (headers) => `<tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>`;
 
 /**
- * Генерує HTML рядка таблиці
- * @param {Object} rack
- * @param {number} index
- * @returns {string}
+ * Генерує HTML рядок для ряду таблиці результатів
+ * @param {{ rack: Object, index: number }} - об'єкт з результатом
+ * @returns {string} HTML рядка <tr> для tbody
+ * @prop {Object} rack - об'єкт з результатом
+ * @prop {number} index - індекс результату
  */
-export const batteryTableRowTemplate = (rack, index) => {
-  const spansHTML = (rack.spans ?? [])
+export const batteryTableRowTemplate = ({ rack, index }) => {
+  console.log("🚀 ~ rack->", rack);
+  const spansHTML = (rack.topSpans ?? [])
     .slice(0, 10)
     .map((span) => {
       return `<div>${span.combination.join(" + ")} [${span.beams} балок]</div>`;
