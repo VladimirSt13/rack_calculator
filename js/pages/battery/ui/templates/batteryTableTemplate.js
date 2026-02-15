@@ -14,10 +14,9 @@ const SPAN_ICONS = {
  */
 export const batteryTableRowTemplate = (rack, index) => {
   const spansHTML = (rack.spans ?? [])
-    .slice(0, 3)
+    .slice(0, 10)
     .map((span) => {
-      const icon = SPAN_ICONS[span.type] || "";
-      return `<div>${icon} ${span.combo.join(" + ")}</div>`;
+      return `<div>${span.combination.join(" + ")} [${span.beams} балок]</div>`;
     })
     .join("");
 
@@ -28,7 +27,7 @@ export const batteryTableRowTemplate = (rack, index) => {
       <td>${index + 1}</td>
       <td>${rack.floors}</td>
       <td>${rack.rows}</td>
-      <td>${rack.rackLength}</td>
+      <td>${rack.length}</td>
       <td>${rack.width}</td>
       <td>${rack.height}</td>
       <td>${spansHTML}</td>

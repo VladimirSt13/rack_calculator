@@ -1,7 +1,7 @@
 import { getBatteryRefs } from "./ui/dom.js";
 import { validateBatteryForm } from "./validateBatteryForm.js";
 import { renderErrors } from "./ui/formErrors.js";
-import { generateRackVariants } from "./core/batteryRackCalculator.js";
+import { generateRackVariants } from "./core/rackBuilder.js";
 import { debounce } from "../../utils/debounce.js";
 
 export const initBatteryForm = ({ addListener, batteryActions, batterySelectors }) => {
@@ -44,6 +44,7 @@ export const initBatteryForm = ({ addListener, batteryActions, batterySelectors 
       width: values.width,
       length: values.length,
       height: values.height,
+      weight: values.weight,
     };
 
     const results = generateRackVariants({

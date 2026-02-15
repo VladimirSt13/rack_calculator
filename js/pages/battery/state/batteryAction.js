@@ -45,7 +45,6 @@ export const createBatteryActions = (stateInstance, initialState) => ({
    */
 
   reset() {
-    console.log("reset battery & results");
     stateInstance.batch(() => {
       stateInstance.set({ ...initialState, results: [] });
     });
