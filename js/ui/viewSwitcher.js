@@ -1,33 +1,34 @@
-import { activatePage } from "./pageManager.js";
+// js/ui/viewSwitcher.js
+import { navigate, getRegisteredPages } from "./router.js";
 
-export const initViewSwitcher = () => {
-  const navButtons = document.querySelectorAll("header nav button");
-  const views = document.querySelectorAll("main section");
+/**
+ * Ініціалізація автоматичної навігації між сторінками
+ * @param {string} containerSelector - селектор для контейнера кнопок
+ * @param {string} defaultPage - сторінка за замовчуванням
+ * @returns {void}
+ */
+export const initViewSwitcher = (containerSelector = "header nav", defaultPage = "battery") => {
+  const container = document.querySelector(containerSelector);
+  const mainContent = document.getElementById("app");
+  if (!container) return console.warn(`Container ${containerSelector} not found`);
 
-  // --- Показуємо секцію з батареєю при першому завантаженні ---
-  views.forEach((v) => (v.hidden = v.id !== "view-battery"));
-  navButtons.forEach((btn) => {
-    btn.classList.remove("active");
-    btn.disabled = false;
-  });
+  const pageIds = getRegisteredPages();
+  if (!pageIds.length) return;
 
-  const defaultPage = "battery";
+  // очищаємо контейнер і генеруємо кнопки
+  container.innerHTML = "";
+  pageIds.forEach((id) => {
+    const btn = document.createElement("button");
+    btn.dataset.view = id;
+    btn.textContent = id;
+    container.appendChild(btn);
 
-  const defaultBtn = document.querySelector(`header nav button[data-view="${defaultPage}"]`);
-  activatePage(defaultPage);
-  defaultBtn.classList.add("active");
-  defaultBtn.disabled = true;
-
-  // --- Обробник перемикання ---
-  navButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const viewToShow = btn.dataset.view;
+      await navigate(id);
+      showPage(id);
 
-      views.forEach((v) => (v.hidden = v.id !== "view-" + viewToShow));
-
-      await activatePage(viewToShow);
-
-      navButtons.forEach((b) => {
+      // активна кнопка
+      container.querySelectorAll("button").forEach((b) => {
         b.classList.remove("active");
         b.disabled = false;
       });
@@ -35,4 +36,24 @@ export const initViewSwitcher = () => {
       btn.disabled = true;
     });
   });
+
+  // --- функція показу/приховування сторінки через hidden ---
+  const showPage = (id) => {
+    pageIds.forEach((pageId) => {
+      const section = mainContent.querySelector(`#view-${pageId}`);
+      if (section) {
+        section.hidden = pageId !== id; // якщо не поточна сторінка — приховане
+      }
+    });
+  };
+
+  // навігація на дефолтну сторінку
+  (async () => {
+    await navigate(defaultPage);
+    const defaultBtn = container.querySelector(`button[data-view="${defaultPage}"]`);
+    if (defaultBtn) {
+      defaultBtn.classList.add("active");
+      defaultBtn.disabled = true;
+    }
+  })();
 };

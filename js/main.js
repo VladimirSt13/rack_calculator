@@ -1,9 +1,11 @@
-// main.js
-
+// js/main.js
 import { initViewSwitcher } from "./ui/viewSwitcher.js";
-import "./racks/racks.js";
-import "./battery/battery.js";
+import { registerAllPages } from "./pages/index.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  initViewSwitcher();
+document.addEventListener("DOMContentLoaded", async () => {
+  // --- централізована реєстрація сторінок ---
+  await registerAllPages();
+
+  // --- ініціалізація viewSwitcher після реєстрації сторінок ---
+  initViewSwitcher("header nav", "battery");
 });
