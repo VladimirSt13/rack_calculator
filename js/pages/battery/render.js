@@ -12,8 +12,6 @@ import { renderBatteryTable } from "./ui/renderBatteryTable.js";
 
 let renderCount = 1;
 export const render = (batterySelectors) => {
-  renderCount++;
-  console.log("🚀 ~ renderCount->", renderCount);
   const battRefs = getBatteryRefs();
   const formData = batterySelectors.getFormValues();
 
