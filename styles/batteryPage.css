@@ -1,0 +1,154 @@
+/* ==============================
+   BatteryPage — layout
+============================== */
+
+.battery .section__content {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 768px) {
+  .battery .section__content {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+}
+
+/* ==============================
+   BatteryPage — blocks
+============================== */
+
+.batteryForm {
+  flex: 1 1 35%;
+  align-self: flex-start;
+  min-width: 350px;
+}
+
+.battery-results {
+  flex: 1 1 75%;
+  min-width: 600px;
+}
+
+/* ==============================
+   Battery form (надбудова над .form)
+============================== */
+
+.batteryForm {
+  gap: 0.75rem; /* менший вертикальний крок, ніж глобальний */
+}
+
+/* ---- Рядки форми ---- */
+.batteryForm__form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ---- Однакова ширина лейблів ---- */
+.batteryForm__form-row label {
+  width: 90px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+/* ---- Одиниці виміру ---- */
+.batteryForm__form-row span {
+  font-weight: 500;
+}
+
+/* ---- Спеціальні рядки ---- */
+.batteryForm__form-row--count {
+  margin-left: 17px;
+}
+
+/* ==============================
+   Delta / відстань (+ −)
+============================== */
+
+.label-delta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.batteryForm__form-row .label-delta {
+  width: auto;
+}
+
+/* вирівнювання по baseline для складних рядків */
+.batteryForm .batteryForm__form-row--length {
+  /* align-items: flex-end; */
+}
+
+/* ==============================
+   Fieldset
+============================== */
+
+.battery-params__fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ==============================
+   Button
+============================== */
+
+#batteryCalculateBtn {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* ==============================
+   Tables
+============================== */
+
+.battery-rack-table {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.label-delta + input[type="number"] {
+  width: 6ch;
+}
+
+.delta-wrapper {
+  position: relative;
+}
+
+.label-delta {
+  position: absolute;
+  transform: translate(+120%, -80%);
+}
+/* ---- Ширина колонок ---- */
+.battery-rack-table th:nth-child(1),
+.battery-rack-table td:nth-child(1) {
+  width: 5%;
+}
+
+.battery-rack-table th:nth-child(2),
+.battery-rack-table td:nth-child(2) {
+  width: 20%;
+}
+
+.battery-rack-table th:nth-child(3),
+.battery-rack-table td:nth-child(3) {
+  width: 20%;
+}
+
+.battery-rack-table th:nth-child(4),
+.battery-rack-table td:nth-child(4) {
+  width: 55%;
+}
+
+/* ---- Чергування рядків ---- */
+.battery-rack-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* акцентний фон для через один рядок */
+}
+
+/* ---- Ховер для рядка ---- */
+.battery-rack-table tbody tr:hover {
+  background-color: #e6f0ff; /* акцентний колір при наведенні */
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 // js/pages/battery/core/constants.js
-export const standardWidths = [215, 290, 430, 580];
-export const standardHeights = [632, 1190];
+export const standardWidths = [290, 430, 580];
+export const standardHeights = [632, 1190, 1500];
 
 export const standardSpans = [
   { length: 600, capacity: 400 },

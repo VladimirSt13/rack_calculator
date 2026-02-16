@@ -6,134 +6,155 @@
     <link rel="stylesheet" href="./styles/styles.css" />
   </head>
   <body>
-    <header>
-      <nav>
-        <!-- <button data-view="rack">Стелаж</button>
-        <button data-view="battery">Акумулятор</button> -->
-      </nav>
-    </header>
+    <div class="app-container">
+      <!-- HEADER -->
+      <header class="site-header">
+        <nav class="site-nav">
+          <ul class="nav-list">
+            <!-- <li><button data-view="rack" class="nav-btn">Стелаж</button></li>
+            <li><button data-view="battery" class="nav-btn">Акумулятор</button></li> -->
+          </ul>
+        </nav>
+      </header>
 
-    <main id="app">
-      <!-- Секція стелажа -->
-      <section id="view-rack" hidden>
-        <div class="rack">
-          <div class="left-side">
-            <h2>Параметри стелажу</h2>
-            <form id="rackForm">
-              <div class="form-row">
-                <label
-                  >Кількість поверхів:
-                  <input type="number" id="floors" min="1" max="10" value="1" required />
-                </label>
+      <!-- MAIN -->
+      <main id="app" class="site-main">
+        <!-- Секція стелажа -->
+        <section id="view-rack" class="view section" hidden>
+          <h2>Розрахунок стелажа</h2>
+          <div class="section__content">
+            <div class="rack-params">
+              <fieldset class="rack-params__fieldset">
+                <legend>Параметри стелажа</legend>
+                <form id="rackForm" class="form rackForm">
+                  <div class="form-row rackForm__form-row">
+                    <label for="floors"
+                      >Кількість поверхів:
+                      <input type="number" id="floors" min="1" max="10" value="1" required />
+                    </label>
+                  </div>
+                  <div class="form-row rackForm__form-row">
+                    <label for="verticalSupports"
+                      >Вертикальна опора:
+                      <select id="verticalSupports" required>
+                        <option value="" disabled selected>Оберіть вертикальну опору</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="form-row rackForm__form-row">
+                    <label for="supports"
+                      >Опора:
+                      <select id="supports" required>
+                        <option value="" disabled selected>Оберіть опору</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="form-row rackForm__form-row">
+                    <label for="rows"
+                      >Кількість рядів:
+                      <input type="number" id="rows" min="1" max="4" value="1" required />
+                    </label>
+                  </div>
+                  <div class="form-row rackForm__form-row">
+                    <label for="beamsPerRow"
+                      >Кількість балок на один ряд:
+                      <input type="number" id="beamsPerRow" min="2" max="4" value="2" step="1" required />
+                    </label>
+                  </div>
+                  <div class="form-row rackForm__form-row">
+                    <label>Прольоти:</label>
+                    <div id="beamsContainer" class="rackForm__beamsContainer" data-dynamic="beams"></div>
+                    <button type="button" id="addBeam" class="btn btn--secondary">+ Додати проліт</button>
+                  </div>
+                </form>
+              </fieldset>
+            </div>
+
+            <div class="rack-results">
+              <div class="rack-name">
+                <strong>Назва стелажа:</strong>
+                <div id="rackName">---</div>
               </div>
 
-              <div class="form-row">
-                <label
-                  >Вертикальна опора:
-                  <select id="verticalSupports">
-                    <option value="" disabled selected>Оберіть вертикальну опору</option>
-                  </select>
-                </label>
+              <div class="components-section">
+                <h3>Таблиця компонентів стелажа</h3>
+                <div id="componentsTable" class="components-section__table" data-dynamic="components"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Секція акумулятора -->
+        <section id="view-battery" class="view section battery">
+          <h2>Вибір стелажа для батареї за розмірами та вагою одного акумулятора</h2>
+          <div class="section__content">
+            <form id="batteryForm" class="form batteryForm">
+              <fieldset class="battery-params__fieldset">
+                <legend>Параметри акумулятора</legend>
+                <!-- Довжина + Відстань -->
+                <div class="form-row batteryForm__form-row batteryForm__form-row--length">
+                  <label for="batteryLength">Довжина L:</label>
+                  <input type="number" id="batteryLength" required />
+                  <span>+</span>
+                  <div class="delta-wrapper">
+                    <label for="batteryGap" class="label-delta">&Delta;</label>
+                    <input type="number" id="batteryGap" />
+                  </div>
+                  <span>мм</span>
+                </div>
+
+                <!-- Ширина -->
+                <div class="form-row batteryForm__form-row">
+                  <label for="batteryWidth">Ширина W:</label>
+                  <input type="number" id="batteryWidth" required />
+                  <span>мм</span>
+                </div>
+
+                <!-- Висота -->
+                <div class="form-row batteryForm__form-row">
+                  <label for="batteryHeight">Висота H:</label>
+                  <input type="number" id="batteryHeight" required />
+                  <span>мм</span>
+                </div>
+
+                <!-- Вага -->
+                <div class="form-row batteryForm__form-row">
+                  <label for="batteryWeight">Вага:</label>
+                  <input type="number" id="batteryWeight" />
+                  <span>кг</span>
+                </div>
+              </fieldset>
+
+              <!-- Кількість -->
+              <div class="form-row batteryForm__form-row batteryForm__form-row--count">
+                <label for="batteryCount">Кількість:</label>
+                <input type="number" id="batteryCount" min="1" value="1" required />
+                <span>шт</span>
               </div>
 
-              <div class="form-row">
-                <label
-                  >Опора:
-                  <select id="supports">
-                    <option value="" disabled selected>Оберіть опору</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="form-row">
-                <label
-                  >Кількість рядів:
-                  <input type="number" id="rows" min="1" max="4" value="1" required />
-                </label>
-              </div>
-
-              <div class="form-row">
-                <label
-                  >Кількість балок на один ряд:
-                  <input type="number" id="beamsPerRow" min="2" max="4" value="2" step="1" required />
-                </label>
-              </div>
-
-              <div class="form-row">
-                <label>Прольоти:</label>
-                <div id="beamsContainer"></div>
-                <button type="button" id="addBeam">+ Додати проліт</button>
-              </div>
+              <!-- Кнопка -->
+              <button type="submit" id="batteryCalculateBtn" class="btn btn--primary">Підібрати</button>
             </form>
-          </div>
-          <div class="right-side">
-            <div class="rack-name">
-              <strong>Назва стелажа: </strong>
-              <div id="rackName">---</div>
-            </div>
 
-            <div class="components-section">
-              <h3>Таблиця компонентів стелажа</h3>
-              <div id="componentsTable"></div>
+            <div class="battery-results">
+              <h3>Варіанти стелажів</h3>
+              <table id="batteryRackTable" class="battery-rack-table">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      <!-- Секція акумулятора -->
-      <section id="view-battery">
-        <h2>Параметри акумулятора</h2>
-        <form id="batteryForm" class="form">
-          <div class="form-row">
-            <label
-              >Ширина акумулятора (мм):
-              <input type="number" id="batteryWidth" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label
-              >Довжина акумулятора (мм):
-              <input type="number" id="batteryLength" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label
-              >Висота акумулятора (мм):
-              <input type="number" id="batteryHeight" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label
-              >Вага акумулятора (кг):
-              <input type="number" id="batteryWeight" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label
-              >Відстань між акумуляторами (мм):
-              <input type="number" id="batteryGap" value="" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label
-              >Кількість акумуляторів:
-              <input type="number" id="batteryCount" min="1" value="" />
-            </label>
-          </div>
-          <div class="form-row">
-            <button type="submit" id="batteryCalculateBtn">Підібрати</button>
-          </div>
-        </form>
-        <div class="battery-results">
-          <h3>Варіанти стелажів</h3>
-          <table id="batteryRackTable" class="battery-rack-table">
-            <thead></thead>
-            <tbody></tbody>
-          </table>
+      <!-- FOOTER -->
+      <footer class="site-footer">
+        <div class="footer-container">
+          <p>© 2026 Акку-Енерго. Всі права захищені.</p>
         </div>
-      </section>
-    </main>
+      </footer>
+    </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js" defer></script>
   </body>
 </html>

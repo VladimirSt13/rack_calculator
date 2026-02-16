@@ -16,15 +16,7 @@ import {
  */
 export const initBatteryTable = (table) => {
   if (!table) return;
-  const headers = [
-    "№",
-    "Поверхи",
-    "Ряди",
-    "Довжина стелажа, мм",
-    "Ширина стелажа, мм",
-    "Висота стелажа, мм",
-    "Варіанти прольотів",
-  ];
+  const headers = ["№", "Розах. довжина", "Тип", "Варіанти прольотів"];
   const thead = table.querySelector("thead");
   const tbody = table.querySelector("tbody");
   if (thead) thead.innerHTML = batteryTableHeaderTemplate(headers);
