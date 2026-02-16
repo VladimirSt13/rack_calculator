@@ -1,0 +1,373 @@
+/* ==============================
+   RackPage — layout
+============================== */
+
+.rack .section__content {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 768px) {
+  .rack .section__content {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+}
+
+/* ==============================
+   RackPage — columns
+============================== */
+
+.rack__params {
+  flex: 1 1 35%;
+  min-width: 350px;
+}
+
+.rack__results {
+  flex: 1 1 65%;
+  min-width: 600px;
+}
+
+/* ==============================
+   Fieldset
+============================== */
+
+.rack__fieldset {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rack__legend {
+  font-weight: 600;
+  padding: 0 0.5rem;
+}
+
+/* ==============================
+   Form rows
+============================== */
+
+.rack__form {
+  gap: 0.75rem;
+}
+
+.rack__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rack__label {
+  width: 220px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* ==============================
+   Beams section
+============================== */
+
+.rack__row--beams {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.rack__beams-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rack__beams {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ==============================
+   Cards
+============================== */
+
+.rack__card {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.rack__card-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.rack__name-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #007bff;
+}
+
+/* ==============================
+   Components table wrapper
+============================== */
+
+.rack__components-table {
+  margin-top: 0.5rem;
+}
+
+/* ==============================
+   Icon button
+============================== */
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #007bff;
+  background-color: #fff;
+  color: #007bff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.icon-btn:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.form-row.rackForm__form-row.rackForm__form-row--beams {
+  align-items: flex-start;
+}
+
+/* ==============================
+   Icon button — загальний стиль
+============================== */
+.icon-btn {
+  width: 24px; /* трохи менше */
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #cfd4da;
+  background-color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Горизонтальна та вертикальна риска для + */
+.icon-btn::before,
+.icon-btn::after {
+  content: "";
+  position: absolute;
+  background-color: #1c1c1c;
+  border-radius: 1px;
+}
+
+/* Горизонтальна риска */
+.icon-btn::before {
+  width: 10px;
+  height: 2px;
+}
+
+/* Вертикальна риска (для +) */
+.icon-btn::after {
+  width: 2px;
+  height: 10px;
+}
+
+/* + кнопка */
+.icon-btn--add::before,
+.icon-btn--add::after {
+  background-color: #1c1c1c;
+}
+
+/* − кнопка */
+.icon-btn--remove::before {
+  width: 10px; /* горизонтальна риска */
+  height: 2px;
+}
+.icon-btn--remove::after {
+  display: none; /* вертикальна риска не потрібна */
+}
+
+/* Hover + ефекти */
+.icon-btn--add:hover {
+  background-color: #e6f0ff;
+  border-color: #007bff;
+}
+.icon-btn--add:hover::before,
+.icon-btn--add:hover::after {
+  background-color: #007bff;
+}
+
+.icon-btn--remove:hover {
+  background-color: #ffe6e6;
+  border-color: #ff4d4d;
+}
+.icon-btn--remove:hover::before {
+  background-color: #ff4d4d;
+}
+
+/* Disabled стан */
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rackForm__label-group,
+.beam-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==============================
+   Components table — базові стилі
+============================== */
+.rack__components-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.rack__components-table th,
+.rack__components-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+}
+
+.rack__components-table th {
+  background-color: #f1f1f1;
+  font-weight: 600;
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.rack__components-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.rack__components-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.rack__components-table tbody tr:hover {
+  background-color: #e6f0ff;
+  cursor: default;
+}
+
+.rack__components-table td {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ==============================
+   Price info
+============================== */
+.rack__price {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rack__price p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.rack__price .price {
+  color: #007bff;
+}
+
+.rack__price .total {
+  font-weight: 600;
+  color: #1c1c1c;
+  font-size: 1.1rem;
+}
+
+.rack__price .zero-cost {
+  font-size: 0.875rem;
+  color: #555;
+  font-style: italic;
+}
+
+/* ==============================
+   Form rows — лейбли з dot-leader
+============================== */
+.rack__label {
+  display: flex;
+  justify-content: space-between;
+  width: 280px; /* ширше лейблу */
+  font-weight: 500;
+  position: relative;
+}
+
+.form label.rack__label {
+  align-items: baseline;
+}
+
+/* Поля input і select — ширина під ~12 символів */
+.rack__label input,
+.rack__label select {
+  width: 12ch; /* ширина під 12 символів */
+  min-width: 100px; /* мінімальна ширина для маленьких екранів */
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #cfd4da;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* Додаткове вирівнювання для input/select у flex */
+.rack__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rack__label .dots {
+  flex: 1; /* займає простір між текстом і інпутом */
+  border-bottom: 1px dotted #242323;
+  margin: 0 0.25rem;
+}
+
+.rack__label input,
+.rack__label select {
+  width: 12ch;
+  min-width: 100px;
+  border: 1px solid #cfd4da;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+}

@@ -19,6 +19,7 @@ export const initViewSwitcher = (containerSelector = "header nav", defaultPage =
   container.innerHTML = "";
   pageIds.forEach((id) => {
     const btn = document.createElement("button");
+    btn.classList.add("nav-btn");
     btn.dataset.view = id;
     btn.textContent = id;
     container.appendChild(btn);

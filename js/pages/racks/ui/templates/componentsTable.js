@@ -4,7 +4,7 @@ export const generateComponentsTableHTML = ({ components, totalCost, isolatorsCo
 
   // Функція для одного рядка
   const rowHTML = (c) => `
-    <tr>
+    <tr class="rack__components-table__row">
       <td>${c.name}</td>
       <td>${c.amount}</td>
       <td>${c.price}</td>
@@ -20,21 +20,23 @@ export const generateComponentsTableHTML = ({ components, totalCost, isolatorsCo
   const zeroCost = Math.round(totalCost * 1.2 * 1.2);
 
   return `
-    <table>
+    <table class="rack__components-table__table">
       <thead>
-        <tr>
+        <tr class="rack__components-table__header">
           <th>Компонент</th>
           <th>Кількість</th>
           <th>Ціна за одиницю</th>
           <th>Загальна вартість</th>
         </tr>
       </thead>
-      <tbody>
-        ${tableRows}
+       <tbody class="rack__components-table__body">
+         ${tableRows}
       </tbody>
     </table>
-    <p class="total">Загальна вартість без ізоляторів: ${totalWithoutIsolators}</p>
-    <p class="total">Загальна вартість: ${totalCost}</p>
-    <p class="total">Нульова ціна АЕ (+ПДВ +націнка): ${zeroCost}</p>
+    <div class="rack__price">
+      <p class="price">Загальна вартість без ізоляторів: ${totalWithoutIsolators}</p>
+      <p class="total">Загальна вартість: ${totalCost}</p>
+      <p class="zero-cost">Нульова ціна АЕ (+ПДВ +націнка): ${zeroCost}</p>
+    </div>
   `;
 };

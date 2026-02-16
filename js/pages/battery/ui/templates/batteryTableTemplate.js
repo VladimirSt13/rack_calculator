@@ -1,39 +1,49 @@
 // js/pages/battery/ui/templates/batteryTableTemplate.js
 
-const SPAN_ICONS = {
-  BEST_FIT: "✅",
-  SYMMETRIC: "🔹",
-  BALANCED: "⚖",
-};
+import { beamWord } from "../../../../utils/helpers.js";
 
 /**
- * Генерує HTML рядка таблиці
- * @param {Object} rack
- * @param {number} index
- * @returns {string}
+ * Генерує шаблон заголовка таблиці
+ * @param {Array<string>} headers - Массив назв колонок
+ * @returns {string} HTML рядка <tr> для thead
  */
-export const batteryTableRowTemplate = (rack, index) => {
-  const spansHTML = (rack.spans ?? [])
-    .slice(0, 3)
-    .map((span) => {
-      const icon = SPAN_ICONS[span.type] || "";
-      return `<div>${icon} ${span.combo.join(" + ")}</div>`;
+export const batteryTableHeaderTemplate = (headers) => `<tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>`;
+
+/**
+ * Генерує HTML рядок для рядка таблиці результатів
+ * @param {Object} obj - об'єкт з полями rack та index
+ * @param {Object} obj.rack - об'єкт з полями flooors, rows, width, height, topSpans
+ * @param {number} obj.index - індекс рядка
+ * @returns {string} HTML рядок для рядка таблиці результатів
+ */
+export const batteryTableRowTemplate = ({ rack, index }) => {
+  const rackTypeLeftSide = `L${rack.floors}A${rack.rows}-`;
+  const rackTypeRightSide = `/${rack.width}${rack.floors > 1 ? `(${rack.height})` : ""}`;
+  const amount = Math.min(rack.topSpans?.length ?? 0, 10);
+
+  return (rack.topSpans ?? [])
+    .slice(0, amount)
+    .map((span, spanIndex) => {
+      const spansLength = span.combination.reduce((acc, cur) => acc + cur, 0);
+      const rackType = `${rackTypeLeftSide}${spansLength}${rackTypeRightSide}`;
+
+      // Для першого span додаємо index, length та rackType
+      const rowNumber =
+        spanIndex === 0
+          ? `
+        <td rowspan="${amount}">${index + 1}</td>
+        <td rowspan="${amount}">${rack.length}</td>
+        `
+          : "";
+
+      return `
+      <tr>
+        ${rowNumber}
+        <td>${rackType}</td>
+        <td>${span.combination.join(" + ")} [${span.beams} ${beamWord(span.beams)}]</td>
+      </tr>`;
     })
     .join("");
-
-  const recommendedClass = rack.spans?.some((v) => v.isRecommended) ? "recommended" : "";
-
-  return `
-    <tr class="${recommendedClass}">
-      <td>${index + 1}</td>
-      <td>${rack.floors}</td>
-      <td>${rack.rows}</td>
-      <td>${rack.rackLength}</td>
-      <td>${rack.width}</td>
-      <td>${rack.height}</td>
-      <td>${spansHTML}</td>
-    </tr>
-  `;
 };
 
 /**

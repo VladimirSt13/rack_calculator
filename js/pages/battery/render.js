@@ -19,5 +19,5 @@ export const render = (batterySelectors) => {
 
   const results = batterySelectors.getResults();
 
-  renderBatteryTable(battRefs.batteryRackTable, results);
+  renderBatteryTable({ tableRef: battRefs.batteryRackTable, results });
 };
