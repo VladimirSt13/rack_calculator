@@ -64,6 +64,10 @@ export const createRackActions = (stateInstance, initialState) => ({
     return id;
   },
 
+  getBeams() {
+    return [...stateInstance.get().beams.entries()];
+  },
+
   /**
    * Видалити балку
    * @param {number} id

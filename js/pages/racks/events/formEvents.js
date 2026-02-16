@@ -2,6 +2,8 @@
 import { getRacksRefs } from "../ui/dom.js";
 import { insertBeamUI, removeBeamUI, toggleVerticalSupportsUI } from "../ui/beams.js";
 
+const MAX_BEAMS = 5;
+
 /**
  * Ініціалізація подій форми сторінки racks
  * @param {Object} params
@@ -18,6 +20,7 @@ export const initFormEvents = ({ price, addListener, rackActions }) => {
   const insertBeam = () => {
     const id = rackActions.addBeam();
     insertBeamUI(id, beamsData);
+    updateAddBeamButtonState();
   };
 
   /** Обробка кліків по кнопках видалення балок */
@@ -29,6 +32,13 @@ export const initFormEvents = ({ price, addListener, rackActions }) => {
 
     removeBeamUI(id);
     rackActions.removeBeam(id);
+    updateAddBeamButtonState();
+  };
+
+  const updateAddBeamButtonState = () => {
+    const currentCount = rackActions.getBeams().length;
+    refs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
+    refs.addBeamBtn.classList.toggle("disabled", currentCount >= MAX_BEAMS);
   };
 
   /** Обробка змін полів input/select */

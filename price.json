@@ -71,6 +71,6 @@
     "diagonal_brace": { "name": "Diagonal brace", "price": 380.0, "weight": 1 }
   },
   "isolator": {
-    "isolator": { "name": "Isolator", "price": 55.0, "weight": 0.1 }
+    "isolator": { "name": "Isolator", "price": 69.0, "weight": 0.1 }
   }
 }

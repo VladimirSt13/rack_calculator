@@ -5,6 +5,6 @@ export const generateBeamRowHTML = (id, beams) => `
       ${beams.map((b) => `<option value="${b}">${b}</option>`).join("")}
     </select>
     <input type="number" min="1" max="10" />
-    <button type="button">X</button>
+    <button class="icon-btn icon-btn--remove" type="button" aria-label="Видалити проліт" title="Видалити проліт"></button>
   </div>
 `;
