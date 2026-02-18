@@ -9,7 +9,7 @@ export const renderRackSet = ({ selectors, refs }) => {
 
   if (!container || !summary) return;
 
-  const racks = rackSetSelectors.getAll();
+  const racks = selectors.getAll();
 
   if (!racks.length) {
     container.innerHTML = "<p>Комплект порожній</p>";

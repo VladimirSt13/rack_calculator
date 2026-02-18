@@ -1,13 +1,13 @@
 // js/pages/batteryPage.js
 
-import { createPageModule } from "../ui/createPageModule.js";
-import { initialBatteryState } from "./battery/state/batteryState.js";
-import { createState } from "../state/createState.js";
-import { initBatteryForm } from "./battery/initBatteryForm.js";
-import { createBatteryActions } from "./battery/state/batteryAction.js";
-import { createBatterySelectors } from "./battery/state/batterySelectors.js";
-import { render } from "./battery/render.js";
-import { PAGES } from "../config/app.config.js";
+import { createPageModule } from "../../ui/createPageModule.js";
+import { initialBatteryState } from "./state/batteryState.js";
+import { createState } from "../../state/createState.js";
+import { initBatteryForm } from "./initBatteryForm.js";
+import { createBatteryActions } from "./state/batteryAction.js";
+import { createBatterySelectors } from "./state/batterySelectors.js";
+import { render } from "./render.js";
+import { PAGES } from "../../config/app.config.js";
 
 const batteryState = createState({ ...initialBatteryState });
 let unsubscribe = null;

@@ -1,7 +1,21 @@
-// js/pages/racks/pageContext.js
+// js/app/pages/racks/pageContext.js
 
-export const createRackPageContext = () => ({
-    calculator: null,
-    rackSet: null,
-    price: null,
-});
+import { render } from "./calculator/ui/render.js";
+
+export const createRackPageContext = () => {
+  return {
+    price: {},
+    calculator: {},
+    rackSet: {},
+
+    init() {},
+
+    render() {
+      render({
+        selectors: this.calculator.selectors,
+        getRefs: this.calculator.getRefs,
+        price: this.price,
+      });
+    },
+  };
+};

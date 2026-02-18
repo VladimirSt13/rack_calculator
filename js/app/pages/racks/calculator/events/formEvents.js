@@ -1,9 +1,6 @@
 // js/pages/racks/events/formEvents.js
-import {
-  insertBeamUI,
-  removeBeamUI,
-  toggleVerticalSupportsUI,
-} from "../ui/beams.js";
+import { insertBeamUI, removeBeamUI } from "../ui/beams.js";
+import { toggleVerticalSupportsUI } from "../ui/verticalSupports.js";
 
 import { populateDropdowns } from "../ui/dropdowns.js";
 

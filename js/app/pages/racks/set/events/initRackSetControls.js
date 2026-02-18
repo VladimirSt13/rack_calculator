@@ -9,7 +9,7 @@
  * @return {void}
  */
 export const initRackSetControls = ({ addListener, rackSet }) => {
-  const { getRefs } = rackSet;
+  const { actions, getRefs } = rackSet;
   const refs = getRefs();
   const btn = refs.addRackBtn;
   if (!btn) return;
@@ -24,6 +24,6 @@ export const initRackSetControls = ({ addListener, rackSet }) => {
       components: [],
     };
 
-    rackSetActions.addRack(newRack); // додаємо через actions
+    actions.addRack(newRack); // додаємо через actions
   });
 };

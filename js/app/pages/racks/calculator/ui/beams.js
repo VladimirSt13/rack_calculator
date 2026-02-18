@@ -24,7 +24,7 @@ export const insertBeamUI = ({ id, beamsData, refs }) => {
  * @param {Object} options.refs - The references to the DOM elements.
  * @return {void} This function does not return a value.
  */
-export const removeBeamUI = ({id, refs}) => {
+export const removeBeamUI = ({ id, refs }) => {
   const row = refs.beamsContainer.querySelector(`[data-id="${id}"]`);
   if (row) row.remove();
 };
@@ -37,18 +37,4 @@ export const removeBeamUI = ({id, refs}) => {
  */
 export const clearBeamsUI = (refs) => {
   if (refs.beamsContainer) refs.beamsContainer.innerHTML = "";
-};
-
-/**
- * Toggles the vertical supports UI based on the number of floors.
- *
- * @param {Object} options - The options object.
- * @param {number} options.floors - The number of floors.
- * @param {Object} options.refs - The references to the DOM elements.
- * @return {void}
- */
-export const toggleVerticalSupportsUI = ({floors, refs}) => {
-  const disabled = floors < 2;
-  refs.verticalSupports.disabled = disabled;
-  if (disabled) refs.verticalSupports.selectedIndex = -1;
 };

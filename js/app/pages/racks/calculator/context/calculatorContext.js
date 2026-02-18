@@ -5,7 +5,6 @@ import { initialRackState } from "../state/rackState.js";
 import { createRackActions } from "../state/rackActions.js";
 import { createRackSelectors } from "../state/rackSelectors.js";
 import { getRacksCalcRefs } from "../ui/dom.js";
-import { render } from "../ui/render.js";
 
 /**
  * Creates a RackCalculator context object with state, selectors, actions, and utility functions.
@@ -23,22 +22,24 @@ export const createRackCalculatorContext = () => {
   const selectors = createRackSelectors(state);
   const actions = createRackActions(state, initialRackState);
 
-  let refs = null;
   let unsubscribe = null;
+  let onChange = null;
+  let refs = null;
 
   const ensureInit = (value, name) => {
     if (!value) throw new Error(`${name} is not initialized`);
     return value;
   };
 
-  const init = () => {
-    refs = getRacksCalcRefs(); // присвоюємо DOM refs
-    unsubscribe = state.subscribe(() =>
-      render({ selectors, refs: ensureInit(refs, "RackCalculator refs") }),
-    );
+  const init = (listener) => {
+    onChange = listener;
+    refs = getRacksCalcRefs();
+    unsubscribe = state.subscribe(() => onChange?.());
   };
 
-  const getRefs = () => ensureInit(refs, "RackCalculator refs");
+  const getRefs = () => {
+    return ensureInit(refs, "RackCalculator refs");
+  };
 
   const destroy = () => unsubscribe?.();
 
