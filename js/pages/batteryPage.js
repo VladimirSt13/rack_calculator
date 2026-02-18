@@ -7,6 +7,7 @@ import { initBatteryForm } from "./battery/initBatteryForm.js";
 import { createBatteryActions } from "./battery/state/batteryAction.js";
 import { createBatterySelectors } from "./battery/state/batterySelectors.js";
 import { render } from "./battery/render.js";
+import { PAGES } from "../config/app.config.js";
 
 const batteryState = createState({ ...initialBatteryState });
 let unsubscribe = null;
@@ -14,7 +15,7 @@ export const batterySelectors = createBatterySelectors(batteryState);
 export const batteryActions = createBatteryActions(batteryState, initialBatteryState);
 
 export const batteryPage = createPageModule({
-  id: "battery",
+  id: PAGES.BATTERY,
 
   init: () => {},
 

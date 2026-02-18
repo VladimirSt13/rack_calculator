@@ -1,5 +1,7 @@
 // js/ui/router.js
 
+import { SELECTORS } from "../config/app.config.js";
+
 /**
  * Map сторінок: key = id сторінки, value = модуль { init, activate, deactivate, onStateChange }
  * @type {Map<string, Object>}
@@ -44,6 +46,7 @@ export const navigate = async (id) => {
 
   await page.activate();
   currentPage = id;
+  showPage(id);
 };
 
 /**
@@ -67,3 +70,17 @@ export const pageState = new Proxy(
     },
   },
 );
+
+// --- функція показу/приховування сторінки через hidden ---
+const showPage = (id) => {
+  const mainContent = document.getElementById(SELECTORS.APP);
+  if (!mainContent) return console.warn("ViewSwitcher init failed");
+
+  const pageIds = getRegisteredPages();
+  pageIds.forEach((pageId) => {
+    const section = mainContent.querySelector(`#view-${pageId}`);
+    if (section) {
+      section.hidden = pageId !== id; // якщо не поточна сторінка — приховане
+    }
+  });
+};

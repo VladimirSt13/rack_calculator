@@ -1,8 +1,8 @@
 // js/pages/racks/render.js
-import { calculateComponents } from "./core/calculator.js";
-import { generateComponentsTableHTML } from "./ui/templates/componentsTable.js";
-import { generateRackNameHTML } from "./ui/templates/rackName.js";
-import { updateRackName, updateComponentsTable } from "./ui/rack.js";
+import { calculateComponents } from "./calculator/core/calculator.js";
+import { generateComponentsTableHTML } from "./calculator/ui/templates/componentsTable.js";
+import { generateRackNameHTML } from "./calculator/ui/templates/rackName.js";
+import { updateRackName, updateComponentsTable } from "./calculator/ui/rack.js";
 
 /**
  * Render сторінки racks на основі поточного state через передані selectors

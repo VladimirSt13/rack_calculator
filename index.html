@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Розрахунок стелажу</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       href="https://fonts.googleapis.com/css?family=Roboto:regular,500,600,700,800,900&display=swap"
       rel="stylesheet"
@@ -98,6 +99,24 @@
               <div class="rack__card rack__components-card">
                 <h3 class="rack__card-title">Компоненти стелажа</h3>
                 <div id="componentsTable" class="rack__components-table" data-dynamic="components"></div>
+                <div id="rackPrice" class="rack__price"></div>
+                <div id="rackSetControls">
+                  <button id="addRackBtn">Додати стелаж до комплекту</button>
+                </div>
+              </div>
+
+              <div class="rack-set">
+                <h3>Комплект стелажів</h3>
+                <div id="rackSetTable"></div>
+                <div id="rackSetSummary"></div>
+                <button id="openRackSetModal">Перейти до комплекту</button>
+              </div>
+
+              <div id="rackSetModal" class="modal" hidden>
+                <div class="modal__content">
+                  <button id="closeModal">×</button>
+                  <div id="rackSetModalContent"></div>
+                </div>
               </div>
             </div>
           </div>

@@ -9,7 +9,7 @@ import { navigate, getRegisteredPages } from "./router.js";
  */
 export const initViewSwitcher = (containerSelector = "header nav", defaultPage = "battery") => {
   const container = document.querySelector(containerSelector);
-  const mainContent = document.getElementById("app");
+
   if (!container) return console.warn(`Container ${containerSelector} not found`);
 
   const pageIds = getRegisteredPages();
@@ -26,7 +26,6 @@ export const initViewSwitcher = (containerSelector = "header nav", defaultPage =
 
     btn.addEventListener("click", async () => {
       await navigate(id);
-      showPage(id);
 
       // активна кнопка
       container.querySelectorAll("button").forEach((b) => {
@@ -38,23 +37,15 @@ export const initViewSwitcher = (containerSelector = "header nav", defaultPage =
     });
   });
 
-  // --- функція показу/приховування сторінки через hidden ---
-  const showPage = (id) => {
-    pageIds.forEach((pageId) => {
-      const section = mainContent.querySelector(`#view-${pageId}`);
-      if (section) {
-        section.hidden = pageId !== id; // якщо не поточна сторінка — приховане
-      }
-    });
-  };
-
   // навігація на дефолтну сторінку
-  (async () => {
+  const initDefaultPage = async () => {
     await navigate(defaultPage);
     const defaultBtn = container.querySelector(`button[data-view="${defaultPage}"]`);
     if (defaultBtn) {
       defaultBtn.classList.add("active");
       defaultBtn.disabled = true;
     }
-  })();
+  };
+
+  initDefaultPage();
 };
