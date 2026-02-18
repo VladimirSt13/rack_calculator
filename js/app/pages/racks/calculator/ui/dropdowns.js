@@ -14,7 +14,7 @@ import { generateDropdownOptionsHTML } from "./templates/dropdown.js";
  * @return {void}
  */
 export const populateDropdowns = ({ verticalSupports, supports, refs }) => {
-  racksCalcRefs.verticalSupports.innerHTML =
+  refs.verticalSupports.innerHTML =
     generateDropdownOptionsHTML(verticalSupports);
   refs.supports.innerHTML = generateDropdownOptionsHTML(supports);
 };

@@ -1,8 +1,15 @@
 // js/pages/racks/core/calculator.js
 
-import { getPrice } from "../state/priceState.js";
-import { calculateBeams, calculateRackLength, calculateTotalSpans } from "./utils/beams.js";
-import { calculateBraces, supportsFn, verticalSupportsFn } from "./utils/supports.js";
+import {
+  calculateBeams,
+  calculateRackLength,
+  calculateTotalSpans,
+} from "./utils/beams.js";
+import {
+  calculateBraces,
+  supportsFn,
+  verticalSupportsFn,
+} from "./utils/supports.js";
 import { rackNameFn } from "./utils/rackName.js";
 
 /**
@@ -10,25 +17,29 @@ import { rackNameFn } from "./utils/rackName.js";
  * @param {Array} components - array of components where each component is an object with "amount" and "price" properties or an array of such objects
  * @returns {number} total cost of the components
  */
-const totalCostCalculation = (components) =>
+const totalCostCalculation = ({ components }) =>
   components.reduce(
     (sum, c) =>
-      Array.isArray(c) ? sum + c.reduce((s, item) => s + item.amount * item.price, 0) : sum + c.amount * c.price,
+      Array.isArray(c)
+        ? sum + c.reduce((s, item) => s + item.amount * item.price, 0)
+        : sum + c.amount * c.price,
     0,
   );
 
 /**
- * Головна функція розрахунку компонентів
- * @param {Object} rackConfig - { floors, rows, beamsPerRow, verticalSupports, support, beams }
- * @param {Object} rackComponents - дані прайсу
- * @returns {Object} { components: Array<{name, amount, price, totalPrice}>, totalLength: number, totalCost: number }
+ * Calculate the components and total cost of a rack based on the given rack configuration and price.
+ *
+ * @param {Object} options - The options for calculating the components and total cost.
+ * @param {Object} options.rackConfig - The configuration of the rack.
+ * @param {Object} options.price - The price of the rack components.
+ * @return {Object} An object containing the current rack details including the components, total length, and total cost.
  */
-const calculateComponents = (rackConfig) => {
-  const { floors, rows, beams, supports, verticalSupports, beamsPerRow } = rackConfig;
-  const componentsPrice = getPrice();
+const calculateComponents = ({ rackConfig, price }) => {
+  const { floors, rows, beams, supports, verticalSupports, beamsPerRow } =
+    rackConfig;
 
   const isEnoughDataForCalculation =
-    componentsPrice !== null ||
+    price !== null ||
     floors ||
     rows ||
     beams.length ||
@@ -36,7 +47,8 @@ const calculateComponents = (rackConfig) => {
     beamsPerRow ||
     !(floors > 1 && verticalSupports);
 
-  if (!isEnoughDataForCalculation) return { components: {}, totalLength: 0, totalCost: 0 };
+  if (!isEnoughDataForCalculation)
+    return { components: {}, totalLength: 0, totalCost: 0 };
 
   const totalSpans = calculateTotalSpans(beams);
   const totalLength = calculateRackLength(beams);
@@ -50,7 +62,7 @@ const calculateComponents = (rackConfig) => {
   const { edgeSupports, intermediateSupports, supportsData } = supportsFn(
     floors,
     totalSpans,
-    componentsPrice,
+    price,
     supports,
   );
 
@@ -58,14 +70,19 @@ const calculateComponents = (rackConfig) => {
     beams,
     rows,
     beamsPerRow,
-    beamsData: Object.entries(componentsPrice.beams),
+    beamsData: Object.entries(price.beams),
     floors,
   });
 
   // --- Вертикальні стійки та розкоси ---
-  const verticalSupportsData = verticalSupportsFn(Object.entries(componentsPrice.vertical_supports), verticalSupports);
+  const verticalSupportsData = verticalSupportsFn(
+    Object.entries(price.vertical_supports),
+    verticalSupports,
+  );
 
-  const bracesObj = Object.entries(componentsPrice.diagonal_brace).find((b) => b[0] === "diagonal_brace");
+  const bracesObj = Object.entries(price.diagonal_brace).find(
+    (b) => b[0] === "diagonal_brace",
+  );
   const bracesData = {
     name: "Розкос",
     amount: 0,
@@ -79,7 +96,7 @@ const calculateComponents = (rackConfig) => {
   }
 
   // --- Ізолятори ---
-  const isolatorObj = componentsPrice.isolator;
+  const isolatorObj = price.isolator;
   const isolatorsData = {
     name: "Ізолятор",
     amount: 0,

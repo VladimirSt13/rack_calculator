@@ -12,8 +12,7 @@ import { updateRackName, updateComponentsTable } from "./rack.js";
  * @param {Object} options.refs - The refs object containing references to DOM elements.
  * @return {void}
  */
-export const render = ({ selectors, getRfs: getRefs }) => {
-  const refs = getRefs();
+export const render = ({ selectors, refs }) => {
   const floors = selectors.getFloors();
   const rows = selectors.getRows();
   const supports = selectors.getSupports();

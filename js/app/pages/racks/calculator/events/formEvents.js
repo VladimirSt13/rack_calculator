@@ -5,6 +5,8 @@ import {
   toggleVerticalSupportsUI,
 } from "../ui/beams.js";
 
+import { populateDropdowns } from "../ui/dropdowns.js";
+
 const MAX_BEAMS = 5;
 
 /**
@@ -20,6 +22,15 @@ export const initFormEvents = ({ addListener, calculator, price }) => {
   const refs = getRefs();
   const beamsData = Object.keys(price.beams || {});
 
+  // Наповнення dropdown-ів, якщо ціни завантажені
+  if (price) {
+    populateDropdowns({
+      verticalSupports: Object.keys(price.vertical_supports),
+      supports: Object.keys(price.supports),
+      refs,
+    });
+  }
+
   /** Додати нову балку */
   const insertBeam = () => {
     const id = actions.addBeam();
@@ -34,14 +45,14 @@ export const initFormEvents = ({ addListener, calculator, price }) => {
     const row = e.target.closest(".beam-row");
     const id = Number(row.dataset.id);
 
-    removeBeamUI(id);
+    removeBeamUI({ id, refs });
     actions.removeBeam(id);
     updateAddBeamButtonState();
   };
 
   const updateAddBeamButtonState = () => {
     const currentCount = actions.getBeams().length;
-    racksCalcRefs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
+    refs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
     refs.addBeamBtn.classList.toggle("disabled", currentCount >= MAX_BEAMS);
   };
 
@@ -55,7 +66,7 @@ export const initFormEvents = ({ addListener, calculator, price }) => {
     switch (id) {
       case "floors":
         actions.updateFloors(value);
-        toggleVerticalSupportsUI(Number(value) || 0);
+        toggleVerticalSupportsUI({ floors: Number(value) || 0, refs });
         return;
 
       case "rows":
