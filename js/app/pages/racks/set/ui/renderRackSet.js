@@ -1,12 +1,9 @@
-import { rackSetSelectors } from "../../../rackPage.js";
 import { aggregateRackSet } from "../core/aggregate.js";
-import { getRackSetRefs } from "./dom.js";
 
 /**
  * Рендер комплекту стелажів
  */
-export const renderRackSet = () => {
-  const refs = getRackSetRefs();
+export const renderRackSet = ({ selectors, refs }) => {
   const container = refs.rackSetTable;
   const summary = refs.rackSetSummary;
 

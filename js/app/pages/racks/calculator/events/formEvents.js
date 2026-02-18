@@ -1,6 +1,9 @@
 // js/pages/racks/events/formEvents.js
-import { getRacksRefs } from "../ui/dom.js";
-import { insertBeamUI, removeBeamUI, toggleVerticalSupportsUI } from "../ui/beams.js";
+import {
+  insertBeamUI,
+  removeBeamUI,
+  toggleVerticalSupportsUI,
+} from "../ui/beams.js";
 
 const MAX_BEAMS = 5;
 
@@ -12,14 +15,15 @@ const MAX_BEAMS = 5;
  * @param {Object} params.rackActions - actions для роботи з локальним state
  * @param {Object} [params.rackSelectors] - селектори (необов'язково, якщо потрібні)
  */
-export const initFormEvents = ({ price, addListener, rackActions }) => {
-  const refs = getRacksRefs();
+export const initFormEvents = ({ addListener, calculator, price }) => {
+  const { actions, getRefs } = calculator;
+  const refs = getRefs();
   const beamsData = Object.keys(price.beams || {});
 
   /** Додати нову балку */
   const insertBeam = () => {
-    const id = rackActions.addBeam();
-    insertBeamUI(id, beamsData);
+    const id = actions.addBeam();
+    insertBeamUI({ id, beamsData, refs });
     updateAddBeamButtonState();
   };
 
@@ -31,13 +35,13 @@ export const initFormEvents = ({ price, addListener, rackActions }) => {
     const id = Number(row.dataset.id);
 
     removeBeamUI(id);
-    rackActions.removeBeam(id);
+    actions.removeBeam(id);
     updateAddBeamButtonState();
   };
 
   const updateAddBeamButtonState = () => {
-    const currentCount = rackActions.getBeams().length;
-    refs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
+    const currentCount = actions.getBeams().length;
+    racksCalcRefs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
     refs.addBeamBtn.classList.toggle("disabled", currentCount >= MAX_BEAMS);
   };
 
@@ -50,24 +54,24 @@ export const initFormEvents = ({ price, addListener, rackActions }) => {
 
     switch (id) {
       case "floors":
-        rackActions.updateFloors(value);
+        actions.updateFloors(value);
         toggleVerticalSupportsUI(Number(value) || 0);
         return;
 
       case "rows":
-        rackActions.updateRows(value);
+        actions.updateRows(value);
         return;
 
       case "beamsPerRow":
-        rackActions.updateBeamsPerRow(value);
+        actions.updateBeamsPerRow(value);
         return;
 
       case "verticalSupports":
-        rackActions.updateVerticalSupports(value);
+        actions.updateVerticalSupports(value);
         return;
 
       case "supports":
-        rackActions.updateSupports(value);
+        actions.updateSupports(value);
         return;
     }
 
@@ -77,11 +81,11 @@ export const initFormEvents = ({ price, addListener, rackActions }) => {
     const beamId = Number(row.dataset.id);
 
     if (tagName === "SELECT") {
-      rackActions.updateBeam(beamId, { item: value || "" });
+      actions.updateBeam(beamId, { item: value || "" });
     }
 
     if (tagName === "INPUT") {
-      rackActions.updateBeam(beamId, { quantity: Number(value) || null });
+      actions.updateBeam(beamId, { quantity: Number(value) || null });
     }
   };
 

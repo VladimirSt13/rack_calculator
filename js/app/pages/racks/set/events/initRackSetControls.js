@@ -1,12 +1,20 @@
-import { rackSetActions } from "../../../rackPage.js";
-import { getRackSetRefs } from "../ui/dom.js";
+// js/app/pages/racks/set/events/initRackSetControls.js
 
-export const initRackSetControls = () => {
-  const refs = getRackSetRefs();
+/**
+ * Initializes the controls for the rack set.
+ *
+ * @param {Object} options - The options object.
+ * @param {Function} options.addListener - The function to register event listeners.
+ * @param {Object} options.rackSet - The rack set object.
+ * @return {void}
+ */
+export const initRackSetControls = ({ addListener, rackSet }) => {
+  const { getRefs } = rackSet;
+  const refs = getRefs();
   const btn = refs.addRackBtn;
   if (!btn) return;
 
-  btn.addEventListener("click", () => {
+  addListener(btn, "click", () => {
     // додаємо стелаж у state
     // для початку можемо додати тестовий об’єкт або скопіювати останній
     const newRack = {

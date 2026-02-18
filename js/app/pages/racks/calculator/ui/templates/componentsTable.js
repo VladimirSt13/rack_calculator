@@ -1,11 +1,15 @@
-"js/pages/racks/ui/templates/componentsTable.js";
+// js/pages/racks/ui/templates/componentsTable.js
 
 // --- Генератор таблиці компонентів ---
-export const generateComponentsTableHTML = ({ components, totalCost, isolatorsCost }) => {
-  if (!components) return "";
+export const generateComponentsTableHTML = ({
+    components,
+    totalCost,
+    isolatorsCost,
+}) => {
+    if (!components) return "";
 
-  // Функція для одного рядка
-  const rowHTML = (c) => `
+    // Функція для одного рядка
+    const rowHTML = (c) => `
     <tr class="rack__components-table__row">
       <td>${c.name}</td>
       <td>${c.amount}</td>
@@ -13,15 +17,15 @@ export const generateComponentsTableHTML = ({ components, totalCost, isolatorsCo
       <td>${c.amount * c.price}</td>
     </tr>`;
 
-  // Генеруємо всі рядки: якщо компонент масив — генеруємо для кожного елемента, інакше один
-  const tableRows = Object.values(components)
-    .map((c) => (Array.isArray(c) ? c.map(rowHTML).join("") : rowHTML(c)))
-    .join("");
+    // Генеруємо всі рядки: якщо компонент масив — генеруємо для кожного елемента, інакше один
+    const tableRows = Object.values(components)
+        .map((c) => (Array.isArray(c) ? c.map(rowHTML).join("") : rowHTML(c)))
+        .join("");
 
-  const totalWithoutIsolators = totalCost - (isolatorsCost || 0);
-  const zeroCost = Math.round(totalCost * 1.2 * 1.2);
+    const totalWithoutIsolators = totalCost - (isolatorsCost || 0);
+    const zeroCost = Math.round(totalCost * 1.2 * 1.2);
 
-  return `
+    return `
     <table class="rack__components-table__table">
       <thead>
         <tr class="rack__components-table__header">

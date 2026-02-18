@@ -1,4 +1,4 @@
-"js/pages/racks/ui/templates/beamRow.js";
+// js/pages/racks/ui/templates/beamRow.js
 
 export const generateBeamRowHTML = (id, beams) => `
   <div class="beam-row" data-id="${id}">
