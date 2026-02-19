@@ -1,66 +1,41 @@
-// js/pages/racks/state/rackSelectors.js
+// js/app/pages/racks/state/rackSelectors.js
+export const createRackSelectors = (stateInstance) => {
+  let memoBeams = null;
+  let memoBeamsMap = null;
 
-/**
- * Selectors для сторінки racks
- * Всі функції чисті, повертають копії або трансформовані дані
- * @param {Object} stateInstance - інстанс state сторінки
- */
-export const createRackSelectors = (stateInstance) => ({
-  /**
-   * Поточна кількість ярусів
-   * @returns {number}
-   */
-  getFloors: () => stateInstance.get().floors,
+  return {
+    getFloors: () => stateInstance.get().form.floors,
+    getRows: () => stateInstance.get().form.rows,
+    getBeamsPerRow: () => stateInstance.get().form.beamsPerRow,
+    getVerticalSupports: () => stateInstance.get().form.verticalSupports,
+    getSupports: () => stateInstance.get().form.supports,
 
-  /**
-   * Поточна кількість рядів
-   * @returns {number}
-   */
-  getRows: () => stateInstance.get().rows,
+    /** Мемоизация только для beams */
+    getBeams: () => {
+      const beamsMap = stateInstance.get().form.beams;
+      if (memoBeamsMap === beamsMap) return memoBeams;
+      memoBeams = [...beamsMap.entries()];
+      memoBeamsMap = beamsMap;
+      return memoBeams;
+    },
 
-  /**
-   * Кількість балок на ряд
-   * @returns {number}
-   */
-  getBeamsPerRow: () => stateInstance.get().beamsPerRow,
+    getBeamsArray: () => [...stateInstance.get().form.beams.values()],
+    getTotalBeams: () => stateInstance.get().form.beams.size,
+    getBeamById: (id) => stateInstance.get().form.beams.get(id),
 
-  /**
-   * Вертикальні стояки
-   * @returns {string}
-   */
-  getVerticalSupports: () => stateInstance.get().verticalSupports,
+    /** currentRack хранится в state, селектор просто возвращает его */
+    getCurrentRack: () => {
+      const s = stateInstance.get();
+      return s.currentRack ? { ...s.currentRack } : null;
+    },
 
-  /**
-   * Типи опор
-   * @returns {string}
-   */
-  getSupports: () => stateInstance.get().supports,
-
-  /**
-   * Всі балки у вигляді масиву [id, {item, quantity}]
-   * @returns {Array<[number, {item: string, quantity: number|null}]>}
-   */
-  getBeams: () => [...stateInstance.get().beams.entries()],
-
-  /**
-   * Кількість балок
-   * @returns {number}
-   */
-  getTotalBeams: () => stateInstance.get().beams.size,
-
-  /**
-   * Отримати балку за id
-   * @param {number} id
-   * @returns {{item: string, quantity: number|null} | undefined}
-   */
-  getBeamById: (id) => stateInstance.get().beams.get(id),
-
-  /**
-   * Поточний state сторінки (копія)
-   * @returns {Object}
-   */
-  getState: () => {
-    const s = stateInstance.get();
-    return { ...s, beams: new Map(s.beams) };
-  },
-});
+    /** Полный snapshot state */
+    getState: () => {
+      const s = stateInstance.get();
+      return {
+        form: { ...s.form, beams: new Map(s.form.beams) },
+        currentRack: s.currentRack ? { ...s.currentRack } : null,
+      };
+    },
+  };
+};

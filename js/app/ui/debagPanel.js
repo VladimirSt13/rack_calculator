@@ -1,3 +1,5 @@
+// js/app/ui/debagPanel.js
+
 /**
  * Створює debug panel для контекстів з toggle клавішею, підсвіткою змін і кнопкою згортання
  * @param {Object} contexts - об'єкт з контекстами сторінки { rackPage, rackCalculator, rackSet }

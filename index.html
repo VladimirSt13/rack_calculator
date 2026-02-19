@@ -101,17 +101,22 @@
                 </div>
               </div>
 
-              <div class="rack-set">
-                <h3>Комплект стелажів</h3>
-                <div id="rackSetTable"></div>
-                <div id="rackSetSummary"></div>
-                <button id="openRackSetModal">Перейти до комплекту</button>
+              <div class="rack-set rack__card">
+                <h3 class="rack-set__title">Комплект стелажів</h3>
+
+                <div id="rackSetTable" class="rack-set__table"></div>
+
+                <div id="rackSetSummary" class="rack-set__summary"></div>
+
+                <div class="rack-set__actions">
+                  <button id="openRackSetModal" class="btn btn--primary">Перейти до комплекту</button>
+                </div>
               </div>
 
-              <div id="rackSetModal" class="modal" hidden>
-                <div class="modal__content">
-                  <button id="closeModal">×</button>
-                  <div id="rackSetModalContent"></div>
+              <div id="rackSetModal" class="rack-set-modal modal" hidden>
+                <div class="rack-set-modal__content modal__content">
+                  <button id="closeModal" class="rack-set-modal__close">×</button>
+                  <div id="rackSetModalContent" class="rack-set-modal__body"></div>
                 </div>
               </div>
             </div>
@@ -185,7 +190,7 @@
       <!-- FOOTER -->
       <footer class="site-footer">
         <div class="footer-container">
-          <p>© 2026 Акку-Енерго. Всі права захищені.</p>
+          <p>© 2026 Акку-енерго. Всі права захищені.</p>
         </div>
       </footer>
     </div>

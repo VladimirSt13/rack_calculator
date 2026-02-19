@@ -1,4 +1,4 @@
-// set/context/rackSetContext.js
+// js/app/pages/racks/set/context/setContext.js
 
 import { createState } from "../../../../state/createState.js";
 import { initialRackSetState } from "../state/rackSetState.js";
@@ -20,10 +20,15 @@ export const createRackSetContext = () => {
     return value;
   };
 
+  /**
+   * Initializes the context for the rack set page.
+   * @param {Object} opts - An object containing the onEditRack function to be called when the user edits the rack.
+   * @param {Function} opts.onEditRack - A function to be called when the user edits the rack.
+   */
   const init = () => {
     refs = getRackSetRefs();
 
-    unsubscribe = state.subscribe(() => renderRackSet({ selectors, refs }));
+    unsubscribe = state.subscribe(() => renderRackSet({ actions, selectors, refs }));
   };
 
   const getRefs = () => ensureInit(refs, "RackCalculator refs");

@@ -1,4 +1,4 @@
-// js/apppages/racks/page.js
+// js/app/pages/racks/page.js
 
 import { PAGES } from "../../config/app.config.js";
 import { createPageModule } from "../../ui/createPageModule.js";
@@ -11,6 +11,7 @@ import { initRackSetControls } from "./set/events/initRackSetControls.js";
 import { createRackSetContext } from "./set/context/setContext.js";
 
 import { createDevPanel } from "../../ui/debagPanel.js";
+import { initRackSetModal } from "./set/ui/rackSetModal.js";
 const ctx = createRackPageContext();
 
 export const rackPage = createPageModule({
@@ -23,7 +24,10 @@ export const rackPage = createPageModule({
   },
 
   activate: (addListener) => {
-    ctx.calculator.init(() => ctx.render());
+    ctx.calculator.init({
+      price: ctx.price,
+      listener: () => ctx.render(),
+    });
     ctx.rackSet.init();
     ctx.init();
     ctx.render();
@@ -32,6 +36,7 @@ export const rackPage = createPageModule({
       addListener,
       price: ctx.price,
       calculator: ctx.calculator,
+      onAddSet: ({ rack, qty }) => ctx.rackSet.actions.addRack({ rack, qty }),
     });
     resetRackForm({ selectors: ctx.calculator.selectors, getRefs: ctx.calculator.getRefs });
 
@@ -39,8 +44,9 @@ export const rackPage = createPageModule({
       addListener,
       rackSet: ctx.rackSet,
     });
+    initRackSetModal(ctx.rackSet);
 
-    // createDevPanel({ rackPage: ctx, rackCalculator: ctx.calculator, rackSet: ctx.rackSet });
+    createDevPanel({ rackPage: ctx, rackCalculator: ctx.calculator, rackSet: ctx.rackSet });
   },
 
   deactivate: () => {

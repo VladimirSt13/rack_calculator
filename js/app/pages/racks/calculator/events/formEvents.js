@@ -14,8 +14,8 @@ const MAX_BEAMS = 5;
  * @param {Object} params.rackActions - actions для роботи з локальним state
  * @param {Object} [params.rackSelectors] - селектори (необов'язково, якщо потрібні)
  */
-export const initFormEvents = ({ addListener, calculator, price }) => {
-  const { actions, getRefs } = calculator;
+export const initFormEvents = ({ addListener, calculator, price, onAddSet }) => {
+  const { actions, selectors, getRefs } = calculator;
   const refs = getRefs();
   const beamsData = Object.keys(price.beams || {});
 
@@ -48,7 +48,7 @@ export const initFormEvents = ({ addListener, calculator, price }) => {
   };
 
   const updateAddBeamButtonState = () => {
-    const currentCount = actions.getBeams().length;
+    const currentCount = selectors.getBeams().length;
     refs.addBeamBtn.disabled = currentCount >= MAX_BEAMS;
     refs.addBeamBtn.classList.toggle("disabled", currentCount >= MAX_BEAMS);
   };
@@ -64,41 +64,57 @@ export const initFormEvents = ({ addListener, calculator, price }) => {
       case "floors":
         actions.updateFloors(value);
         toggleVerticalSupportsUI({ floors: Number(value) || 0, refs });
-        return;
+        break;
 
       case "rows":
         actions.updateRows(value);
-        return;
+        break;
 
       case "beamsPerRow":
         actions.updateBeamsPerRow(value);
-        return;
+        break;
 
       case "verticalSupports":
         actions.updateVerticalSupports(value);
-        return;
+        break;
 
       case "supports":
         actions.updateSupports(value);
-        return;
+        break;
+
+      default: {
+        const row = target.closest(".beam-row");
+        if (!row) return;
+
+        const beamId = Number(row.dataset.id);
+
+        if (tagName === "SELECT") {
+          actions.updateBeam(beamId, { item: value || "" });
+        }
+
+        if (tagName === "INPUT") {
+          actions.updateBeam(beamId, { quantity: Number(value) || null });
+        }
+      }
     }
 
-    const row = target.closest(".beam-row");
-    if (!row) return;
-
-    const beamId = Number(row.dataset.id);
-
-    if (tagName === "SELECT") {
-      actions.updateBeam(beamId, { item: value || "" });
-    }
-
-    if (tagName === "INPUT") {
-      actions.updateBeam(beamId, { quantity: Number(value) || null });
-    }
+    // 🔹 Викликаємо розрахунок поточного стелажа після будь-якої зміни форми
   };
 
   /** Реєстрація слухачів */
   addListener(refs.addBeamBtn, "click", insertBeam);
   addListener(refs.rackForm, "input", handleInput);
   addListener(refs.rackForm, "click", handleClick);
+
+  const btn = refs.addRackBtn;
+  if (!btn) return;
+
+  addListener(btn, "click", () => {
+    const rack = calculator.selectors.getCurrentRack();
+    if (!rack) return;
+
+    const qty = Number(prompt("Введіть кількість стелажів", 1)) || 1;
+
+    onAddSet({ rack, qty });
+  });
 };

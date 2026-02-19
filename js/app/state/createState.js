@@ -1,4 +1,4 @@
-// js/state/createState.js
+// js/app/state/createState.js
 
 /**
  * Створює state з геттерами, actions і підпискою
@@ -7,42 +7,42 @@
  *   get: () => Object,
  *   set: (patch: Object) => void,
  *   updateField: (key: string, value: any) => void,
+ *   updateNestedField: (key: string, patch: Object) => void,
  *   reset: () => void,
  *   batch: (callback: Function) => void,
  *   subscribe: (listener: Function) => Function
  * }}
  */
 export const createState = (initialData = {}) => {
-  let state = { ...initialData };
-  const listeners = new Set();
+  const cloneValue = (val) => {
+    if (Array.isArray(val)) return [...val];
+    if (val instanceof Map) return new Map(val);
+    if (val && typeof val === "object") return { ...val };
+    return val;
+  };
 
+  let state = Object.fromEntries(Object.entries(initialData).map(([k, v]) => [k, cloneValue(v)]));
+
+  const listeners = new Set();
   let isBatching = false;
   let hasChangesInBatch = false;
 
-  // Shallow compare
   const shallowEqual = (a, b) => {
     if (a === b) return true;
-
     if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      return a.every((v, i) => v === b[i]);
+      return a.length === b.length && a.every((v, i) => v === b[i]);
     }
-
     if (a instanceof Map && b instanceof Map) {
       if (a.size !== b.size) return false;
-      for (const [key, val] of a) {
-        if (!b.has(key) || b.get(key) !== val) return false;
-      }
+      for (const [key, val] of a) if (!b.has(key) || b.get(key) !== val) return false;
       return true;
     }
-
-    if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {
+    if (a && typeof a === "object" && b && typeof b === "object") {
       const keysA = Object.keys(a);
       const keysB = Object.keys(b);
       if (keysA.length !== keysB.length) return false;
       return keysA.every((key) => a[key] === b[key]);
     }
-
     return false;
   };
 
@@ -51,110 +51,83 @@ export const createState = (initialData = {}) => {
       hasChangesInBatch = true;
       return;
     }
-    listeners.forEach((fn) => fn(state));
+    const snapshot = Object.fromEntries(Object.entries(state).map(([k, v]) => [k, cloneValue(v)]));
+    listeners.forEach((fn) => fn(snapshot));
   };
 
   const applyNotifyIfNeeded = () => {
     if (hasChangesInBatch) {
       hasChangesInBatch = false;
-      listeners.forEach((fn) => fn(state));
+      notify();
     }
   };
 
   return {
-    /**
-     * Повертає копію state
-     * @returns {Object}
-     */
     get() {
-      const copy = {};
-      Object.entries(state).forEach(([key, val]) => {
-        if (Array.isArray(val)) copy[key] = [...val];
-        else if (val instanceof Map) copy[key] = new Map(val);
-        else copy[key] = val;
-      });
-      return copy;
+      return Object.fromEntries(Object.entries(state).map(([k, v]) => [k, cloneValue(v)]));
     },
 
-    /**
-     * Встановлює patch у state
-     * @param {Object} patch
-     * @returns {void}
-     */
     set(patch) {
-      const nextState = { ...state, ...patch };
-
       let changed = false;
-      for (const key of Object.keys(nextState)) {
-        if (!shallowEqual(nextState[key], state[key])) {
+      const nextState = { ...state };
+      for (const key of Object.keys(patch)) {
+        const nextVal = cloneValue(patch[key]);
+        if (!shallowEqual(nextVal, state[key])) {
           changed = true;
-          break;
+          nextState[key] = nextVal;
         }
       }
-
       if (!changed) return;
-
       state = nextState;
       notify();
     },
 
-    /**
-     * Оновлює одне поле state
-     * @param {string} key
-     * @param {any} value
-     * @returns {void}
-     */
     updateField(key, value) {
-      if (shallowEqual(state[key], value)) return;
-
-      state = { ...state, [key]: value };
+      const nextValue = cloneValue(value);
+      if (shallowEqual(state[key], nextValue)) return;
+      state = { ...state, [key]: nextValue };
       notify();
     },
 
     /**
-     * Скидає state до початкового
-     * @returns {void}
+     * Безпечне оновлення вкладених об’єктів, напр. form.beams
+     * @param {string} key - ключ у state
+     * @param {Object} patch - частина об’єкта, яку треба оновити
      */
-    reset() {
-      let changed = false;
+    updateNestedField(key, patch) {
+      const oldVal = state[key];
+      if (!oldVal || typeof oldVal !== "object") return;
+      const nextVal = { ...oldVal, ...patch };
+      if (shallowEqual(oldVal, nextVal)) return;
+      state = { ...state, [key]: nextVal };
+      notify();
+    },
 
-      for (const key of Object.keys(initialData)) {
-        if (!shallowEqual(state[key], initialData[key])) {
+    reset() {
+      const nextState = Object.fromEntries(Object.entries(initialData).map(([k, v]) => [k, cloneValue(v)]));
+      let changed = false;
+      for (const key of Object.keys(nextState)) {
+        if (!shallowEqual(state[key], nextState[key])) {
           changed = true;
           break;
         }
       }
-
       if (!changed) return;
-
-      state = { ...initialData };
+      state = nextState;
       notify();
     },
 
-    /**
-     * Виконує групове оновлення state
-     * notify викликається один раз наприкінці
-     * @param {Function} callback
-     * @returns {void}
-     */
     batch(callback) {
       if (isBatching) {
         callback();
         return;
       }
-
       isBatching = true;
       callback();
       isBatching = false;
-
       applyNotifyIfNeeded();
     },
 
-    /**
-     * Підписка на зміни state
-     * @param {Function} listener
-     * @returns {Function} unsubscribe
-     */
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

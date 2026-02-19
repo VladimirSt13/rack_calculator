@@ -1,5 +1,4 @@
 // js/app/pages/racks/render.js
-import { calculateComponents } from "../core/calculator.js";
 import { generateComponentsTableHTML } from "./templates/componentsTable.js";
 import { generateRackNameHTML } from "./templates/rackName.js";
 import { updateRackName, updateComponentsTable } from "./rack.js";
@@ -12,40 +11,16 @@ import { updateRackName, updateComponentsTable } from "./rack.js";
  * @param {Object} options.refs - The refs object containing references to DOM elements.
  * @return {void}
  */
-export const render = ({ selectors, price, getRefs }) => {
+export const render = ({ selectors, getRefs }) => {
+  const refs = getRefs();
   try {
-    const refs = getRefs();
-    const floors = selectors.getFloors();
-    const rows = selectors.getRows();
-    const supports = selectors.getSupports();
-    const verticalSupports = selectors.getVerticalSupports();
-    const beamsArray = selectors.getBeams().map(([, b]) => b); // Map → масив
+    const currentRack = selectors.getCurrentRack();
 
-    // Перевірка на повноту даних
-    const isComplete =
-      floors &&
-      (floors === 1 || verticalSupports) &&
-      rows &&
-      supports &&
-      beamsArray.length > 0 &&
-      beamsArray.every((b) => b.item && b.quantity);
-
-    if (!isComplete) {
+    if (!currentRack) {
       updateRackName({ refs, html: "---" });
       updateComponentsTable({ refs, html: "<p>Недостатньо даних.</p>" });
       return;
     }
-
-    const rackConfig = {
-      floors,
-      rows,
-      supports,
-      verticalSupports,
-      beams: beamsArray,
-    };
-
-    // Розрахунок компонентів
-    const { currentRack } = calculateComponents({ rackConfig, price });
 
     const { components, totalCost, description, abbreviation } = currentRack;
 
@@ -61,7 +36,7 @@ export const render = ({ selectors, price, getRefs }) => {
       }),
     });
   } catch (err) {
-    console.error(err);
+    console.warn(err);
     if (refs?.rackName) refs.rackName.innerHTML = "Помилка відображення";
     if (refs?.componentsTable) refs.componentsTable.innerHTML = "<p>Неможливо визначити компоненти.</p>";
   }

@@ -4,5 +4,4 @@
 export const getRackSetRefs = () => ({
   rackSetTable: document.getElementById("rackSetTable"),
   rackSetSummary: document.getElementById("rackSetSummary"),
-  addRackBtn: document.getElementById("addRackBtn"),
 });

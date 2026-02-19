@@ -1,9 +1,11 @@
+// js/app/pages/racks/set/ui/renderRackSet.js
+
 import { aggregateRackSet } from "../core/aggregate.js";
 
 /**
  * Рендер комплекту стелажів
  */
-export const renderRackSet = ({ selectors, refs }) => {
+export const renderRackSet = ({ actions, selectors, refs, onEditRack }) => {
   const container = refs.rackSetTable;
   const summary = refs.rackSetSummary;
 
@@ -19,7 +21,6 @@ export const renderRackSet = ({ selectors, refs }) => {
 
   const aggregated = aggregateRackSet(racks);
 
-  // --- таблиця ---
   container.innerHTML = `
     <table class="rack-set-table">
       <thead>
@@ -29,18 +30,25 @@ export const renderRackSet = ({ selectors, refs }) => {
           <th>Кількість</th>
           <th>Ціна за од.</th>
           <th>Сума</th>
+          <th>Дії</th>
         </tr>
       </thead>
       <tbody>
         ${aggregated
           .map(
             (item, index) => `
-              <tr>
+              <tr data-id="${item.id}">
                 <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.quantity}</td>
-                <td>${item.unitPrice}</td>
-                <td>${item.total}</td>
+                <td>${item.rack.abbreviation}</td>
+                <td>${item.qty}</td>
+                <td>${item.rack.totalCost}</td>
+                <td>${item.rack.totalCost * item.qty}</td>
+                <td>
+                  <button class="btn-decrease">-</button>
+                  <button class="btn-increase">+</button>
+               
+                  <button class="btn-remove">Видалити</button>
+                </td>
               </tr>
             `,
           )
@@ -49,12 +57,41 @@ export const renderRackSet = ({ selectors, refs }) => {
     </table>
   `;
 
-  // --- підсумок ---
-  const total = aggregated.reduce((sum, r) => sum + r.total, 0);
+  // --- Підсумок ---
+  const total = aggregated.reduce((sum, r) => sum + r.rack.totalCost * r.qty, 0);
+  summary.innerHTML = `<div class="rack-set-total"><strong>Загальна сума:</strong> ${total}</div>`;
 
-  summary.innerHTML = `
-    <div class="rack-set-total">
-      <strong>Загальна сума:</strong> ${total}
-    </div>
-  `;
+  // --- Додаємо події кнопок ---
+  const tbody = container.querySelector("tbody");
+
+  tbody.querySelectorAll("tr").forEach((tr) => {
+    const id = tr.dataset.id;
+    const decreaseBtn = tr.querySelector(".btn-decrease");
+    const increaseBtn = tr.querySelector(".btn-increase");
+
+    const removeBtn = tr.querySelector(".btn-remove");
+
+    decreaseBtn?.addEventListener("click", () => {
+      const rack = racks.find((r) => r.id === id);
+      if (!rack) return;
+
+      const newQty = rack.qty - 1;
+      if (newQty <= 0) {
+        actions.removeRack(id);
+      } else {
+        actions.updateQty(id, newQty);
+      }
+    });
+
+    increaseBtn?.addEventListener("click", () => {
+      const rack = racks.find((r) => r.id === id);
+      if (!rack) return;
+      actions.updateQty(id, rack.qty + 1);
+    });
+
+    removeBtn?.addEventListener("click", () => {
+      console.log("remove", id);
+      actions.removeRack(id);
+    });
+  });
 };

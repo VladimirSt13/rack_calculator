@@ -1,4 +1,4 @@
-// js/pages/batteryPage.js
+// js/app/pages/batteryPage.js
 
 import { createPageModule } from "../../ui/createPageModule.js";
 import { initialBatteryState } from "./state/batteryState.js";

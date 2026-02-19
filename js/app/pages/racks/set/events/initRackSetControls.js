@@ -8,22 +8,15 @@
  * @param {Object} options.rackSet - The rack set object.
  * @return {void}
  */
-export const initRackSetControls = ({ addListener, rackSet }) => {
+export const initRackSetControls = ({ addListener, rackSet, onEditRack }) => {
   const { actions, getRefs } = rackSet;
   const refs = getRefs();
-  const btn = refs.addRackBtn;
-  if (!btn) return;
 
-  addListener(btn, "click", () => {
-    // додаємо стелаж у state
-    // для початку можемо додати тестовий об’єкт або скопіювати останній
-    const newRack = {
-      description: "Новий стелаж",
-      abbreviation: `R${Date.now()}`, // унікальний ключ
-      totalCost: 0,
-      components: [],
-    };
+  // editBtn.addEventListener("click", () => {
+  //   onEditRack?.(r.rack);
+  // });
 
-    actions.addRack(newRack); // додаємо через actions
-  });
+  // removeBtn.addEventListener("click", () => {
+  //   actions.removeRack(r.id);
+  // });
 };

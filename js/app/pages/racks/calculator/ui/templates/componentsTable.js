@@ -18,7 +18,7 @@ export const generateComponentsTableHTML = ({ components, totalCost }) => {
     .map((c) => (Array.isArray(c) ? c.map(rowHTML).join("") : rowHTML(c)))
     .join("");
 
-  const totalWithoutIsolators = totalCost - (components.isolators.amount * components.isolators.price || 0);
+  const totalWithoutIsolators = totalCost - (components.isolators?.amount * components.isolators?.price || 0);
   const zeroCost = Math.round(totalCost * 1.2 * 1.2);
 
   return `
