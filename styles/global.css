@@ -46,6 +46,12 @@ h3 {
   margin-bottom: 0.5rem;
 }
 
+th,
+td {
+  text-align: center;
+  vertical-align: middle;
+}
+
 /* ---- Глобальні посилання ---- */
 a {
   text-decoration: none;
@@ -182,6 +188,41 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: #bdbdbd;
 }
 
+/* ==============================
+   Button: Disabled state
+============================== */
+
+.btn--disabled,
+.btn:disabled {
+  opacity: 0.6;
+  background-color: #e0e0e0 !important;
+  color: #999 !important;
+  border-color: #ccc !important;
+  cursor: not-allowed;
+  pointer-events: none; /* Блокує всі події миші */
+  box-shadow: none !important;
+}
+
+.btn--disabled:hover,
+.btn:disabled:hover {
+  background-color: #e0e0e0 !important;
+  transform: none !important;
+}
+
+/* Tooltip для заблокованої кнопки */
+.btn[title]:hover:not(:disabled) {
+  position: relative;
+}
+
+/* Анімація переходу в disabled стан */
+.btn {
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
 /* ---- Таблиці (спільні) ---- */
 table {
   width: 100%;
@@ -190,7 +231,6 @@ table {
 }
 
 thead th {
-  text-align: left;
   padding: 0.75rem;
   background-color: #f1f1f1;
   font-weight: 600;

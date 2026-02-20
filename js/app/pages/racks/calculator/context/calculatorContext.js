@@ -7,6 +7,16 @@ import { createRackSelectors } from "../state/rackSelectors.js";
 import { getRacksCalcRefs } from "../ui/dom.js";
 import { calculateComponents } from "../core/calculator.js";
 
+// Допоміжна функція для серіалізації форми
+const serializeForm = (form) => {
+  if (!form) return "";
+  return JSON.stringify({
+    ...form,
+    // Перетворюємо Map на масив, якщо потрібно
+    beams: form.beams instanceof Map ? Array.from(form.beams.values()) : form.beams,
+  });
+};
+
 /**
  * Creates a context for the rack calculator page.
  * The context includes the state, selectors and actions for the calculator.
@@ -29,24 +39,28 @@ export const createRackCalculatorContext = () => {
     return value;
   };
 
+  /**
+   * Initializes the rack calculator context.
+   * @param {{ listener: function, price: object }} options - An object containing the listener function to be called when the state changes and the price object.
+   * @returns {undefined}
+   */
   const init = ({ listener, price }) => {
     priceRef = price;
     onChange = listener;
     refs = getRacksCalcRefs();
-    let prevForm = null;
+    let prevFormSerialized = null;
     let prevRackJSON = "";
 
     unsubscribe = state.subscribe((currentState) => {
       const { form } = currentState;
+      const currentFormSerialized = serializeForm(form);
 
-      if (prevForm === form) {
-        onChange?.();
+      if (prevFormSerialized === currentFormSerialized) {
         return;
       }
 
-      prevForm = form;
+      prevFormSerialized = currentFormSerialized;
 
-      // Розрахунок нового currentRack
       if (!price || Object.keys(price).length === 0 || !form) return;
 
       const rackConfig = {
@@ -65,8 +79,16 @@ export const createRackCalculatorContext = () => {
         rackConfig.supports &&
         rackConfig.beams.length > 0 &&
         rackConfig.beams.every((b) => b.item && b.quantity);
+      if (!canCalculate) {
+        prevRackJSON = "";
 
-      if (!canCalculate) return;
+        // Оновлюємо UI тільки якщо потрібно
+        if (selectors.getCurrentRack() !== null) {
+          state.updateField("currentRack", null);
+          onChange?.();
+        }
+        return;
+      }
 
       const { currentRack: newRack } = calculateComponents({ rackConfig, price });
       newRack.form = { ...rackConfig };

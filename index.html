@@ -88,16 +88,14 @@
             </div>
             <div class="rack__results">
               <div class="rack__card rack__name-card">
-                <div class="rack__card-title">Назва стелажа</div>
+                <h3 class="rack__card-title">Назва стелажа</h3>
                 <div id="rackName" class="rack__name-value">---</div>
-              </div>
 
-              <div class="rack__card rack__components-card">
-                <h3 class="rack__card-title">Компоненти стелажа</h3>
+                <h4 class="rack__card-title">Компоненти стелажа</h3>
                 <div id="componentsTable" class="rack__components-table" data-dynamic="components"></div>
                 <div id="rackPrice" class="rack__price"></div>
                 <div id="rackSetControls">
-                  <button id="addRackBtn">Додати стелаж до комплекту</button>
+                  <button id="addRackBtn" class="btn">Додати стелаж до комплекту</button>
                 </div>
               </div>
 
@@ -113,10 +111,17 @@
                 </div>
               </div>
 
-              <div id="rackSetModal" class="rack-set-modal modal" hidden>
-                <div class="rack-set-modal__content modal__content">
-                  <button id="closeModal" class="rack-set-modal__close">×</button>
-                  <div id="rackSetModalContent" class="rack-set-modal__body"></div>
+              <div id="rackSetModal" class="rack-set-modal modal">
+                <div class="rack-set-modal__container">
+                  <div class="rack-set-modal__content modal__content">
+                    <button id="closeModal" class="rack-set-modal__close" type="button" aria-label="Закрити">×</button>
+
+                    <div id="rackSetModalContent" class="rack-set-modal__body">
+                      <!-- Отдельные контейнеры для совместимости с renderRackSet -->
+                      <div id="modalRackSetTable" class="rack-set__table"></div>
+                      <div id="modalRackSetSummary" class="rack-set__summary"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,9 +1,13 @@
+// js/app/pages/racks/set/ui/rackSetModal.js
+
+import { renderRackSet } from "./renderRackSet.js";
+
 /**
  * Ініціалізує модальне вікно комплекту
  * @param {Object} rackSetCtx - Контекст rackSet з state та actions
  */
 export const initRackSetModal = (rackSetCtx) => {
-  const { state, actions } = rackSetCtx;
+  const { state, actions, selectors } = rackSetCtx;
 
   const modal = document.getElementById("rackSetModal");
   const content = modal?.querySelector(".modal__content");
@@ -37,15 +41,32 @@ export const initRackSetModal = (rackSetCtx) => {
     }
   };
 
-  /** Анімація відкриття/закриття */
+  /** Анімація відкриття/закриття + Рендер контенту */
   const render = (s) => {
     if (s.isModalOpen) {
       modal.classList.add("is-open");
       document.body.style.overflow = "hidden";
-
       lastFocusedElement = document.activeElement;
 
-      // трохи затримки, щоб DOM оновився
+      // 🔥 Рендеримо таблицю комплекту всередині модалки
+      const tableContainer = modal.querySelector("#modalRackSetTable");
+      const summaryContainer = modal.querySelector("#modalRackSetSummary");
+
+      if (tableContainer && summaryContainer) {
+        renderRackSet({
+          actions,
+          selectors,
+          refs: {
+            rackSetTable: tableContainer,
+            rackSetSummary: summaryContainer,
+          },
+          // Заглушка для редагування (реалізуємо на наступному кроці)
+          onEditRack: null,
+          mode: "modal",
+        });
+      }
+
+      // трохи затримки, щоб DOM оновився перед фокусом
       setTimeout(() => {
         const focusable = getFocusableElements();
         focusable[0]?.focus();
@@ -57,6 +78,12 @@ export const initRackSetModal = (rackSetCtx) => {
       document.body.style.overflow = "";
 
       document.removeEventListener("keydown", trapFocus);
+
+      // Очищаем контент при закрытии (опционально, чтобы сбросить события)
+      const tableContainer = modal.querySelector("#modalRackSetTable");
+      const summaryContainer = modal.querySelector("#modalRackSetSummary");
+      if (tableContainer) tableContainer.innerHTML = "";
+      if (summaryContainer) summaryContainer.innerHTML = "";
 
       lastFocusedElement?.focus();
     }

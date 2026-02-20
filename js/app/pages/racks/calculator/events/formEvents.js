@@ -7,6 +7,50 @@ import { populateDropdowns } from "../ui/dropdowns.js";
 const MAX_BEAMS = 5;
 
 /**
+ * Перевіряє, чи сформовано стелаж коректно
+ * @param {Object} rack - поточний стелаж з селекторів
+ * @returns {boolean}
+ */
+export const isRackValid = (rack) => {
+  if (!rack) return false;
+
+  // Обов'язкові поля форми
+  const { floors, rows, supports, beamsPerRow, verticalSupports } = rack.form || {};
+
+  if (!floors || !rows || !supports || !beamsPerRow) return false;
+
+  // Вертикальні опори потрібні, якщо поверхів > 1
+  if (floors > 1 && !verticalSupports) return false;
+
+  // Балки: має бути хоча б одна з заповненими даними
+  const beams = rack.form?.beams || [];
+  const hasValidBeam = beams.some((b) => b?.item && b?.quantity > 0);
+
+  if (!hasValidBeam) return false;
+
+  // Якщо є ціна — стелаж точно розрахований
+  return rack.totalCost > 0;
+};
+
+/**
+ * Оновлює стан кнопки додавання до комплекту
+ */
+const updateAddToSetButtonState = ({ calculator, refs }) => {
+  const btn = refs.addRackBtn;
+  if (!btn) return;
+
+  const rack = calculator.selectors.getCurrentRack();
+  const isValid = isRackValid(rack);
+
+  btn.disabled = !isValid;
+  btn.classList.toggle("btn--disabled", !isValid);
+  btn.setAttribute("aria-disabled", !isValid);
+
+  // Tooltip через title
+  btn.title = isValid ? "Додати стелаж до комплекту" : "Заповніть усі обов'язкові поля форми";
+};
+
+/**
  * Ініціалізація подій форми сторінки racks
  * @param {Object} params
  * @param {Object} params.price - ціни компонентів
@@ -18,7 +62,7 @@ export const initFormEvents = ({ addListener, calculator, price, onAddSet }) => 
   const { actions, selectors, getRefs } = calculator;
   const refs = getRefs();
   const beamsData = Object.keys(price.beams || {});
-
+  updateAddToSetButtonState({ calculator, refs });
   // Наповнення dropdown-ів, якщо ціни завантажені
   if (price) {
     populateDropdowns({
@@ -97,6 +141,7 @@ export const initFormEvents = ({ addListener, calculator, price, onAddSet }) => 
         }
       }
     }
+    updateAddToSetButtonState({ calculator, refs });
 
     // 🔹 Викликаємо розрахунок поточного стелажа після будь-якої зміни форми
   };

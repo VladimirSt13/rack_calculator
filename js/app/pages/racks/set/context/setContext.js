@@ -28,7 +28,7 @@ export const createRackSetContext = () => {
   const init = () => {
     refs = getRackSetRefs();
 
-    unsubscribe = state.subscribe(() => renderRackSet({ actions, selectors, refs }));
+    unsubscribe = state.subscribe(() => renderRackSet({ actions, selectors, refs, showDetails: false }));
   };
 
   const getRefs = () => ensureInit(refs, "RackCalculator refs");

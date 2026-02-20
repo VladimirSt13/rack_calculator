@@ -11,12 +11,4 @@
 export const initRackSetControls = ({ addListener, rackSet, onEditRack }) => {
   const { actions, getRefs } = rackSet;
   const refs = getRefs();
-
-  // editBtn.addEventListener("click", () => {
-  //   onEditRack?.(r.rack);
-  // });
-
-  // removeBtn.addEventListener("click", () => {
-  //   actions.removeRack(r.id);
-  // });
 };
