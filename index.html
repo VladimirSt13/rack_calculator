@@ -91,8 +91,13 @@
                 <h3 class="rack__card-title">Назва стелажа</h3>
                 <div id="rackName" class="rack__name-value">---</div>
 
-                <h4 class="rack__card-title">Компоненти стелажа</h3>
-                <div id="componentsTable" class="rack__components-table" data-dynamic="components"></div>
+                <h4 class="rack__card-title">Компоненти стелажа</h4>
+                <div
+                  id="componentsTable"
+                  class="rack__components-table"
+                  data-dynamic="components"
+                  data-empty-text="Компоненти з'являться після заповнення форми"
+                ></div>
                 <div id="rackPrice" class="rack__price"></div>
                 <div id="rackSetControls">
                   <button id="addRackBtn" class="btn">Додати стелаж до комплекту</button>
@@ -102,7 +107,11 @@
               <div class="rack-set rack__card">
                 <h3 class="rack-set__title">Комплект стелажів</h3>
 
-                <div id="rackSetTable" class="rack-set__table"></div>
+                <div
+                  id="rackSetTable"
+                  class="rack-set__table"
+                  data-empty-text="Комплект порожній. Додайте стелажі"
+                ></div>
 
                 <div id="rackSetSummary" class="rack-set__summary"></div>
 
@@ -118,6 +127,7 @@
 
                     <div id="rackSetModalContent" class="rack-set-modal__body">
                       <!-- Отдельные контейнеры для совместимости с renderRackSet -->
+
                       <div id="modalRackSetTable" class="rack-set__table"></div>
                       <div id="modalRackSetSummary" class="rack-set__summary"></div>
                     </div>

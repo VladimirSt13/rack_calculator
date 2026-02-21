@@ -1,37 +1,6 @@
 // js/app/pages/racks/set/ui/renderRackSet.js
 
-import { aggregateRackSet } from "../core/aggregate.js";
-
-/**
- * Збирає всі компоненти стелажа в єдиний масив
- * @param {Object} components - об'єкт components з стелажа
- * @returns {Array<{name: string, amount: number}>}
- */
-const collectComponents = (components) => {
-  const result = [];
-
-  if (!components || typeof components !== "object") return result;
-
-  for (const key of Object.keys(components)) {
-    const value = components[key];
-    if (!value) continue;
-
-    if (Array.isArray(value)) {
-      value.forEach((item) => {
-        if (item?.name && item?.amount) {
-          result.push({ name: item.name, amount: item.amount ?? 0 });
-        }
-      });
-    } else if (typeof value === "object" && value?.name && value?.amount) {
-      result.push({ name: value.name, amount: value.amount ?? 0 });
-    } else if (typeof value === "object" && !value?.name) {
-      const nested = collectComponents(value);
-      result.push(...nested);
-    }
-  }
-
-  return result;
-};
+import { collectComponents } from "../utils/collectComponents.js";
 
 /**
  * Рендер комплекту стелажів
@@ -49,19 +18,25 @@ export const renderRackSet = ({
 }) => {
   const container = refs.rackSetTable;
   const summary = refs.rackSetSummary;
+  const isPage = mode === "page";
+  const isModal = mode === "modal";
 
   if (!container || !summary) return;
 
   const racks = selectors.getAll();
 
   if (!racks.length) {
-    container.innerHTML = "<p class='rack-set__empty'>Комплект порожній</p>";
-    summary.innerHTML = "";
+    container.innerHTML = "";
+    container.summary = `<div class="rack-set-total">
+      <strong>Загальна сума:</strong> 
+      <span data-testid="rack-set-total">0.00</span>
+    </div>
+    `;
+
     return;
   }
-
-  const isPage = mode === "page";
-  const isModal = mode === "modal";
+  container.innerHTML = "";
+  container.summary = "";
 
   // Заголовки таблиці
   container.innerHTML = `
@@ -80,6 +55,7 @@ export const renderRackSet = ({
         ${racks
           .map((item, index) => {
             const rack = item.rack;
+            console.log("🚀 ~ rack->", rack);
             const qty = item.qty;
             const unitCost = rack.totalCost || 0;
             const total = unitCost * qty;
@@ -144,7 +120,7 @@ export const renderRackSet = ({
             return `
               <tr class="rack-set__main-row" data-id="${item.id}">
                 <td>${index + 1}</td>
-                <td>${rack.abbreviation || "—"}</td>
+                <td>${mode === "modal" ? `${rack.description} ${rack.abbreviation}` : rack.abbreviation || "—"}</td>
                 ${actionsHtml}
                 <td>${unitCost.toFixed(2)}</td>
                 <td>${total.toFixed(2)}</td>

@@ -609,3 +609,109 @@
 .rack__form select:valid {
   border-color: #4caf50;
 }
+
+/* ==============================
+   Empty State — загальні стилі
+============================== */
+
+/* Контейнер таблиці в порожньому стані */
+.rack__components-table:empty,
+.rack-set__table:empty {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.95rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* ==============================
+   Порожній стан для модалки
+============================== */
+
+#modalRackSetTable:empty {
+  min-height: 150px;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* ==============================
+   Анімація появи контенту
+============================== */
+
+.rack__components-table:not(:empty),
+.rack-set__table:not(:empty) {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==============================
+   Placeholder для ціни
+============================== */
+
+.rack__price:not(:empty) {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ==============================
+   Порожній підсумок комплекту
+============================== */
+
+.rack-set__summary:empty {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-style: italic;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* ==============================
+   Адаптивність
+============================== */
+
+@media (max-width: 768px) {
+  .rack__components-table:empty,
+  .rack-set__table:empty {
+    min-height: 100px;
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+
+  .rack__components-table:empty::after,
+  .rack-set__table:empty::after {
+    max-width: 200px;
+    font-size: 0.85rem;
+  }
+}
+
+.rack__components-table[data-empty-text]:empty::after,
+.rack-set__table[data-empty-text]:empty::after {
+  content: attr(data-empty-text);
+}
