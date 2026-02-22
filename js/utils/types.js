@@ -20,4 +20,15 @@
  * @typedef {'empty' | 'ready' | 'loading' | 'error'} UIState
  */
 
+/**
+ * @callback MouseEventHandler
+ * @param {MouseEvent} e
+ * @returns {void}
+ */
+/**
+ * @callback ChangeEventHandler
+ * @param {Event} e
+ * @returns {void}
+ */
+
 export {}; // Робить файл модулем, щоб типи не "витікали"

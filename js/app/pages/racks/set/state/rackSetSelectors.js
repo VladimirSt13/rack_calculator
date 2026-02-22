@@ -1,43 +1,36 @@
-// js/pages/racks/set/state/rackSetSelectors.js
+// js/app/pages/racks/set/state/rackSetSelectors.js
 
 /**
- * Фабрика селекторів для комплекту стелажів
- * @param {Object} stateInstance - інстанс createState
- * @returns {Object}
+ * @param {import('../../../state/createState.js').StateInstance<import('./rackSetState.js').RackSetState>} stateInstance
  */
 export const createRackSetSelectors = (stateInstance) => ({
-  /**
-   * Отримати повний state
-   */
-  getState() {
-    return stateInstance.get();
-  },
+  /** Full state snapshot */
+  getState: () => stateInstance.get(),
 
-  /**
-   * Отримати всі стелажі
-   */
-  getAll() {
-    return stateInstance.get().racks;
-  },
+  /** All racks array */
+  getAll: () => stateInstance.get().racks,
 
-  /**
-   * Кількість стелажів
-   */
-  getCount() {
-    return stateInstance.get().racks.length;
-  },
+  /** Count of unique rack configs */
+  getCount: () => stateInstance.get().racks.length,
 
-  /**
-   * Загальна вартість комплекту
-   */
-  getTotalCost() {
-    return stateInstance.get().racks.reduce((sum, rack) => sum + (rack.totalCost || 0), 0);
-  },
+  /** Total items count (sum of qty) */
+  getTotalItems: () => stateInstance.get().racks.reduce((sum, r) => sum + r.qty, 0),
 
-  /**
-   * Чи комплект порожній
-   */
-  isEmpty() {
-    return stateInstance.get().racks.length === 0;
-  },
+  /** Grand total cost */
+  getTotalCost: () =>
+    stateInstance.get().racks.reduce((sum, r) => sum + (r.rack.totalCost || 0) * r.qty, 0),
+
+  /** Is set empty */
+  isEmpty: () => stateInstance.get().racks.length === 0,
+
+  /** Get rack by id */
+  getById: (id) => stateInstance.get().racks.find((r) => r.id === id) || null,
+
+  /** Is modal open */
+  isModalOpen: () => stateInstance.get().isModalOpen,
+
+  /** Expanded rack id */
+  getExpandedId: () => stateInstance.get().expandedRackId,
 });
+
+export default createRackSetSelectors;

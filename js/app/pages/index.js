@@ -1,4 +1,3 @@
-// @ts-check
 // js/app/pages/index.js
 
 import { batteryPage } from './battery/page.js';
@@ -23,12 +22,12 @@ import { rackPage } from './racks/page.js';
  * Мапа всіх сторінок додатку
  * @type {Record<string, PageModule>}
  */
-const PAGE_REGISTRY = {
+const PAGE_REGISTRY = Object.freeze({
   battery: batteryPage,
   rack: rackPage,
   // Додавайте нові сторінки тут:
   // reports: reportsPage,
-};
+});
 
 /**
  * Pure: валідує сторінку перед реєстрацією
@@ -101,10 +100,10 @@ export const registerAllPages = async () => {
     console.warn('[Pages] No valid pages registered');
   }
 
-  return {
-    routes: validPages,
-    pageOrder: getPageOrder(validPages),
-  };
+  return Object.freeze({
+    routes: Object.freeze(validPages),
+    pageOrder: Object.freeze(getPageOrder(validPages)),
+  });
 };
 
 /**
@@ -133,3 +132,10 @@ export default {
   hasPage,
   getAllPageIds,
 };
+
+/**
+ * @typedef {Object} RouterContext
+ * @property {string|null} currentRoute
+ * @property {Record<string, import('../ui/router.js').Route>} routes
+ * @property {import('../ui/router.js').RouterConfig['effects']} effects
+ */

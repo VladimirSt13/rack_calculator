@@ -108,7 +108,7 @@ const calculateComponents = ({ rackConfig, price }) => {
   // --- Розрахунок totalCost для кожного компонента та загальної вартості ---
   const totalCost = totalCostCalculation({ components: Object.values(components) });
 
-  const currentRack = {
+  const newRack = {
     description,
     abbreviation,
     components,
@@ -116,7 +116,7 @@ const calculateComponents = ({ rackConfig, price }) => {
     totalCost,
   };
 
-  return { currentRack };
+  return { newRack };
 };
 
 export { calculateComponents };

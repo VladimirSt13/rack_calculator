@@ -1,3 +1,5 @@
+// js/app/core/compose.js
+
 /**
  * Compose a list of functions into a single function.
  * The composed function will return the result of applying the last function

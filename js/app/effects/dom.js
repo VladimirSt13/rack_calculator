@@ -1,5 +1,9 @@
 // js/app/effects/dom.js
 
+// ===== TYPODEF UPDATE =====
+/**
+ * @typedef {Element | HTMLElement | (() => Element|null) | (() => HTMLElement|null)} ElementRef
+ */
 /**
  * @typedef {HTMLElement | (() => HTMLElement|null)} ElementRef
  * @typedef {Record<string, string>} Attributes
@@ -17,9 +21,10 @@ const getElement = (elementRef) => {
     return null;
   }
   if (typeof elementRef === 'function') {
-    return elementRef();
+    const result = elementRef();
+    return result instanceof Element ? result : null;
   }
-  return elementRef instanceof HTMLElement ? elementRef : null;
+  return elementRef instanceof Element ? elementRef : null;
 };
 
 /**

@@ -5,9 +5,9 @@ import { pipe } from '../core/compose.js';
 
 /**
  * @typedef {Object} Renderer
- * @property {(state: any) => void} render
  * @property {(state: any) => string} toHTML
- * @property {(container: HTMLElement, state: any) => void} mount
+ * @property {(container: HTMLElement) => (state: any) => void} render  // ✅ Curried
+ * @property {(container: HTMLElement) => (state: any) => void} mount   // ✅ Curried
  */
 
 /**
@@ -20,7 +20,11 @@ export const createRenderer = (renderFn) => ({
   // Pure: state → HTML
   toHTML: (state) => renderFn(state),
 
-  // Side-effect: HTML → DOM
+  /**
+   * Оновлює HTML контейнеру за допомогою чистого рендереру
+   * @param {HTMLElement} container - контейнер, у якому буде відображено HTML
+   * @returns {(state: any) => void} - функція, що приймає стан і оновлює container
+   */
   render: (container) => (state) => {
     const html = renderFn(state);
     if (container.innerHTML !== html) {
@@ -28,10 +32,19 @@ export const createRenderer = (renderFn) => ({
     }
   },
 
-  // Composition: mount = render + container
+  /**
+   * Mounts the renderer to the given container.
+   * This function will only update the container's HTML if it has changed.
+   * @param {HTMLElement} container - The container to mount the renderer to.
+   * @returns {(state: any) => void} - A function that takes a state and mounts the rendered HTML to the container.
+   */
   mount: (container) => (state) => {
-    pipe(renderFn, (html) => {
-      container.innerHTML = html;
-    })(state);
+    pipe(
+      renderFn,
+      /** @param {string} html */
+      (html) => {
+        container.innerHTML = html;
+      },
+    )(state);
   },
 });
