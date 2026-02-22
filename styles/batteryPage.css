@@ -109,7 +109,7 @@
   overflow: hidden;
 }
 
-.label-delta + input[type="number"] {
+.label-delta + input[type='number'] {
   width: 6ch;
 }
 

@@ -5,6 +5,4 @@
  * @param {Array<Object>} racks
  * @returns {Array<Object>} агрегований список
  */
-export const aggregateRackSet = (racks = []) => {
-  return racks;
-};
+export const aggregateRackSet = (racks = []) => racks;

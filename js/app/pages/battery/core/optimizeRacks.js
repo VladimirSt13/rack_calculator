@@ -1,4 +1,4 @@
-import { calculateScore } from "./scoring.js";
+import { calculateScore } from './scoring.js';
 
 const enrichVariant = (r, rackLength) => {
   const spans = r.combination;
@@ -7,7 +7,9 @@ const enrichVariant = (r, rackLength) => {
 
   let symmetryPairs = 0;
   for (let i = 0; i < half; i++) {
-    if (spans[i] === spans[spans.length - 1 - i]) symmetryPairs++;
+    if (spans[i] === spans[spans.length - 1 - i]) {
+      symmetryPairs++;
+    }
   }
 
   return {
@@ -23,7 +25,9 @@ const enrichVariant = (r, rackLength) => {
 };
 
 export const optimizeRacks = (variants, rackLength, maxAllowedSpan, topN = 5) => {
-  if (!variants.length) return [];
+  if (!variants.length) {
+    return [];
+  }
 
   const enriched = variants.map((v) => enrichVariant(v, rackLength));
 
@@ -58,7 +62,9 @@ export const optimizeRacks = (variants, rackLength, maxAllowedSpan, topN = 5) =>
   // 🔹 4. Сортування: найменша довжина + більше симетрії
   return scored
     .sort((a, b) => {
-      if (a.totalLength !== b.totalLength) return a.totalLength - b.totalLength;
+      if (a.totalLength !== b.totalLength) {
+        return a.totalLength - b.totalLength;
+      }
       return b.symmetryPairs - a.symmetryPairs;
     })
     .slice(0, topN);

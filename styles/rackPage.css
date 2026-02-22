@@ -1,82 +1,99 @@
-/* ==============================
-   RackPage — layout
-============================== */
+/**
+ * Rack Page Specific Styles
+ */
 
-.rack .section__content {
-  flex-wrap: nowrap;
+/* =============================================================================
+   1. LAYOUT & GRID
+   ============================================================================= */
+
+.section--rack .section__body {
+  /* Використовуємо grid з global.css, але з уточненням */
+  grid-template-columns: clamp(300px, 35vw, 400px) 1fr;
+  gap: var(--spacing-lg);
 }
-
-@media (max-width: 768px) {
-  .rack .section__content {
-    flex-direction: column;
-    flex-wrap: wrap;
-  }
-}
-
-/* ==============================
-   RackPage — columns
-============================== */
 
 .rack__params {
-  flex: 1 1 35%;
-  min-width: 350px;
+  /* Sidebar вже має sticky в global.css */
+  min-width: 0; /* Дозволяє стискатися в grid */
 }
 
 .rack__results {
-  flex: 1 1 65%;
-  min-width: 600px;
-}
-
-/* ==============================
-   Fieldset
-============================== */
-
-.rack__fieldset {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--spacing-md);
+  min-width: 0; /* Дозволяє стискатися в grid */
 }
 
-.rack__legend {
-  font-weight: 600;
-  padding: 0 0.5rem;
-}
-
-/* ==============================
-   Form rows
-============================== */
+/* =============================================================================
+   2. FORM STYLES
+   ============================================================================= */
 
 .rack__form {
-  gap: 0.75rem;
+  /* Базові стилі форми вже в global.css */
+  gap: var(--spacing-sm);
 }
 
 .rack__row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .rack__label {
-  width: 220px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  width: 100%;
   font-weight: 500;
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-sm);
 }
 
-/* ==============================
-   Beams section
-============================== */
+/* Dot leader (крапки між текстом і інпутом) */
+.rack__label .dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--color-text-secondary);
+  margin: 0 var(--spacing-xs);
+  opacity: 0.6;
+}
+
+.rack__label input,
+.rack__label select {
+  width: clamp(80px, 12ch, 120px);
+  min-width: 80px;
+  text-align: right;
+}
+
+/* Required indicator */
+.rack__label--required::after {
+  content: '*';
+  color: var(--color-danger);
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+/* Form validation states */
+.rack__form input:invalid,
+.rack__form select:invalid {
+  border-color: var(--color-border-error);
+  background-color: #fff5f5;
+}
+
+.rack__form input:valid,
+.rack__form select:valid {
+  border-color: var(--color-success);
+}
+
+/* =============================================================================
+   3. BEAMS DYNAMIC SECTION
+   ============================================================================= */
 
 .rack__row--beams {
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
+  width: 100%;
 }
 
 .rack__beams-header {
@@ -90,324 +107,124 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--spacing-xs);
 }
 
-/* ==============================
-   Cards
-============================== */
-
-.rack__card {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-
-.rack__card-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.rack__name-value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #007bff;
-}
-
-/* ==============================
-   Components table wrapper
-============================== */
-
-.rack__components-table {
-  margin-top: 0.5rem;
-}
-
-/* ==============================
-   Icon button
-============================== */
-.icon-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #007bff;
-  background-color: #fff;
-  color: #007bff;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.icon-btn:hover {
-  background-color: #007bff;
-  color: #fff;
-}
-
-.icon-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.form-row.rackForm__form-row.rackForm__form-row--beams {
-  align-items: flex-start;
-}
-
-/* ==============================
-   Icon button — загальний стиль
-============================== */
-.icon-btn {
-  width: 24px; /* трохи менше */
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid #cfd4da;
-  background-color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-/* Горизонтальна та вертикальна риска для + */
-.icon-btn::before,
-.icon-btn::after {
-  content: "";
-  position: absolute;
-  background-color: #1c1c1c;
-  border-radius: 1px;
-}
-
-/* Горизонтальна риска */
-.icon-btn::before {
-  width: 10px;
-  height: 2px;
-}
-
-/* Вертикальна риска (для +) */
-.icon-btn::after {
-  width: 2px;
-  height: 10px;
-}
-
-/* + кнопка */
-.icon-btn--add::before,
-.icon-btn--add::after {
-  background-color: #1c1c1c;
-}
-
-/* − кнопка */
-.icon-btn--remove::before {
-  width: 10px; /* горизонтальна риска */
-  height: 2px;
-}
-.icon-btn--remove::after {
-  display: none; /* вертикальна риска не потрібна */
-}
-
-/* Hover + ефекти */
-.icon-btn--add:hover {
-  background-color: #e6f0ff;
-  border-color: #007bff;
-}
-.icon-btn--add:hover::before,
-.icon-btn--add:hover::after {
-  background-color: #007bff;
-}
-
-.icon-btn--remove:hover {
-  background-color: #ffe6e6;
-  border-color: #ff4d4d;
-}
-.icon-btn--remove:hover::before {
-  background-color: #ff4d4d;
-}
-
-/* Disabled стан */
-.icon-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.rackForm__label-group,
 .beam-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-/* ==============================
-   Components table — базові стилі
-============================== */
-.rack__components-table table {
+  gap: var(--spacing-sm);
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
-.rack__components-table th,
-.rack__components-table td {
-  padding: 0.75rem 0.5rem;
+/* =============================================================================
+   4. ICON BUTTONS (Unified)
+   ============================================================================= */
+
+/* Базовий стиль вже в global.css, тут специфічні для форми */
+.rack__form .icon-btn {
+  width: clamp(24px, 3vw, 28px);
+  height: clamp(24px, 3vw, 28px);
 }
 
-.rack__components-table th {
-  background-color: #f1f1f1;
-  font-weight: 600;
-  border-bottom: 2px solid #d0d0d0;
+.icon-btn--add:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-color: var(--color-primary);
 }
 
-.rack__components-table tbody tr {
-  transition: background-color 0.2s ease;
+.icon-btn--add:hover::before,
+.icon-btn--add:hover::after {
+  background-color: var(--color-primary);
 }
 
-.rack__components-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+.icon-btn--remove:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: var(--color-danger);
 }
 
-.rack__components-table tbody tr:hover {
-  background-color: #e6f0ff;
-  cursor: default;
+.icon-btn--remove:hover::before {
+  background-color: var(--color-danger);
 }
 
-.rack__components-table td {
-  border-bottom: 1px solid #e0e0e0;
+/* =============================================================================
+   5. RESULT CARDS
+   ============================================================================= */
+
+.rack__card {
+  /* Базові стилі картки вже в global.css */
+  margin-bottom: 0;
 }
 
-/* ==============================
-   Price info
-============================== */
+.rack__name-value {
+  font-size: clamp(1.1rem, 1.05rem + 0.25vw, 1.25rem);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.rack__components-table {
+  margin-top: var(--spacing-sm);
+  /* Стилі таблиці вже в global.css */
+}
+
 .rack__price {
-  margin-top: 0.5rem;
-  font-size: 1rem;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-base);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-}
-
-.rack__price p {
-  margin: 0;
-  font-weight: 500;
+  gap: var(--spacing-xs);
 }
 
 .rack__price .price {
-  color: #007bff;
+  color: var(--color-primary);
 }
 
 .rack__price .total {
-  font-weight: 600;
-  color: #1c1c1c;
-  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
 }
 
 .rack__price .zero-cost {
-  font-size: 0.875rem;
-  color: #555;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 
-/* ==============================
-   Form rows — лейбли з dot-leader
-============================== */
-.rack__label {
-  display: flex;
-  justify-content: space-between;
-  width: 280px; /* ширше лейблу */
-  font-weight: 500;
-  position: relative;
-}
-
-.form label.rack__label {
-  align-items: baseline;
-}
-
-/* Поля input і select — ширина під ~12 символів */
-.rack__label input,
-.rack__label select {
-  width: 12ch; /* ширина під 12 символів */
-  min-width: 100px; /* мінімальна ширина для маленьких екранів */
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #cfd4da;
-  border-radius: 4px;
-  font-size: 0.95rem;
-}
-
-/* Додаткове вирівнювання для input/select у flex */
-.rack__row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.rack__label .dots {
-  flex: 1; /* займає простір між текстом і інпутом */
-  border-bottom: 1px dotted #242323;
-  margin: 0 0.25rem;
-}
-
-.rack__label input,
-.rack__label select {
-  width: 12ch;
-  min-width: 100px;
-  border: 1px solid #cfd4da;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-}
-
-/* ==============================
-   Rack set (комплект стелажів)
-============================== */
+/* =============================================================================
+   6. RACK SET (комплект стелажів)
+   ============================================================================= */
 
 .rack-set {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .rack-set__title {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-xs);
 }
 
 .rack-set__table {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
+  /* Стилі таблиці вже в global.css */
 }
 
 .rack-set__summary {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-weight: 500;
+  background-color: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: 600;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
 }
 
 .rack-set__summary .total {
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: #007bff;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
 }
 
 .rack-set__actions {
@@ -415,126 +232,71 @@
   justify-content: flex-end;
 }
 
-/* ==============================
-   Rack Set Modal Animation
-============================== */
+/* =============================================================================
+   7. RACK SET TABLE (Page & Modal)
+   ============================================================================= */
 
-.rack-set-modal {
-  padding: 1rem;
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transition:
-    opacity 0.25s ease,
-    visibility 0.25s ease;
+/* Main row styles */
+.rack-set__main-row {
+  border-bottom: 2px solid var(--color-border);
 }
 
-.rack-set-modal.is-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: all;
+.rack-set__main-row:last-child {
+  border-bottom: 1px solid var(--color-border);
 }
 
-.rack-set-modal__container {
-  position: relative;
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: auto;
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 1rem;
+/* Components sub-table */
+.rack-set__components-row td {
+  padding: 0 !important;
+  background-color: var(--color-bg-alt);
 }
 
-.rack-set-modal__content {
-  transform: translateY(20px) scale(0.98);
-  opacity: 0;
-
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
-}
-
-.rack-set-modal.is-open .rack-set-modal__content {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-/* Контейнер для деталей комплектации */
 .rack-set__components-wrapper {
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  margin: 4px 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-alt);
+  border-radius: var(--border-radius);
+  margin: var(--spacing-xs) 0;
 }
 
 .rack-set__components-label {
   display: block;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 6px;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Таблица компонентов */
 .rack-set__components-table {
   width: 100%;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   border-collapse: collapse;
 }
 
 .rack-set__components-table th {
-  padding: 4px 8px;
+  text-align: left;
+  padding: var(--spacing-xs) var(--spacing-sm);
   font-weight: 600;
-  color: #555;
-  border-bottom: 1px solid #e0e0e0;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
 }
 
 .rack-set__components-table td {
-  padding: 4px 8px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .rack-set__components-table tr:last-child td {
   border-bottom: none;
 }
 
-/* Разделение основных строк и строк компонентов */
-.rack-set__main-row {
-  border-bottom: 2px solid #e8e8e8;
-}
-
-.rack-set__components-row td {
-  padding: 0 !important;
-  background: #fafafa;
-}
-
-/* Кнопки действий */
-.rack-set__actions {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.rack-set__actions button {
-  padding: 4px 8px;
-  font-size: 0.9rem;
-  min-width: 28px;
-}
-
-/* Контроли кількості на сторінці */
+/* Quantity controls (page only) */
 .rack-set__qty-controls {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   justify-content: center;
 }
 
@@ -542,119 +304,120 @@
 .btn-qty-increase {
   width: 28px;
   height: 28px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  background: #f5f5f5;
+  background-color: var(--color-bg-alt);
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   line-height: 1;
+  transition: all var(--transition-base);
 }
 
 .btn-qty-decrease:hover,
 .btn-qty-increase:hover {
-  background: #e0e0e0;
+  background-color: var(--color-border);
 }
 
 .rack-set__qty-value {
   min-width: 24px;
   text-align: center;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Кнопка видалення */
+/* Remove button */
 .btn-remove {
-  padding: 6px 12px;
-  background: #ff4444;
-  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-danger);
+  color: var(--color-text-inverse);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background-color var(--transition-base);
 }
 
 .btn-remove:hover {
-  background: #cc0000;
+  background-color: #c82333;
 }
 
-/* Візуальний індикатор: пульсуюча рамка для незаповненої форми */
-.rack__form:has(input:invalid) ~ .rack__card .btn:not(.btn--disabled) {
-  animation: pulse-border 2s infinite;
+/* =============================================================================
+   8. EMPTY STATES
+   ============================================================================= */
+
+/* Використовуємо data-state з global.css, але додаємо специфічні стилі */
+.rack__components-table[data-state='empty'],
+.rack-set__table[data-state='empty'] {
+  min-height: clamp(100px, 15vh, 150px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-bg-alt) 0%, #e9ecef 100%);
+  border: 2px dashed var(--color-border);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-md);
+  text-align: center;
 }
 
-@keyframes pulse-border {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(255, 165, 0, 0);
-  }
+.rack__components-table[data-state='empty']::before,
+.rack-set__table[data-state='empty']::before {
+  content: '📋';
+  display: block;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: var(--spacing-sm);
+  opacity: 0.5;
 }
 
-/* Індикатор обов'язкового поля */
-.rack__label--required::after {
-  content: "*";
-  color: #ff4444;
-  margin-left: 4px;
-  font-weight: 600;
-}
-
-/* Підсвітка незаповнених полів */
-.rack__form input:invalid,
-.rack__form select:invalid {
-  border-color: #ff9999;
-  background-color: #fff5f5;
-}
-
-.rack__form input:valid,
-.rack__form select:valid {
-  border-color: #4caf50;
-}
-
-/* ==============================
-   Empty State — загальні стилі
-============================== */
-
-/* Контейнер таблиці в порожньому стані */
+/* Fallback для :empty якщо data-state не використовується */
 .rack__components-table:empty,
 .rack-set__table:empty {
-  min-height: 120px;
+  min-height: clamp(100px, 15vh, 150px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 2px dashed #ced4da;
-  border-radius: 8px;
-  color: #6c757d;
+  background: linear-gradient(135deg, var(--color-bg-alt) 0%, #e9ecef 100%);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text-secondary);
   font-style: italic;
-  font-size: 0.95rem;
-  padding: 1rem;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-md);
   text-align: center;
 }
 
-/* ==============================
-   Порожній стан для модалки
-============================== */
+.rack__components-table:empty::after,
+.rack-set__table:empty::after {
+  content: attr(data-empty-text, 'Немає даних');
+  display: block;
+  max-width: 250px;
+}
 
-#modalRackSetTable:empty {
-  min-height: 150px;
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
+/* Summary empty state */
+.rack-set__summary:empty {
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
+  color: var(--color-text-secondary);
   font-style: italic;
-  padding: 1rem;
-  text-align: center;
+  background-color: var(--color-bg-alt);
+  border-radius: var(--border-radius);
 }
 
-/* ==============================
-   Анімація появи контенту
-============================== */
+.rack-set__summary:empty::after {
+  content: 'Загальна сума: 0.00';
+}
+
+/* =============================================================================
+   9. ANIMATIONS
+   ============================================================================= */
 
 .rack__components-table:not(:empty),
-.rack-set__table:not(:empty) {
+.rack-set__table:not(:empty),
+.rack__price:not(:empty) {
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -669,49 +432,108 @@
   }
 }
 
-/* ==============================
-   Placeholder для ціни
-============================== */
-
-.rack__price:not(:empty) {
-  animation: fadeIn 0.2s ease-out;
+/* Pulse animation for invalid form */
+.rack__form:has(input:invalid) ~ .rack__card .btn:not(:disabled):not(.btn--disabled) {
+  animation: pulse-border 2s infinite;
 }
 
-/* ==============================
-   Порожній підсумок комплекту
-============================== */
-
-.rack-set__summary:empty {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6c757d;
-  font-style: italic;
-  background: #f8f9fa;
-  border-radius: 8px;
+@keyframes pulse-border {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 165, 0, 0);
+  }
 }
 
-/* ==============================
-   Адаптивність
-============================== */
+/* =============================================================================
+   10. RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .section--rack .section__body {
+    grid-template-columns: 1fr;
+  }
+
+  .rack__params {
+    position: static;
+  }
+}
 
 @media (max-width: 768px) {
-  .rack__components-table:empty,
-  .rack-set__table:empty {
-    min-height: 100px;
-    font-size: 0.9rem;
-    padding: 0.75rem;
+  .rack__label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
   }
 
-  .rack__components-table:empty::after,
-  .rack-set__table:empty::after {
-    max-width: 200px;
-    font-size: 0.85rem;
+  .rack__label .dots {
+    display: none; /* Приховуємо крапки на мобільних */
+  }
+
+  .rack__label input,
+  .rack__label select {
+    width: 100%;
+  }
+
+  .rack-set__qty-controls {
+    flex-wrap: wrap;
+  }
+
+  .btn-remove {
+    width: 100%;
+    margin-top: var(--spacing-xs);
+  }
+
+  /* Stack table on mobile */
+  .rack-set-table thead {
+    display: none;
+  }
+
+  .rack-set-table tbody tr {
+    display: block;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+  }
+
+  .rack-set-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    text-align: right !important;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .rack-set-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    text-align: left;
+    margin-right: var(--spacing-md);
+    color: var(--color-text-secondary);
   }
 }
 
-.rack__components-table[data-empty-text]:empty::after,
-.rack-set__table[data-empty-text]:empty::after {
-  content: attr(data-empty-text);
+/* =============================================================================
+   11. PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  .rack__params,
+  .rack-set__actions,
+  .icon-btn,
+  .btn-remove,
+  .btn-qty-decrease,
+  .btn-qty-increase {
+    display: none !important;
+  }
+
+  .rack__results {
+    width: 100%;
+  }
+
+  .rack-set__table {
+    border: 1px solid #000;
+  }
 }

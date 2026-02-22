@@ -20,7 +20,7 @@ export const removeDuplicateCombinations = (results) => {
   const unique = [];
 
   results.forEach((r) => {
-    const key = `${[...r.combination].sort((a, b) => b - a).join("-")}-${r.beams}`;
+    const key = `${[...r.combination].sort((a, b) => b - a).join('-')}-${r.beams}`;
 
     if (!seen.has(key)) {
       seen.add(key);
@@ -41,7 +41,9 @@ export const calculateSymmetryScore = (combination) => {
   const half = Math.floor(spanCount / 2);
   let score = 0;
   for (let i = 0; i < half; i++) {
-    if (combination[i] === combination[spanCount - 1 - i]) score++;
+    if (combination[i] === combination[spanCount - 1 - i]) {
+      score++;
+    }
   }
   return score;
 };

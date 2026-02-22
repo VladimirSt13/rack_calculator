@@ -32,7 +32,11 @@ export const calculateScore = (r, requiredLength, maxAllowedSpan) => {
   const symmetryScore = r.symmetryPairs / Math.floor(spanCount / 2 || 1);
 
   const baseScore =
-    30 * beamsScore + 20 * spanCountScore + 25 * maxSpanScore + 15 * symmetryScore + 20 * overLengthScore;
+    30 * beamsScore +
+    20 * spanCountScore +
+    25 * maxSpanScore +
+    15 * symmetryScore +
+    20 * overLengthScore;
 
   // враховуємо м’які штрафи, якщо вони ще не підраховані
   const totalPenalty = r.softPenalty

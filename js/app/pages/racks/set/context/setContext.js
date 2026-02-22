@@ -1,11 +1,11 @@
 // js/app/pages/racks/set/context/setContext.js
 
-import { createState } from "../../../../state/createState.js";
-import { initialRackSetState } from "../state/rackSetState.js";
-import { createRackSetActions } from "../state/rackSetActions.js";
-import { createRackSetSelectors } from "../state/rackSetSelectors.js";
-import { renderRackSet } from "../ui/renderRackSet.js";
-import { getRackSetRefs } from "../ui/dom.js";
+import { createState } from '../../../../state/createState.js';
+import { initialRackSetState } from '../state/rackSetState.js';
+import { createRackSetActions } from '../state/rackSetActions.js';
+import { createRackSetSelectors } from '../state/rackSetSelectors.js';
+import { renderRackSet } from '../ui/renderRackSet.js';
+import { getRackSetRefs } from '../ui/dom.js';
 
 /**
  * Creates a context for the rack set page.
@@ -31,7 +31,9 @@ export const createRackSetContext = () => {
    * @throws {Error} If the value is not initialized.
    */
   const ensureInit = (value, name) => {
-    if (!value) throw new Error(`${name} is not initialized`);
+    if (!value) {
+      throw new Error(`${name} is not initialized`);
+    }
     return value;
   };
 
@@ -43,10 +45,12 @@ export const createRackSetContext = () => {
   const init = () => {
     refs = getRackSetRefs();
 
-    unsubscribe = state.subscribe(() => renderRackSet({ actions, selectors, refs, showDetails: false }));
+    unsubscribe = state.subscribe(() =>
+      renderRackSet({ actions, selectors, refs, showDetails: false }),
+    );
   };
 
-  const getRefs = () => ensureInit(refs, "RackCalculator refs");
+  const getRefs = () => ensureInit(refs, 'RackCalculator refs');
 
   const destroy = () => unsubscribe?.();
 

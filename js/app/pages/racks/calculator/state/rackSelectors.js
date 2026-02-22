@@ -13,7 +13,9 @@ export const createRackSelectors = (stateInstance) => {
     /** Мемоизация только для beams */
     getBeams: () => {
       const beamsMap = stateInstance.get().form.beams;
-      if (memoBeamsMap === beamsMap) return memoBeams;
+      if (memoBeamsMap === beamsMap) {
+        return memoBeams;
+      }
       memoBeams = [...beamsMap.entries()];
       memoBeamsMap = beamsMap;
       return memoBeams;

@@ -1,8 +1,8 @@
 // js/pages/racks/core/calculator.js
 
-import { calculateBeams, calculateRackLength, calculateTotalSpans } from "./utils/beams.js";
-import { calculateBraces, supportsFn, verticalSupportsFn } from "./utils/supports.js";
-import { rackNameFn } from "./utils/rackName.js";
+import { calculateBeams, calculateRackLength, calculateTotalSpans } from './utils/beams.js';
+import { calculateBraces, supportsFn, verticalSupportsFn } from './utils/supports.js';
+import { rackNameFn } from './utils/rackName.js';
 
 /**
  * Calculate the total cost of the components
@@ -12,7 +12,9 @@ import { rackNameFn } from "./utils/rackName.js";
 const totalCostCalculation = ({ components }) =>
   components.reduce(
     (sum, c) =>
-      Array.isArray(c) ? sum + c.reduce((s, item) => s + item.amount * item.price, 0) : sum + c.amount * c.price,
+      Array.isArray(c)
+        ? sum + c.reduce((s, item) => s + item.amount * item.price, 0)
+        : sum + c.amount * c.price,
     0,
   );
 
@@ -28,9 +30,17 @@ const calculateComponents = ({ rackConfig, price }) => {
   const { floors, rows, beams, supports, verticalSupports, beamsPerRow } = rackConfig;
 
   const isEnoughDataForCalculation =
-    price !== null || floors || rows || beams.length || supports || beamsPerRow || !(floors > 1 && verticalSupports);
+    price !== null ||
+    floors ||
+    rows ||
+    beams.length ||
+    supports ||
+    beamsPerRow ||
+    !(floors > 1 && verticalSupports);
 
-  if (!isEnoughDataForCalculation) return { components: {}, totalLength: 0, totalCost: 0 };
+  if (!isEnoughDataForCalculation) {
+    return { components: {}, totalLength: 0, totalCost: 0 };
+  }
 
   const totalSpans = calculateTotalSpans(beams);
   const totalLength = calculateRackLength(beams);
@@ -41,7 +51,12 @@ const calculateComponents = ({ rackConfig, price }) => {
     supports,
   });
 
-  const { edgeSupports, intermediateSupports, supportsData } = supportsFn(floors, totalSpans, price, supports);
+  const { edgeSupports, intermediateSupports, supportsData } = supportsFn(
+    floors,
+    totalSpans,
+    price,
+    supports,
+  );
 
   const beamsData = calculateBeams({
     beams,
@@ -52,11 +67,14 @@ const calculateComponents = ({ rackConfig, price }) => {
   });
 
   // --- Вертикальні стійки та розкоси ---
-  const verticalSupportsData = verticalSupportsFn(Object.entries(price.vertical_supports), verticalSupports);
+  const verticalSupportsData = verticalSupportsFn(
+    Object.entries(price.vertical_supports),
+    verticalSupports,
+  );
 
-  const bracesObj = Object.entries(price.diagonal_brace).find((b) => b[0] === "diagonal_brace");
+  const bracesObj = Object.entries(price.diagonal_brace).find((b) => b[0] === 'diagonal_brace');
   const bracesData = {
-    name: "Розкос",
+    name: 'Розкос',
     amount: 0,
     price: bracesObj?.[1]?.price || 0,
   };
@@ -70,7 +88,7 @@ const calculateComponents = ({ rackConfig, price }) => {
   // --- Ізолятори ---
   const isolatorObj = price.isolator;
   const isolatorsData = {
-    name: "Ізолятор",
+    name: 'Ізолятор',
     amount: 0,
     price: isolatorObj.isolator?.price || 0,
   };

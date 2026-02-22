@@ -56,7 +56,11 @@ export const verticalSupportsFn = (verticalSupportsData, verticalSupports) => {
  * @returns {number} кількість розкосів
  */
 export const calculateBraces = (spans) => {
-  if (!spans || spans < 2) return 0;
-  if (spans <= 2) return 2;
+  if (!spans || spans < 2) {
+    return 0;
+  }
+  if (spans <= 2) {
+    return 2;
+  }
   return (spans - 3) * 2 + 2;
 };

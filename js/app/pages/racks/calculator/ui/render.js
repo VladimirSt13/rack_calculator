@@ -1,7 +1,7 @@
 // js/app/pages/racks/render.js
-import { generateComponentsTableHTML } from "./templates/componentsTable.js";
-import { generateRackNameHTML } from "./templates/rackName.js";
-import { updateRackName, updateComponentsTable } from "./rack.js";
+import { generateComponentsTableHTML } from './templates/componentsTable.js';
+import { generateRackNameHTML } from './templates/rackName.js';
+import { updateComponentsTable, updateRackName } from './rack.js';
 
 /**
  * Renders the rack components based on the provided selectors and refs.
@@ -17,8 +17,8 @@ export const render = ({ selectors, getRefs }) => {
     const currentRack = selectors.getCurrentRack();
 
     if (!currentRack) {
-      updateRackName({ refs, html: "---" });
-      updateComponentsTable({ refs, html: "<p>Недостатньо даних.</p>" });
+      updateRackName({ refs, html: '---' });
+      updateComponentsTable({ refs, html: '<p>Недостатньо даних.</p>' });
       return;
     }
 
@@ -37,7 +37,11 @@ export const render = ({ selectors, getRefs }) => {
     });
   } catch (err) {
     console.warn(err);
-    if (refs?.rackName) refs.rackName.innerHTML = "Помилка відображення";
-    if (refs?.componentsTable) refs.componentsTable.innerHTML = "<p>Неможливо визначити компоненти.</p>";
+    if (refs?.rackName) {
+      refs.rackName.innerHTML = 'Помилка відображення';
+    }
+    if (refs?.componentsTable) {
+      refs.componentsTable.innerHTML = '<p>Неможливо визначити компоненти.</p>';
+    }
   }
 };

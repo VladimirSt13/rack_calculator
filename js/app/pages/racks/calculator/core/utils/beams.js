@@ -29,8 +29,8 @@ export const calculateBeams = ({ beams, rows, beamsPerRow, beamsData, floors }) 
  * @param {Array} beams - масив об’єктів { item, quantity }
  * @returns {number} довжина
  */
-export const calculateRackLength = (beams) => {
-  return beams.reduce((length, beam) => {
+export const calculateRackLength = (beams) =>
+  beams.reduce((length, beam) => {
     const itemLength = Number(beam.item);
     const qty = Number(beam.quantity);
     if (!isNaN(itemLength) && !isNaN(qty)) {
@@ -38,16 +38,14 @@ export const calculateRackLength = (beams) => {
     }
     return length;
   }, 0);
-};
 
 /**
  * Підрахунок загальної кількості прольотів
  * @param {Array} beams - масив об’єктів { quantity }
  * @returns {number} загальна кількість прольотів
  */
-export const calculateTotalSpans = (beams) => {
-  return beams.reduce((total, beam) => {
+export const calculateTotalSpans = (beams) =>
+  beams.reduce((total, beam) => {
     const qty = Number(beam.quantity);
     return total + (isNaN(qty) ? 0 : qty);
   }, 0);
-};

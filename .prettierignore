@@ -1,0 +1,10 @@
+// .prettierignore
+dist/
+node_modules/
+coverage/
+*.min.js
+*.map
+public/
+.env
+.env.*
+!.env.example

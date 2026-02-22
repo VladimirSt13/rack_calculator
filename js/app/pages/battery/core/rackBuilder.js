@@ -1,8 +1,14 @@
 // js/pages/battery/core/rackBuilder.js
-import { standardSpans, standardWidths, standardHeights, defaultFloorGap, defaultSupportHeight } from "./constants.js";
-import { getClosestLarger, removeDuplicateCombinations } from "./utils.js";
-import { calcRackSpans } from "./spanCalculator.js";
-import { optimizeRacks } from "./optimizeRacks.js";
+import {
+  defaultFloorGap,
+  defaultSupportHeight,
+  standardHeights,
+  standardSpans,
+  standardWidths,
+} from './constants.js';
+import { getClosestLarger, removeDuplicateCombinations } from './utils.js';
+import { calcRackSpans } from './spanCalculator.js';
+import { optimizeRacks } from './optimizeRacks.js';
 
 /**
  * Розраховує ширину стелажа
@@ -23,7 +29,10 @@ export const calcRackHeight = ({
   floorGap = defaultFloorGap,
   supportHeight = defaultSupportHeight,
 }) =>
-  getClosestLarger({ value: floors * elementHeight + floors * (supportHeight + floorGap), standards: standardHeights });
+  getClosestLarger({
+    value: floors * elementHeight + floors * (supportHeight + floorGap),
+    standards: standardHeights,
+  });
 
 /**
  * Будує конфігурацію стелажа (сирі варіанти спанів)

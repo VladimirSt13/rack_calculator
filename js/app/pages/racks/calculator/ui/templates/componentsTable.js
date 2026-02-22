@@ -2,7 +2,9 @@
 
 // --- Генератор таблиці компонентів ---
 export const generateComponentsTableHTML = ({ components, totalCost }) => {
-  if (!components) return "";
+  if (!components) {
+    return '';
+  }
 
   // Функція для одного рядка
   const rowHTML = (c) => `
@@ -15,10 +17,11 @@ export const generateComponentsTableHTML = ({ components, totalCost }) => {
 
   // Генеруємо всі рядки: якщо компонент масив — генеруємо для кожного елемента, інакше один
   const tableRows = Object.values(components)
-    .map((c) => (Array.isArray(c) ? c.map(rowHTML).join("") : rowHTML(c)))
-    .join("");
+    .map((c) => (Array.isArray(c) ? c.map(rowHTML).join('') : rowHTML(c)))
+    .join('');
 
-  const totalWithoutIsolators = totalCost - (components.isolators?.amount * components.isolators?.price || 0);
+  const totalWithoutIsolators =
+    totalCost - (components.isolators?.amount * components.isolators?.price || 0);
   const zeroCost = Math.round(totalCost * 1.2 * 1.2);
 
   return `

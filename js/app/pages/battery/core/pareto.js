@@ -12,8 +12,12 @@ const dominatesBy = (a, b, criteria) => {
 
   for (const cmp of criteria) {
     const res = cmp(a, b);
-    if (res > 0) return false;
-    if (res < 0) strictlyBetter = true;
+    if (res > 0) {
+      return false;
+    }
+    if (res < 0) {
+      strictlyBetter = true;
+    }
   }
 
   return strictlyBetter;
@@ -37,7 +41,9 @@ export const multiLevelPareto = (variants) => {
   let current = variants;
 
   for (const level of levels) {
-    current = current.filter((v, i) => !current.some((o, j) => i !== j && dominatesBy(o, v, level)));
+    current = current.filter(
+      (v, i) => !current.some((o, j) => i !== j && dominatesBy(o, v, level)),
+    );
   }
 
   return current;

@@ -1,0 +1,78 @@
+# .env.example (КОМІТИТИ В GIT)
+# API Configuration
+VITE_API_BASE_URL=http://localhost:8080
+
+# Debug
+VITE_DEBUG=false
+
+# Features
+VITE_FEATURE_NEW_CALC=false
+VITE_FEATURE_ANALYTICS=false
+VITE_FEATURE_CACHE=true
+VITE_FEATURE_ERROR_REPORTING=false
+
+
+# .env (ЛОКАЛЬНИЙ, НЕ КОМІТИТИ)
+VITE_API_BASE_URL=http://localhost:8080
+VITE_DEBUG=true
+VITE_FEATURE_NEW_CALC=true
+VITE_FEATURE_ANALYTICS=false
+VITE_FEATURE_CACHE=true
+
+# .env.production
+VITE_API_BASE_URL=https://api.yoursite.com
+VITE_DEBUG=false
+VITE_FEATURE_NEW_CALC=true
+VITE_FEATURE_ANALYTICS=true
+VITE_FEATURE_CACHE=true
+VITE_FEATURE_ERROR_REPORTING=true
+
+# .env.production
+VITE_API_BASE_URL=https://api.yoursite.com
+VITE_DEBUG=false
+VITE_FEATURE_NEW_CALC=true
+VITE_FEATURE_ANALYTICS=true
+VITE_FEATURE_CACHE=true
+VITE_FEATURE_ERROR_REPORTING=true
+
+# 1. Встановити залежності
+npm install
+
+# 2. Запустити dev сервер
+npm run dev
+
+# 3. Запустити тести
+npm run test
+
+# 4. Запустити тести з UI
+npm run test:ui
+
+# 5. Запустити тести з coverage
+npm run test:coverage
+
+# 6. Запустити linter
+npm run lint
+
+# 7. Авто-виправлення lint помилок
+npm run lint:fix
+
+# 8. Format код
+npm run format
+
+# 9. Перевірити format (для CI)
+npm run format:check
+
+# 10. Повна валідація
+npm run validate
+
+# 11. Зібрати production build
+npm run build
+
+# 12. Preview production build
+npm run preview
+
+# 13. Analyze bundle size
+npm run analyze
+
+# 14. Очистити кеш
+npm run clean

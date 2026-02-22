@@ -1,8 +1,8 @@
 // js/pages/battery/render.js
 
-import { getBatteryRefs } from "./ui/dom.js";
-import { renderBatteryForm } from "./ui/renderBatteryForm.js";
-import { renderBatteryTable } from "./ui/renderBatteryTable.js";
+import { getBatteryRefs } from './ui/dom.js';
+import { renderBatteryForm } from './ui/renderBatteryForm.js';
+import { renderBatteryTable } from './ui/renderBatteryTable.js';
 
 /**
  * Головний render сторінки battery
@@ -10,7 +10,7 @@ import { renderBatteryTable } from "./ui/renderBatteryTable.js";
  * @returns {void}
  */
 
-let renderCount = 1;
+const renderCount = 1;
 export const render = (batterySelectors) => {
   const battRefs = getBatteryRefs();
   const formData = batterySelectors.getFormValues();

@@ -1,4 +1,6 @@
-@inport "normalize.css";
-@import "global.css";
-@import "batteryPage.css";
-@import "rackPage.css";
+@layer normalize, global, battery-page, rack-page;
+
+@import 'normalize.css';
+@import 'global.css';
+@import 'batteryPage.css';
+@import 'rackPage.css';

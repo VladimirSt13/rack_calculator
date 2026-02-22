@@ -1,5 +1,5 @@
 // state/batteryState.js
-import { createState } from "../../../state/createState.js";
+import { createState } from '../../../state/createState.js';
 
 // Початкові значення
 export const initialBatteryState = {

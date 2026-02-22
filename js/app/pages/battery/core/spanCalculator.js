@@ -1,6 +1,6 @@
 // js/pages/battery/core/spanCalculator.js
-import { beamsRange, rackLengthTolerance } from "./constants.js";
-import { calculateSymmetryScore } from "./utils.js";
+import { beamsRange, rackLengthTolerance } from './constants.js';
+import { calculateSymmetryScore } from './utils.js';
 
 /**
  * Перевіряє, чи витримує спан вагу акумуляторів
@@ -28,7 +28,13 @@ export const checkSpanWeight = ({ span, accLength, accWeight, gap, beams }) => {
  * @param {Array<number>} [params.beamsRange=beamsRange]
  * @returns {Array<Object>} Масив { spanLength, beams }
  */
-export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRange = beamsRange }) => {
+export const generateSpanOptions = ({
+  accLength,
+  accWeight,
+  gap,
+  spans,
+  beamsRange = beamsRange,
+}) => {
   const results = [];
   const spansSorted = [...spans].sort((a, b) => b.length - a.length);
 
@@ -40,7 +46,9 @@ export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRan
         break;
       }
     }
-    if (beamsFound) results.push({ spanLength: span.length, beams: beamsFound });
+    if (beamsFound) {
+      results.push({ spanLength: span.length, beams: beamsFound });
+    }
   }
 
   return results;
@@ -57,7 +65,9 @@ export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRan
 export const generateSpanCombinations = ({ rackLength, spans, limit = 500 }) => {
   const results = [];
   const maxLength = rackLength + rackLengthTolerance;
-  if (!spans.length) return results;
+  if (!spans.length) {
+    return results;
+  }
 
   const minSpan = Math.min(...spans);
   const maxItems = Math.ceil(maxLength / minSpan);
@@ -68,13 +78,19 @@ export const generateSpanCombinations = ({ rackLength, spans, limit = 500 }) => 
 
     if (sum >= rackLength && sum <= maxLength) {
       results.push(combo);
-      if (results.length >= limit) break;
+      if (results.length >= limit) {
+        break;
+      }
     }
-    if (sum >= maxLength || combo.length >= maxItems) continue;
+    if (sum >= maxLength || combo.length >= maxItems) {
+      continue;
+    }
 
     for (let i = index; i < spans.length; i++) {
       const newSum = sum + spans[i];
-      if (newSum > maxLength) continue;
+      if (newSum > maxLength) {
+        continue;
+      }
       stack.push({ combo: [...combo, spans[i]], sum: newSum, index: i });
     }
   }
@@ -94,7 +110,13 @@ export const generateSpanCombinations = ({ rackLength, spans, limit = 500 }) => 
  */
 export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardSpans }) => {
   const results = [];
-  const neededBeamsForSpan = generateSpanOptions({ accLength, accWeight, gap, spans: standardSpans, beamsRange });
+  const neededBeamsForSpan = generateSpanOptions({
+    accLength,
+    accWeight,
+    gap,
+    spans: standardSpans,
+    beamsRange,
+  });
 
   for (const currentSpan of neededBeamsForSpan) {
     const spans = standardSpans

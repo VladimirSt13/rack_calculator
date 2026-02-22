@@ -1,6 +1,6 @@
 // js/app/pages/racks/ui/beams.js"
 
-import { generateBeamRowHTML } from "./templates/beamRow.js";
+import { generateBeamRowHTML } from './templates/beamRow.js';
 
 /**
  * Inserts a new beam row into the beams container.
@@ -13,7 +13,7 @@ import { generateBeamRowHTML } from "./templates/beamRow.js";
  */
 export const insertBeamUI = ({ id, beamsData, refs }) => {
   const html = generateBeamRowHTML(id, beamsData);
-  refs.beamsContainer.insertAdjacentHTML("beforeend", html);
+  refs.beamsContainer.insertAdjacentHTML('beforeend', html);
 };
 
 /**
@@ -26,7 +26,9 @@ export const insertBeamUI = ({ id, beamsData, refs }) => {
  */
 export const removeBeamUI = ({ id, refs }) => {
   const row = refs.beamsContainer.querySelector(`[data-id="${id}"]`);
-  if (row) row.remove();
+  if (row) {
+    row.remove();
+  }
 };
 
 /**
@@ -36,5 +38,7 @@ export const removeBeamUI = ({ id, refs }) => {
  * @return {void} This function does not return a value.
  */
 export const clearBeamsUI = (refs) => {
-  if (refs.beamsContainer) refs.beamsContainer.innerHTML = "";
+  if (refs.beamsContainer) {
+    refs.beamsContainer.innerHTML = '';
+  }
 };

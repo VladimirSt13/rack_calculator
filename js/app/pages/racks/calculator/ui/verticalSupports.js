@@ -11,15 +11,17 @@
 export const toggleVerticalSupportsUI = ({ floors, refs }) => {
   const disabled = floors < 2;
   refs.verticalSupports.disabled = disabled;
-  if (disabled) refs.verticalSupports.selectedIndex = -1;
+  if (disabled) {
+    refs.verticalSupports.selectedIndex = -1;
+  }
 
   if (floors < 2) {
     refs.verticalSupports.selectedIndex = -1;
     refs.verticalSupports.disabled = true;
-    refs.verticalSupports.children[0].textContent = "";
+    refs.verticalSupports.children[0].textContent = '';
   } else {
     refs.verticalSupports.disabled = false;
     refs.verticalSupports.selectedIndex = 0;
-    refs.verticalSupports.children[0].textContent = "Виберіть...";
+    refs.verticalSupports.children[0].textContent = 'Виберіть...';
   }
 };

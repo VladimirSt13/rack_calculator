@@ -6,8 +6,8 @@
 export const initialRackState = {
   form: {
     floors: 1,
-    verticalSupports: "",
-    supports: "",
+    verticalSupports: '',
+    supports: '',
     rows: 1,
     beamsPerRow: 2,
     beams: new Map(),

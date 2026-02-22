@@ -1,6 +1,6 @@
 // js/pages/battery/ui/renderBatteryForm.js
 
-import { getBatteryRefs } from "./dom.js";
+import { getBatteryRefs } from './dom.js';
 
 /**
  * Оновлення значень полів форми

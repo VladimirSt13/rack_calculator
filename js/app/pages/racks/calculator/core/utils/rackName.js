@@ -1,6 +1,6 @@
 // js/pages/racks/core/utils/rackName.js
 
-import { numberToWord } from "./numToWord.js";
+import { numberToWord } from './numToWord.js';
 
 /**
  * Функція для формування назви стелажа
@@ -15,15 +15,15 @@ import { numberToWord } from "./numToWord.js";
  * });
  */
 export const rackNameFn = ({ totalLength, floors, rows, supports }) => {
-  const hasC = supports.includes("C");
+  const hasC = supports.includes('C');
   const description = [
-    `Стелаж ${numberToWord(floors, "floors")}`,
-    numberToWord(rows, "rows"),
-    hasC ? "ступінчатий" : "",
+    `Стелаж ${numberToWord(floors, 'floors')}`,
+    numberToWord(rows, 'rows'),
+    hasC ? 'ступінчатий' : '',
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 
-  const name = `L${floors}A${rows}${hasC ? "C" : ""}-${totalLength}/${supports.replace("C", "")}`;
+  const name = `L${floors}A${rows}${hasC ? 'C' : ''}-${totalLength}/${supports.replace('C', '')}`;
   return { description, abbreviation: name };
 };

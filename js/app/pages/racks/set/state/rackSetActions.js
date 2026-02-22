@@ -1,6 +1,6 @@
 // js/pages/racks/set/state/rackSetActions.js
 
-import { generateRackId } from "../utils/generateRackId.js";
+import { generateRackId } from '../utils/generateRackId.js';
 
 /**
  * Створіть actions для сторінки racks
@@ -13,75 +13,75 @@ import { generateRackId } from "../utils/generateRackId.js";
  * @property {function} clear - очистити комплект
  * @property {function} reset - скинути до початкового стану
  */
-export const createRackSetActions = (stateInstance, initialState) => {
-  return {
-    /**
-     * Додати стелаж до комплекту
-     * @param {Object} rack - повний currentRack
-     */
-    addRack({ rack, qty = 1 }) {
-      if (!rack) return;
-      const id = generateRackId(rack);
-      const { racks } = stateInstance.get();
+export const createRackSetActions = (stateInstance, initialState) => ({
+  /**
+   * Додати стелаж до комплекту
+   * @param {Object} rack - повний currentRack
+   */
+  addRack({ rack, qty = 1 }) {
+    if (!rack) {
+      return;
+    }
+    const id = generateRackId(rack);
+    const { racks } = stateInstance.get();
 
-      const existing = racks.find((r) => r.id === id);
+    const existing = racks.find((r) => r.id === id);
 
-      if (existing) {
-        stateInstance.set({
-          racks: racks.map((r) => (r.id === id ? { ...r, qty: r.qty + qty } : r)),
-        });
-        return;
-      }
-
+    if (existing) {
       stateInstance.set({
-        racks: [...racks, { id, rack: structuredClone(rack), qty }],
+        racks: racks.map((r) => (r.id === id ? { ...r, qty: r.qty + qty } : r)),
       });
-    },
+      return;
+    }
 
-    /**
-     * Видалити стелаж за індексом
-     * @param {number} index
-     */
-    removeRack(id) {
-      const { racks } = stateInstance.get();
+    stateInstance.set({
+      racks: [...racks, { id, rack: structuredClone(rack), qty }],
+    });
+  },
 
-      stateInstance.set({
-        racks: racks.filter((r) => r.id !== id),
-      });
-    },
+  /**
+   * Видалити стелаж за індексом
+   * @param {number} index
+   */
+  removeRack(id) {
+    const { racks } = stateInstance.get();
 
-    /**
-     * Update quantity of rack in rack set
-     * @param {string} id - id of the rack to update
-     * @param {number} qty - new quantity of the rack
-     */
-    updateQty(id, qty) {
-      const { racks } = stateInstance.get();
+    stateInstance.set({
+      racks: racks.filter((r) => r.id !== id),
+    });
+  },
 
-      stateInstance.set({
-        racks: racks.map((r) => (r.id === id ? { ...r, qty } : r)),
-      });
-    },
+  /**
+   * Update quantity of rack in rack set
+   * @param {string} id - id of the rack to update
+   * @param {number} qty - new quantity of the rack
+   */
+  updateQty(id, qty) {
+    const { racks } = stateInstance.get();
 
-    /**
-     * Очистити комплект
-     */
-    clear() {
-      stateInstance.updateField("racks", []);
-    },
+    stateInstance.set({
+      racks: racks.map((r) => (r.id === id ? { ...r, qty } : r)),
+    });
+  },
 
-    /**
-     * Скинути до початкового стану
-     */
-    reset() {
-      stateInstance.set({ ...initialState });
-    },
+  /**
+   * Очистити комплект
+   */
+  clear() {
+    stateInstance.updateField('racks', []);
+  },
 
-    openModal() {
-      stateInstance.updateField("isModalOpen", true);
-    },
-    closeModal() {
-      stateInstance.updateField("isModalOpen", false);
-    },
-  };
-};
+  /**
+   * Скинути до початкового стану
+   */
+  reset() {
+    stateInstance.set({ ...initialState });
+  },
+
+  openModal() {
+    stateInstance.updateField('isModalOpen', true);
+  },
+  closeModal() {
+    stateInstance.updateField('isModalOpen', false);
+  },
+});

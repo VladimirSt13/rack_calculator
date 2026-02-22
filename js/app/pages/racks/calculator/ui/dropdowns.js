@@ -1,6 +1,6 @@
 // js/pages/racks/ui/dropdowns.js
 
-import { generateDropdownOptionsHTML } from "./templates/dropdown.js";
+import { generateDropdownOptionsHTML } from './templates/dropdown.js';
 
 /**
  * Populates the dropdowns with the given options.
@@ -14,7 +14,6 @@ import { generateDropdownOptionsHTML } from "./templates/dropdown.js";
  * @return {void}
  */
 export const populateDropdowns = ({ verticalSupports, supports, refs }) => {
-  refs.verticalSupports.innerHTML =
-    generateDropdownOptionsHTML(verticalSupports);
+  refs.verticalSupports.innerHTML = generateDropdownOptionsHTML(verticalSupports);
   refs.supports.innerHTML = generateDropdownOptionsHTML(supports);
 };

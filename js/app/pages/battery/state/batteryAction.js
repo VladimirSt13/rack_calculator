@@ -19,7 +19,7 @@ export const createBatteryActions = (stateInstance, initialState) => ({
       });
 
       // 🔥 очищення таблиці при зміні полів форми
-      stateInstance.updateField("results", []);
+      stateInstance.updateField('results', []);
     });
   },
 
@@ -30,12 +30,12 @@ export const createBatteryActions = (stateInstance, initialState) => ({
    */
   addResults(resultsArray) {
     stateInstance.batch(() => {
-      stateInstance.updateField("results", Array.isArray(resultsArray) ? resultsArray : []);
+      stateInstance.updateField('results', Array.isArray(resultsArray) ? resultsArray : []);
     });
   },
   clearResults() {
     stateInstance.batch(() => {
-      stateInstance.updateField("results", []);
+      stateInstance.updateField('results', []);
     });
   },
 

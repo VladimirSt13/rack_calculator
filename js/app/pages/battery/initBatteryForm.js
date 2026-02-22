@@ -1,9 +1,9 @@
-import { getBatteryRefs } from "./ui/dom.js";
-import { validateBatteryForm } from "./validateBatteryForm.js";
-import { renderErrors } from "./ui/formErrors.js";
-import { generateRackVariants } from "./core/rackBuilder.js";
-import { debounce } from "../../utils/debounce.js";
-import { initBatteryTable } from "./ui/renderBatteryTable.js";
+import { getBatteryRefs } from './ui/dom.js';
+import { validateBatteryForm } from './validateBatteryForm.js';
+import { renderErrors } from './ui/formErrors.js';
+import { generateRackVariants } from './core/rackBuilder.js';
+import { debounce } from '../../../utils/debounce.js';
+import { initBatteryTable } from './ui/renderBatteryTable.js';
 
 export const initBatteryForm = ({ addListener, batteryActions, batterySelectors }) => {
   // Скидання кнопки та форми
@@ -23,14 +23,14 @@ export const initBatteryForm = ({ addListener, batteryActions, batterySelectors 
 
   addListener(
     refs.batteryForm,
-    "input",
+    'input',
     debounce(() => {
       batteryActions.clearResults();
     }, 200),
   );
 
   // Підключаємо submit
-  addListener(refs.batteryForm, "submit", (e) => {
+  addListener(refs.batteryForm, 'submit', (e) => {
     e.preventDefault();
 
     const { valid, errors, values } = validateBatteryForm();

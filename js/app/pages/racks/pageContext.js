@@ -1,6 +1,6 @@
 // js/app/pages/racks/pageContext.js
 
-import { render } from "./calculator/ui/render.js";
+import { render } from './calculator/ui/render.js';
 
 /**
  * Creates a page context for the rack page.
@@ -13,27 +13,25 @@ import { render } from "./calculator/ui/render.js";
  * @param {Object} options.price - an object with the price
  */
 
-export const createRackPageContext = () => {
-  return {
-    price: {},
-    calculator: {},
-    rackSet: {},
+export const createRackPageContext = () => ({
+  price: {},
+  calculator: {},
+  rackSet: {},
 
-    init() {},
+  init() {},
 
-    /**
-     * Рендерує сторінку з компонентами калькулятора
-     * @param {Object} options - об'єкт з параметрами
-     * @param {Object} options.selectors - селектори для доступу до компонентів калькулятора
-     * @param {Function} options.getRefs - функція для отримання DOM-refs калькулятора
-     * @param {Object} options.price - об'єкт з прайсом
-     */
-    render() {
-      render({
-        selectors: this.calculator.selectors,
-        getRefs: this.calculator.getRefs,
-        price: this.price,
-      });
-    },
-  };
-};
+  /**
+   * Рендерує сторінку з компонентами калькулятора
+   * @param {Object} options - об'єкт з параметрами
+   * @param {Object} options.selectors - селектори для доступу до компонентів калькулятора
+   * @param {Function} options.getRefs - функція для отримання DOM-refs калькулятора
+   * @param {Object} options.price - об'єкт з прайсом
+   */
+  render() {
+    render({
+      selectors: this.calculator.selectors,
+      getRefs: this.calculator.getRefs,
+      price: this.price,
+    });
+  },
+});

@@ -1,13 +1,14 @@
 // js/pages/battery/ui/templates/batteryTableTemplate.js
 
-import { beamWord } from "../../../../utils/helpers.js";
+import { beamWord } from '../../../../../utils/helpers.js';
 
 /**
  * Генерує шаблон заголовка таблиці
  * @param {Array<string>} headers - Массив назв колонок
  * @returns {string} HTML рядка <tr> для thead
  */
-export const batteryTableHeaderTemplate = (headers) => `<tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>`;
+export const batteryTableHeaderTemplate = (headers) =>
+  `<tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr>`;
 
 /**
  * Генерує HTML рядок для рядка таблиці результатів
@@ -18,7 +19,7 @@ export const batteryTableHeaderTemplate = (headers) => `<tr>${headers.map((h) =>
  */
 export const batteryTableRowTemplate = ({ rack, index }) => {
   const rackTypeLeftSide = `L${rack.floors}A${rack.rows}-`;
-  const rackTypeRightSide = `/${rack.width}${rack.floors > 1 ? `(${rack.height})` : ""}`;
+  const rackTypeRightSide = `/${rack.width}${rack.floors > 1 ? `(${rack.height})` : ''}`;
   const amount = Math.min(rack.topSpans?.length ?? 0, 10);
 
   return (rack.topSpans ?? [])
@@ -34,16 +35,16 @@ export const batteryTableRowTemplate = ({ rack, index }) => {
         <td rowspan="${amount}">${index + 1}</td>
         <td rowspan="${amount}">${rack.length}</td>
         `
-          : "";
+          : '';
 
       return `
       <tr>
         ${rowNumber}
         <td>${rackType}</td>
-        <td>${span.combination.join(" + ")} [${span.beams} ${beamWord(span.beams)}]</td>
+        <td>${span.combination.join(' + ')} [${span.beams} ${beamWord(span.beams)}]</td>
       </tr>`;
     })
-    .join("");
+    .join('');
 };
 
 /**

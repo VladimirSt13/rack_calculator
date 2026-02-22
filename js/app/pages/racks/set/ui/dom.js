@@ -2,6 +2,6 @@
 
 // --- DOM references ---
 export const getRackSetRefs = () => ({
-  rackSetTable: document.getElementById("rackSetTable"),
-  rackSetSummary: document.getElementById("rackSetSummary"),
+  rackSetTable: document.getElementById('rackSetTable'),
+  rackSetSummary: document.getElementById('rackSetSummary'),
 });

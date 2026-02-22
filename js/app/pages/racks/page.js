@@ -1,17 +1,17 @@
 // js/app/pages/racks/page.js
 
-import { PAGES } from "../../config/app.config.js";
-import { createPageModule } from "../../ui/createPageModule.js";
-import { createRackPageContext } from "./pageContext.js";
-import { loadPrice } from "./calculator/state/priceState.js";
-import { initFormEvents } from "./calculator/events/formEvents.js";
-import { resetRackForm } from "./calculator/ui/resetRackForm.js";
-import { createRackCalculatorContext } from "./calculator/context/calculatorContext.js";
-import { initRackSetControls } from "./set/events/initRackSetControls.js";
-import { createRackSetContext } from "./set/context/setContext.js";
+import { PAGES } from '../../config/app.config.js';
+import { createPageModule } from '../../ui/createPageModule.js';
+import { createRackPageContext } from './pageContext.js';
+import { loadPrice } from './calculator/state/priceState.js';
+import { initFormEvents } from './calculator/events/formEvents.js';
+import { resetRackForm } from './calculator/ui/resetRackForm.js';
+import { createRackCalculatorContext } from './calculator/context/calculatorContext.js';
+import { initRackSetControls } from './set/events/initRackSetControls.js';
+import { createRackSetContext } from './set/context/setContext.js';
 
-import { createDevPanel } from "../../ui/debagPanel.js";
-import { initRackSetModal } from "./set/ui/rackSetModal.js";
+import { createDevPanel } from '../../ui/debagPanel.js';
+import { initRackSetModal } from './set/ui/rackSetModal.js';
 const ctx = createRackPageContext();
 
 export const rackPage = createPageModule({

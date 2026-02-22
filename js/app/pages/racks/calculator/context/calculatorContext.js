@@ -1,15 +1,17 @@
 // js/app/racks/calculator/context/calculatorContext.js
 
-import { createState } from "../../../../state/createState.js";
-import { initialRackState } from "../state/rackState.js";
-import { createRackActions } from "../state/rackActions.js";
-import { createRackSelectors } from "../state/rackSelectors.js";
-import { getRacksCalcRefs } from "../ui/dom.js";
-import { calculateComponents } from "../core/calculator.js";
+import { createState } from '../../../../state/createState.js';
+import { initialRackState } from '../state/rackState.js';
+import { createRackActions } from '../state/rackActions.js';
+import { createRackSelectors } from '../state/rackSelectors.js';
+import { getRacksCalcRefs } from '../ui/dom.js';
+import { calculateComponents } from '../core/calculator.js';
 
 // Допоміжна функція для серіалізації форми
 const serializeForm = (form) => {
-  if (!form) return "";
+  if (!form) {
+    return '';
+  }
   return JSON.stringify({
     ...form,
     // Перетворюємо Map на масив, якщо потрібно
@@ -35,7 +37,9 @@ export const createRackCalculatorContext = () => {
   let priceRef = null;
 
   const ensureInit = (value, name) => {
-    if (!value) throw new Error(`${name} is not initialized`);
+    if (!value) {
+      throw new Error(`${name} is not initialized`);
+    }
     return value;
   };
 
@@ -49,7 +53,7 @@ export const createRackCalculatorContext = () => {
     onChange = listener;
     refs = getRacksCalcRefs();
     let prevFormSerialized = null;
-    let prevRackJSON = "";
+    let prevRackJSON = '';
 
     unsubscribe = state.subscribe((currentState) => {
       const { form } = currentState;
@@ -61,7 +65,9 @@ export const createRackCalculatorContext = () => {
 
       prevFormSerialized = currentFormSerialized;
 
-      if (!price || Object.keys(price).length === 0 || !form) return;
+      if (!price || Object.keys(price).length === 0 || !form) {
+        return;
+      }
 
       const rackConfig = {
         floors: form.floors,
@@ -80,11 +86,11 @@ export const createRackCalculatorContext = () => {
         rackConfig.beams.length > 0 &&
         rackConfig.beams.every((b) => b.item && b.quantity);
       if (!canCalculate) {
-        prevRackJSON = "";
+        prevRackJSON = '';
 
         // Оновлюємо UI тільки якщо потрібно
         if (selectors.getCurrentRack() !== null) {
-          state.updateField("currentRack", null);
+          state.updateField('currentRack', null);
           onChange?.();
         }
         return;
@@ -96,16 +102,14 @@ export const createRackCalculatorContext = () => {
       const newRackJSON = JSON.stringify(newRack);
       if (newRackJSON !== prevRackJSON) {
         prevRackJSON = newRackJSON;
-        state.updateField("currentRack", newRack);
+        state.updateField('currentRack', newRack);
       }
 
       onChange?.();
     });
   };
 
-  const getRefs = () => {
-    return ensureInit(refs, "RackCalculator refs");
-  };
+  const getRefs = () => ensureInit(refs, 'RackCalculator refs');
 
   const destroy = () => unsubscribe?.();
 
