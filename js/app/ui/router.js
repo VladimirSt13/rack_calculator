@@ -273,14 +273,14 @@ export const createRouterEffects = (selectors) => ({
  * @param {Record<string, any>} pages
  * @returns {Record<string, Route>}
  */
-export const registerRoutes = (pages) => {
+export const registerRoutes = (pages, extraDeps = {}) => {
   const routes = {};
   Object.entries(pages).forEach(([id, page]) => {
     routes[id] = {
       id: page.id || id,
       init: page.init,
-      activate: page.activate,
-      deactivate: page.deactivate,
+      activate: (ctx) => page.activate?.({ ...ctx, ...extraDeps }),
+      deactivate: (ctx) => page.deactivate?.({ ...ctx, ...extraDeps }),
       onStateChange: page.onStateChange,
     };
   });

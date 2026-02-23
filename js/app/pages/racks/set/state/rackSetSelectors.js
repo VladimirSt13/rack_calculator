@@ -1,7 +1,7 @@
 // js/app/pages/racks/set/state/rackSetSelectors.js
 
 /**
- * @param {import('../../../state/createState.js').StateInstance<import('./rackSetState.js').RackSetState>} stateInstance
+ * @param {import('../../state/createState.js').StateInstance<import('./rackSetState.js').RackSetState>} stateInstance
  */
 export const createRackSetSelectors = (stateInstance) => ({
   /** Full state snapshot */

@@ -11,9 +11,61 @@ import { createDebugPanel } from './app/ui/debugPanel.js';
  */
 const initApp = async () => {
   try {
+    // debag panel
+    const dev = isDev();
+    /** @type {import('./app/ui/debugPanel.js').DebugPanelAPI | null} */
+    let debugPanel = null;
+
+    /** @type {(label: string, getter: () => any) => void} */
+    let registerState = () => {};
+    // ===== DEBUG PANEL SETUP (dev only) =====
+    if (dev) {
+      debugPanel = createDebugPanel({
+        stateRefs: {
+          // Приклад: інспекція глобальних станів
+          // 'rackState': () => rackState.get(),
+          // 'batteryState': () => batteryState.get(),
+        },
+        onLog: (log) => {
+          // Опціонально: відправка логів у сервіс (напр. Sentry у dev)
+          // if (log.type === 'error') reportToSentry(log);
+        },
+      });
+
+      debugPanel.mount();
+
+      const registerState = (label, getter) => {
+        debugPanel.registerState(label, getter);
+      };
+
+      // Приклад реєстрації стану для інспекції:
+      // debugPanel.registerState('rackState', () => rackState?.get?.() || null);
+
+      // Інтеграція з роутером:
+      // const originalNavigate = router.navigate;
+      // router.navigate = async (id) => {
+      //   const result = await originalNavigate.call(router, id);
+      //   debugPanel.updateRoute(id);
+      //   return result;
+      // };
+
+      // Інтеграція з HTTP middleware:
+      // const httpWithDebug = withMiddleware(fetchJson, {
+      //   onRequest: ({ url, options }) => {
+      //     debugPanel.log(`→ ${options.method || 'GET'} ${url}`, 'http');
+      //   },
+      //   onResponse: ({ result }) => {
+      //     debugPanel.log(`← ${result.status} ${result.ok ? '✓' : '✗'}`, result.ok ? 'http' : 'error');
+      //   },
+      // });
+    } else {
+      registerState = () => {};
+    }
     // 1. Реєстрація сторінок (pure)
     const { routes } = await registerAllPages();
-    const routerRoutes = registerRoutes(routes);
+    const routerRoutes = registerRoutes(routes, {
+      registerState: (label, getter) => debugPanel?.registerState?.(label, getter),
+    });
 
     // 2. Створення effects (side-effect, але ізольований)
     const effects = createRouterEffects(SELECTORS);
@@ -41,50 +93,14 @@ const initApp = async () => {
     } else {
       await router.navigate(APP_CONFIG.DEFAULT_PAGE);
     }
-    const dev = isDev();
-    // ===== DEBUG PANEL SETUP (dev only) =====
-    if (dev) {
-      const debugPanel = createDebugPanel({
-        stateRefs: {
-          // Приклад: інспекція глобальних станів
-          // 'rackState': () => rackState.get(),
-          // 'batteryState': () => batteryState.get(),
-        },
-        onLog: (log) => {
-          // Опціонально: відправка логів у сервіс (напр. Sentry у dev)
-          // if (log.type === 'error') reportToSentry(log);
-        },
-      });
 
-      debugPanel.mount();
-
-      // Приклад реєстрації стану для інспекції:
-      // debugPanel.registerState('rackState', () => rackState?.get?.() || null);
-
-      // Інтеграція з роутером:
-      // const originalNavigate = router.navigate;
-      // router.navigate = async (id) => {
-      //   const result = await originalNavigate.call(router, id);
-      //   debugPanel.updateRoute(id);
-      //   return result;
-      // };
-
-      // Інтеграція з HTTP middleware:
-      // const httpWithDebug = withMiddleware(fetchJson, {
-      //   onRequest: ({ url, options }) => {
-      //     debugPanel.log(`→ ${options.method || 'GET'} ${url}`, 'http');
-      //   },
-      //   onResponse: ({ result }) => {
-      //     debugPanel.log(`← ${result.status} ${result.ok ? '✓' : '✗'}`, result.ok ? 'http' : 'error');
-      //   },
-      // });
-
-      // 5. Cleanup при unload (опціонально)
-      window.addEventListener('beforeunload', () => {
-        router.destroy();
-        dev && debugPanel.destroy();
-      });
-    }
+    // 5. Cleanup при unload (опціонально)
+    window.addEventListener('beforeunload', () => {
+      router.destroy();
+      if (dev && debugPanel) {
+        debugPanel.destroy();
+      }
+    });
   } catch (error) {
     console.error('[App] Initialization failed:', error);
   }

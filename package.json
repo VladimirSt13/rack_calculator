@@ -16,8 +16,7 @@
     "format:check": "prettier --check \"js/**/*.{js,json}\" \"styles/**/*.css\"",
     "validate": "npm run lint && npm run format:check && npm run test",
     "clean": "rm -rf dist/ node_modules/.vite/",
-    "analyze": "vite-bundle-visualizer",
-    "prepare": "husky"
+    "analyze": "vite-bundle-visualizer"
   },
   "keywords": [
     "rack",

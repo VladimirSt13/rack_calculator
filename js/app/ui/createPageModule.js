@@ -11,6 +11,7 @@ import { pipe } from '../core/compose.js';
  * @property {Function} effects.addListener - (el: HTMLElement, event: string, handler: Function) => () => void
  * @property {Object} selectors - мапа CSS селекторів
  * @property {Object} [selectors.page] - селектори конкретної сторінки
+ * @property {Function} [registerState] - 🆕 реєстрація стану для дебагу: (label, getter) => void
  */
 
 /**
@@ -77,7 +78,10 @@ export const createPageModule = ({ id, lifecycle = {}, options = {} }) => {
 
     // 2. User activate logic (side-effects через deps)
     if (userActivate) {
-      userActivate({ ...deps, addListener: eventScope.addListener });
+      userActivate({
+        ...deps,
+        addListener: eventScope.addListener,
+      });
     }
   };
 

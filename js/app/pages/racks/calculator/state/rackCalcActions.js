@@ -96,6 +96,6 @@ export const createRackCalcActions = (stateInstance, initialState) => ({
   },
 
   batchCurrentRack(patch) {
-    stateInstance.updateNestedField('currentRack', patch);
+    stateInstance.updateField('currentRack', patch);
   },
 });

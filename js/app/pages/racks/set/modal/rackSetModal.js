@@ -1,7 +1,7 @@
 // js/app/pages/racks/set/modal/rackSetModal.js
 
 import { createPageModule } from '../../../ui/createPageModule.js';
-import { createState } from '../../../state/createState.js';
+import { createState } from '../../state/createState.js';
 import { initialRackSetState } from '../state/rackSetState.js';
 import { createRackSetActions } from '../state/rackSetActions.js';
 import { createRackSetSelectors } from '../state/rackSetSelectors.js';

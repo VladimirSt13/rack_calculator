@@ -3,7 +3,7 @@
 import { generateRackId } from '../utils/generateRackId.js';
 
 /**
- * @param {import('../../../state/createState.js').StateInstance<import('./rackSetState.js').RackSetState>} stateInstance
+ * @param {import('../../state/createState.js').StateInstance<import('./rackSetState.js').RackSetState>} stateInstance
  * @param {import('./rackSetState.js').RackSetState} initialState
  */
 export const createRackSetActions = (stateInstance, initialState) => ({
