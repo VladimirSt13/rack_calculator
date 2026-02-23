@@ -3,7 +3,7 @@
 /**
  * @typedef {Object} RackSetItem
  * @property {string} id - унікальний ID (генерується з rack.abbreviation + totalLength)
- * @property {import('../../calculator/state/rackState.js').RackCalcResult} rack - повний результат розрахунку
+ * @property {import('../../calculator/state/rackCalcState.js').RackCalcResult} rack - повний результат розрахунку
  * @property {number} qty - кількість таких стелажів у комплекті
  */
 

@@ -6,7 +6,7 @@ import { generateComponentsTableHTML } from '../ui/templates/componentsTable.js'
 
 /**
  * Pure: render rack name from state
- * @param {import('../state/rackState.js').RackState} state
+ * @param {import('../state/rackCalcState.js').RackState} state
  * @returns {string}
  */
 const renderRackName = (state) => {
@@ -22,7 +22,7 @@ const renderRackName = (state) => {
 
 /**
  * Pure: render components table from state
- * @param {import('../state/rackState.js').RackState} state
+ * @param {import('../state/rackCalcState.js').RackState} state
  * @returns {string}
  */
 const renderComponentsTable = (state) => {
@@ -38,7 +38,7 @@ const renderComponentsTable = (state) => {
 
 /**
  * Pure: render add-to-set button state
- * @param {import('../state/rackState.js').RackState} state
+ * @param {import('../state/rackCalcState.js').RackState} state
  * @returns {{ disabled: boolean, title: string }}
  */
 const renderAddToSetButtonState = (state) => {

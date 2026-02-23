@@ -3,7 +3,7 @@
 /**
  * Початковий state сторінки racks калькулятора
  */
-export const initialRackState = {
+export const initialRackCalcState = {
   form: {
     floors: 1,
     verticalSupports: '',

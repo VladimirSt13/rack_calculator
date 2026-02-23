@@ -1,6 +1,6 @@
 // js/app/pages/racks/calculator/state/rackActions.js
 
-export const createRackActions = (stateInstance, initialState) => ({
+export const createRackCalcActions = (stateInstance, initialState) => ({
   /* -------------------- FORM -------------------- */
 
   updateFloors(value) {
@@ -72,6 +72,10 @@ export const createRackActions = (stateInstance, initialState) => ({
 
   /* -------------------- CURRENT RACK -------------------- */
 
+  addCurrentRack(rack) {
+    stateInstance.updateField('currentRack', rack);
+  },
+
   clearCurrentRack() {
     stateInstance.updateField('currentRack', null);
   },
@@ -89,5 +93,9 @@ export const createRackActions = (stateInstance, initialState) => ({
 
   batchForm(patch) {
     stateInstance.updateNestedField('form', patch);
+  },
+
+  batchCurrentRack(patch) {
+    stateInstance.updateNestedField('currentRack', patch);
   },
 });

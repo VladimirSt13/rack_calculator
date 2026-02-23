@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // js/app/pages/racks/page.js
 
 import { PAGES } from '../../config/app.config.js';
@@ -5,9 +6,9 @@ import { createPageModule } from '../../ui/createPageModule.js';
 import { createState } from '../../state/createState.js';
 
 // Calculator imports
-import { initialRackState } from './calculator/state/rackState.js';
-import { createRackActions } from './calculator/state/rackActions.js';
-import { createRackSelectors } from './calculator/state/rackSelectors.js';
+import { initialRackCalcState } from './calculator/state/rackCalcState.js';
+import { createRackCalcActions } from './calculator/state/rackCalcActions.js';
+import { createRackCalcSelectors } from './calculator/state/rackCalcSelectors.js';
 import { calculateComponents } from './calculator/core/calculator.js';
 import { loadPrice } from './calculator/state/priceState.js';
 import {
@@ -44,7 +45,7 @@ import {
 // ===== TYPEDEFS =====
 
 /**
- * @typedef {import('./calculator/state/rackState.js').RackState} RackState
+ * @typedef {import('./calculator/state/rackCalcState.js').RackState} RackState
  * @typedef {import('./set/state/rackSetState.js').RackSetState} RackSetState
  * @typedef {import('../../ui/createPageModule.js').PageDependencies} PageDeps
  */
@@ -58,22 +59,32 @@ const pageState = createState({
   error: null,
 });
 
+const serializeForm = (form) => {
+  if (!form) {
+    return '';
+  }
+  return JSON.stringify({
+    ...form,
+    // Перетворюємо Map на масив, якщо потрібно
+    beams: form.beams instanceof Map ? Array.from(form.beams.values()) : form.beams,
+  });
+};
 // ===== CALCULATOR CONTEXT =====
 
 /**
  * Creates isolated calculator context with state + actions + selectors
  * @returns {{
  *   state: import('../../state/createState.js').StateInstance<RackState>,
- *   actions: ReturnType<typeof createRackActions>,
- *   selectors: ReturnType<typeof createRackSelectors>,
+ *   actions: ReturnType<typeof createRackCalcActions>,
+ *   selectors: ReturnType<typeof createRackCalcSelectors>,
  *   init: (opts: { price: any, onStateChange: (s: RackState) => void }) => void,
  *   destroy: () => void
  * }}
  */
 const createCalculatorContext = () => {
-  const state = createState({ ...initialRackState });
-  const actions = createRackActions(state, initialRackState);
-  const selectors = createRackSelectors(state);
+  const state = createState({ ...initialRackCalcState });
+  const actions = createRackCalcActions(state, initialRackCalcState);
+  const selectors = createRackCalcSelectors(state);
 
   /** @type {(() => void) | null} */
   let unsubscribe = null;
@@ -82,17 +93,25 @@ const createCalculatorContext = () => {
 
   const init = ({ price, onStateChange }) => {
     priceRef = price;
+    let prevFormSerialized = null;
+    let prevRackJSON = '';
 
     unsubscribe = state.subscribe((currentState) => {
       const { form } = currentState;
-      if (!priceRef || !form) {
+      const currentFormSerialized = serializeForm(form);
+
+      if (prevFormSerialized === currentFormSerialized) {
+        return;
+      }
+
+      prevFormSerialized = currentFormSerialized;
+      if (!price || Object.keys(price).length === 0 || !form) {
         return;
       }
 
       const rackConfig = {
         floors: form.floors,
         rows: form.rows,
-        // ✅ FIX: глибоке копіювання масиву об'єктів
         beams: [...form.beams.values()].map((beam) => ({ ...beam })),
         supports: form.supports,
         verticalSupports: form.verticalSupports,
@@ -108,23 +127,22 @@ const createCalculatorContext = () => {
         rackConfig.beams.every((b) => b.item && b.quantity);
 
       if (!canCalculate) {
-        if (currentState.currentRack !== null) {
+        if (selectors.getCurrentRack() !== null) {
           actions.clearCurrentRack();
+          onStateChange?.(state);
         }
         return;
       }
 
       const { newRack } = calculateComponents({ rackConfig, price: priceRef });
-
+      console.log('🚀 ~ newRack->', newRack);
+      console.log('🚀 ~ prevRackJSON->', prevRackJSON);
       if (newRack) {
-        const newJson = JSON.stringify({ ...newRack });
-        console.log('🚀 ~ newJson->', newJson);
-        const currentJson = JSON.stringify(currentState.currentRack);
-        console.log('🚀 ~ currentJson->', currentJson);
-        console.log('[Calc] New rack !== Current rack:', newJson !== currentJson);
-        if (newJson !== currentJson) {
-          console.log('updateState');
-          state.updateField('currentRack', newRack);
+        const newRackJSON = JSON.stringify(newRack);
+        if (newRackJSON !== prevRackJSON) {
+          prevRackJSON = newRackJSON;
+          actions.batchCurrentRack(newRack);
+          onStateChange?.(state);
         }
       }
     });

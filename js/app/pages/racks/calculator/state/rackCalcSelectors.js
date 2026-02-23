@@ -1,5 +1,5 @@
 // js/app/pages/racks/state/rackSelectors.js
-export const createRackSelectors = (stateInstance) => {
+export const createRackCalcSelectors = (stateInstance) => {
   let memoBeams = null;
   let memoBeamsMap = null;
 
@@ -28,7 +28,7 @@ export const createRackSelectors = (stateInstance) => {
     /** currentRack хранится в state, селектор просто возвращает его */
     getCurrentRack: () => {
       const s = stateInstance.get();
-      return s.currentRack ? { ...s.currentRack } : null;
+      return s.currentRack ? { ...s.currentRack, form: structuredClone(s.form) } : null;
     },
 
     /** Полный snapshot state */
@@ -39,5 +39,7 @@ export const createRackSelectors = (stateInstance) => {
         currentRack: s.currentRack ? { ...s.currentRack } : null,
       };
     },
+
+    getForm: () => stateInstance.get().form,
   };
 };
