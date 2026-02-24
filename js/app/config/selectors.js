@@ -50,7 +50,9 @@ export const RACK_SELECTORS = {
   results: {
     name: '[data-js="rackName"]',
     componentsTable: '[data-js="rack-componentsTable"]',
-    totalPrice: '[data-js="rackTotalPrice"]',
+    totalPrice: '[data-js="rack-totalPrice"]',
+    totalWithoutIsolators: '[data-js="rack-totalWithoutIsolators"]',
+    zeroBase: '[data-js="rack-zeroBase"]',
     addToSetBtn: '[data-js="rack-addToSetBtn"]',
   },
 

@@ -1,5 +1,7 @@
 // js/app/core/InteractiveElement.js
 
+import { log } from '../config/env.js';
+
 /**
  * @typedef {Object} InteractiveElementConfig
  * @property {HTMLElement} container - контейнер для делегування подій
@@ -71,19 +73,6 @@ export const getTransformType = (el) => el.dataset?.transform || null;
  * Creates universal interactive event handler with delegation
  * @param {InteractiveElementConfig} config
  * @returns {InteractiveHandler}
- *
- * @example
- * const handler = createInteractiveHandler({
- *   container: document.querySelector('[data-js="rackForm"]'),
- *   selector: '[data-action="updateField"]',
- *   event: 'input',
- *   feature: 'form',
- *   action: 'updateField',
- *   transformValue: (e, el) => el.dataset.transform === 'number' ? Number(el.value) : el.value,
- * });
- *
- * // Cleanup при деактивації:
- * return () => handler.cleanup();
  */
 export const createInteractiveHandler = (config) => {
   const {
@@ -109,25 +98,21 @@ export const createInteractiveHandler = (config) => {
    * @param {Event} e
    */
   const handler = (e) => {
-    // Find closest matching element
     const target = e.target?.closest?.(selector);
 
     if (!target || !container.contains(target)) {
       return;
     }
 
-    // Check custom condition
     if (shouldHandle && !shouldHandle(e, target)) {
       return;
     }
 
-    // Prevent default for certain events
     if (event === 'submit' || (event === 'click' && target.tagName === 'BUTTON')) {
       e.preventDefault();
     }
 
     try {
-      // Get feature context from window (injected by PageContext)
       const featureContext = window.__FEATURES__?.[feature];
 
       if (!featureContext?.actions?.[action]) {
@@ -135,7 +120,6 @@ export const createInteractiveHandler = (config) => {
         return;
       }
 
-      // Extract value from element
       let value;
       if (customTransform) {
         value = customTransform(e, target);
@@ -148,20 +132,16 @@ export const createInteractiveHandler = (config) => {
         value = transformValue(rawValue, transformType);
       }
 
-      // Get field name if applicable
       const field = target.dataset?.field;
 
-      // Before hook
       onBefore?.(e, target, { value, field, feature, action });
 
-      // Call action
       if (field !== undefined) {
         featureContext.actions[action](field, value);
       } else {
         featureContext.actions[action](value);
       }
 
-      // After hook
       onAfter?.(e, target, { value, field, feature, action });
     } catch (error) {
       console.error(`[InteractiveElement] Error handling ${action}:`, error);
@@ -169,8 +149,14 @@ export const createInteractiveHandler = (config) => {
     }
   };
 
-  // Register event listener
-  container.addEventListener(event, handler, { passive: event !== 'submit' });
+  const options =
+    event === 'submit'
+      ? { capture: true }
+      : event === 'click'
+        ? { passive: false }
+        : { passive: true };
+
+  container.addEventListener(event, handler, options);
 
   return {
     cleanup: () => {
@@ -182,16 +168,9 @@ export const createInteractiveHandler = (config) => {
 
 /**
  * Creates auto-handler that reads data-feature/data-action from ALL elements in container
- * This is the "magic" option - minimal setup, maximum automation
  * @param {HTMLElement} container
  * @param {Record<string, any>} features - map of feature contexts
  * @returns {InteractiveHandler}
- *
- * @example
- * const handler = createAutoHandler(
- *   document.querySelector('[data-js="page-rack"]'),
- *   { form, spans, results, set }
- * );
  */
 export const createAutoHandler = (container, features) => {
   if (!container) {
@@ -199,18 +178,21 @@ export const createAutoHandler = (container, features) => {
     return { cleanup: () => {}, isActive: false };
   }
 
-  // Inject features into window for handler access
+  if (container.__autoHandlerRegistered) {
+    log('[InteractiveElement]', 'Auto-handler already registered for container, skipping');
+    return {
+      cleanup: () => {},
+      isActive: true,
+    };
+  }
+  container.__autoHandlerRegistered = true;
+
   window.__FEATURES__ = features;
 
-  /**
-   * Universal delegate handler
-   * @param {Event} e
-   */
   const handler = (e) => {
     const target = e.target;
-
-    // Find closest element with data-action
     const actionEl = target.closest?.('[data-action]');
+
     if (!actionEl || !container.contains(actionEl)) {
       return;
     }
@@ -228,13 +210,11 @@ export const createAutoHandler = (container, features) => {
       return;
     }
 
-    // Prevent default for buttons/submit
     if (e.type === 'click' && actionEl.tagName === 'BUTTON') {
       e.preventDefault();
     }
 
     try {
-      // Extract value
       const transformType = getTransformType(actionEl);
       let value;
 
@@ -244,11 +224,16 @@ export const createAutoHandler = (container, features) => {
         value = transformValue(actionEl.dataset.value, transformType);
       }
 
-      // Get field if applicable
       const field = actionEl.dataset?.field;
+      const idAttr = actionEl.dataset?.id;
+      const id = idAttr ? (isNaN(Number(idAttr)) ? idAttr : Number(idAttr)) : undefined;
 
-      // Call action
-      if (field !== undefined) {
+      // Call action with correct parameters
+      if (action === 'updateSpan' && field && id !== undefined) {
+        featureContext.actions[action](id, field, value);
+      } else if (action === 'removeSpan' && id !== undefined) {
+        featureContext.actions[action](id);
+      } else if (field !== undefined) {
         featureContext.actions[action](field, value);
       } else if (value !== undefined) {
         featureContext.actions[action](value);
@@ -260,13 +245,16 @@ export const createAutoHandler = (container, features) => {
     }
   };
 
-  // Listen to common events
   const events = ['click', 'input', 'change', 'submit'];
   events.forEach((event) => {
-    container.addEventListener(event, handler, {
-      passive: event !== 'submit',
-      capture: event === 'submit',
-    });
+    const options =
+      event === 'submit'
+        ? { capture: true }
+        : event === 'click'
+          ? { passive: false }
+          : { passive: true };
+
+    container.addEventListener(event, handler, options);
   });
 
   return {
@@ -275,6 +263,7 @@ export const createAutoHandler = (container, features) => {
         container.removeEventListener(event, handler);
       });
       delete window.__FEATURES__;
+      delete container.__autoHandlerRegistered; //ь
     },
     isActive: true,
   };
@@ -282,12 +271,6 @@ export const createAutoHandler = (container, features) => {
 
 // ===== UTILITY HANDLERS =====
 
-/**
- * Creates debounced handler for frequent events (input, scroll)
- * @param {Function} handler
- * @param {number} delay - ms
- * @returns {Function}
- */
 export const debounceHandler = (handler, delay = 300) => {
   let timeout;
   return function debounced(...args) {
@@ -296,12 +279,6 @@ export const debounceHandler = (handler, delay = 300) => {
   };
 };
 
-/**
- * Creates throttled handler for rate limiting
- * @param {Function} handler
- * @param {number} limit - ms
- * @returns {Function}
- */
 export const throttleHandler = (handler, limit = 100) => {
   let inThrottle = false;
   return function throttled(...args) {
@@ -315,19 +292,11 @@ export const throttleHandler = (handler, limit = 100) => {
   };
 };
 
-/**
- * Creates keyboard shortcut handler
- * @param {Function} handler - receives (event, key)
- * @param {string|string[]} keys - key or array of keys (e.g. 'Enter' or ['Ctrl+S', 'Cmd+S'])
- * @param {Object} [options] - { ctrl?: boolean, shift?: boolean, alt?: boolean, meta?: boolean }
- * @returns {Function} handler for addEventListener
- */
 export const createKeyboardHandler = (handler, keys, options = {}) => {
   const keyArray = Array.isArray(keys) ? keys : [keys];
   const { ctrl = false, shift = false, alt = false, meta = false } = options;
 
   return (e) => {
-    // Check modifier keys
     if (
       (ctrl && !e.ctrlKey) ||
       (shift && !e.shiftKey) ||
@@ -337,7 +306,6 @@ export const createKeyboardHandler = (handler, keys, options = {}) => {
       return;
     }
 
-    // Check if pressed key matches
     const keyMatch = keyArray.some(
       (k) => k.toLowerCase() === e.key.toLowerCase() || k.toLowerCase() === e.code.toLowerCase(),
     );
@@ -349,19 +317,9 @@ export const createKeyboardHandler = (handler, keys, options = {}) => {
   };
 };
 
-/**
- * Creates form sync helper (two-way binding)
- * @param {HTMLInputElement|HTMLSelectElement} input
- * @param {() => any} getValue
- * @param {(value: any) => void} setValue
- * @param {string} [event='input']
- * @returns {{ unsubscribe: () => void, update: () => void }}
- */
 export const syncInput = (input, getValue, setValue, event = 'input') => {
-  // Initial sync: state → UI
   input.value = getValue() ?? '';
 
-  // Event sync: UI → state
   const handler = (e) => {
     const value = input.type === 'number' ? Number(e.target.value) : e.target.value;
     setValue(value);

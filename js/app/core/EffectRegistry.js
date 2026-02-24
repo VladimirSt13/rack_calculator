@@ -231,20 +231,34 @@ export const createEffectRegistry = (selectors = {}) => {
    * @param {(() => boolean)[]} effects
    * @returns {Promise<boolean[]>}
    */
-  const batch = (effects) =>
-    new Promise((resolve) => {
+  const batch = (effects) => {
+    // ✅ FIX: уникати batch якщо вже виконується
+    if (batch.isRunning) {
+      // Додати в чергу або пропустити
+      return Promise.resolve([]);
+    }
+
+    batch.isRunning = true;
+
+    return new Promise((resolve) => {
       requestAnimationFrame(() => {
-        const results = effects.map((effect) => {
-          try {
-            return effect();
-          } catch (error) {
-            console.warn('[EffectRegistry] Batch effect failed:', error);
-            return false;
-          }
-        });
-        resolve(results);
+        try {
+          const results = effects.map((effect) => {
+            try {
+              return effect();
+            } catch (error) {
+              console.warn('[EffectRegistry] Batch effect failed:', error);
+              return false;
+            }
+          });
+          resolve(results);
+        } finally {
+          batch.isRunning = false;
+        }
       });
     });
+  };
+  batch.isRunning = false;
 
   return Object.freeze({
     get,

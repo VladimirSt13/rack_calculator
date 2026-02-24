@@ -1,5 +1,7 @@
 // js/app/pages/racks/core/calculator.js
 
+import { log } from '../../../config/env.js';
+
 /**
  * @typedef {Object} RackConfig
  * @property {number} floors - кількість поверхів
@@ -12,7 +14,7 @@
 
 /**
  * @typedef {Object} PriceData
- * @property {Object.<string, { price: number }>} beams - ціни на балки
+ * @property {Object.<string, { price: number }>} spans - ціни на прольоти (балки)
  * @property {Object.<string, { edge: { price: number }, intermediate: { price: number } }>} supports - ціни на опори
  * @property {Object.<string, { price: number }>} vertical_supports - ціни на вертикальні стійки
  * @property {Object.<string, { price: number }>} diagonal_brace - ціни на розкоси
@@ -32,6 +34,8 @@
  * @property {string} name - назва стелажа (абревіатура)
  * @property {string} tableHtml - HTML таблиці компонентів
  * @property {number} total - загальна вартість
+ * @property {number} totalWithoutIsolators - вартість без ізоляторів
+ * @property {number} zeroBase - нульова вартість (total * 1.44)
  * @property {Object.<string, ComponentItem|ComponentItem[]>} components - компоненти за типами
  */
 
@@ -48,10 +52,20 @@
  * @returns {CalculationResult | null}
  */
 export const calculateRack = (data) => {
-  const { form, spans, price } = data;
+  log('[calculateRack] start');
+  const {
+    form: { form },
+    spans: spansMap,
+    price,
+  } = data;
+  let spans = [];
+  if (spansMap.spans.size > 0) {
+    spans = Array.from(spansMap.spans.values());
+  }
 
   // 1. Валідація вхідних даних
-  if (!form || !price || !form.floors || !form.rows || !form.supports) {
+  if (!form || !price || spans.length === 0) {
+    log('[calculateRack] invalid data');
     return null;
   }
 
@@ -65,17 +79,19 @@ export const calculateRack = (data) => {
     !(form.floors > 1 && form.verticalSupports);
 
   if (!isEnoughDataForCalculation) {
+    log('[calculateRack] not enough data for calculation');
     return null;
   }
 
   // 2. Фільтрація валідних прольотів
-  const validSpans = spans.spans
-    ? Array.from(spans.spans.values()).filter((s) => s.item && s.quantity > 0)
-    : [];
+  const validSpans = spans ? spans.filter((s) => s.item && s.quantity > 0) : [];
 
   if (validSpans.length === 0) {
+    log('[calculateRack] no valid spans');
     return null;
   }
+  log('[calculateRack] form', form);
+  log('[calculateRack] form', form.floors, form.rows, form.beamsPerRow);
 
   // 3. Розрахунок параметрів стелажа
   const rackConfig = {
@@ -86,7 +102,7 @@ export const calculateRack = (data) => {
     verticalSupports: form.verticalSupports,
     spans: validSpans,
   };
-
+  log('[calculateRack] rackConfig', rackConfig);
   // 4. Розрахунок компонентів
   const components = calculateComponents(rackConfig, price);
 
@@ -98,11 +114,15 @@ export const calculateRack = (data) => {
 
   // 7. Підрахунок загальної вартості
   const total = calculateTotalCost(components);
+  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
+  const zeroBase = total * 1.44;
 
   return {
     name,
     tableHtml,
     total: Math.round(total * 100) / 100,
+    totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
+    zeroBase: Math.round(zeroBase * 100) / 100,
     components,
   };
 };
@@ -123,7 +143,7 @@ const calculateComponents = (config, price) => {
   }
 
   // 2. Балки (beams)
-  const beamsData = calculateBeams(config, price);
+  const beamsData = calculateSpans(config, price);
   if (beamsData.length > 0) {
     components.beams = beamsData;
   }
@@ -151,7 +171,7 @@ const calculateComponents = (config, price) => {
       components.isolators = isolatorsData;
     }
   }
-
+  log('components', components);
   return components;
 };
 
@@ -203,22 +223,22 @@ const calculateSupports = (config, price) => {
  * @param {PriceData} price
  * @returns {ComponentItem[]}
  */
-const calculateBeams = (config, price) => {
+const calculateSpans = (config, price) => {
   const { rows, beamsPerRow, spans, floors } = config;
-  const beamsMap = new Map();
+  const spansMap = new Map();
 
   // Групуємо балки за типом
   spans.forEach((span) => {
     const code = span.item;
     const qty = (span.quantity || 0) * rows * beamsPerRow * floors;
-    const current = beamsMap.get(code) || 0;
-    beamsMap.set(code, current + qty);
+    const current = spansMap.get(code) || 0;
+    spansMap.set(code, current + qty);
   });
 
   // Перетворюємо в масив компонентів
   const result = [];
-  beamsMap.forEach((amount, code) => {
-    const beamPrice = price.beams?.[code]?.price || 0;
+  spansMap.forEach((amount, code) => {
+    const beamPrice = price.spans?.[code]?.price || 0;
     result.push({
       name: `Балка ${code}`,
       amount,
@@ -410,6 +430,26 @@ const generateComponentsTable = (components) => {
 const calculateTotalCost = (components) => {
   let total = 0;
   for (const items of Object.values(components)) {
+    const itemsArray = Array.isArray(items) ? items : [items];
+    itemsArray.forEach((item) => {
+      total += item.total || 0;
+    });
+  }
+  return total;
+};
+
+/**
+ * Підрахунок вартості без ізоляторів
+ * @param {Object.<string, ComponentItem|ComponentItem[]>} components
+ * @returns {number}
+ */
+const calculateTotalWithoutIsolators = (components) => {
+  let total = 0;
+  for (const [type, items] of Object.entries(components)) {
+    // Пропускаємо ізолятори
+    if (type === 'isolators') {
+      continue;
+    }
     const itemsArray = Array.isArray(items) ? items : [items];
     itemsArray.forEach((item) => {
       total += item.total || 0;

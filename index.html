@@ -180,13 +180,13 @@
                         data-state="ready"
                       ></button>
                     </div>
-                    <div
+                    <ul
                       class="form__dynamic-container"
                       data-js="rack-spansContainer"
                       data-feature="spans"
                       data-render-target="list"
                       data-state="empty"
-                    ></div>
+                    ></ul>
                   </div>
                 </fieldset>
               </form>
@@ -224,13 +224,25 @@
                     data-render-target="tableHtml"
                     data-state="empty"
                   ></div>
-                  <output
-                    class="result-price"
-                    data-js="rackTotalPrice"
-                    data-feature="results"
-                    data-render-target="total"
-                    data-state="empty"
-                  ></output>
+                  <div class="rack__price">
+                    <ul class="rack__price-list">
+                      <li class="rack__price-row">
+                        <span class="rack__price-label">Загальна</span>
+                        <span class="rack__price-dots"></span>
+                        <span class="rack__price-value" data-js="rack-totalPrice">0.00 ₴</span>
+                      </li>
+                      <li class="rack__price-row">
+                        <span class="rack__price-label">Без ізоляторів</span>
+                        <span class="rack__price-dots"></span>
+                        <span class="rack__price-value" data-js="rack-totalWithoutIsolators">0.00 ₴</span>
+                      </li>
+                      <li class="rack__price-row rack__price-row--total">
+                        <span class="rack__price-label">Нульова</span>
+                        <span class="rack__price-dots"></span>
+                        <span class="rack__price-value" data-js="rack-zeroBase">0.00 ₴</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
                 <footer class="card__footer">
                   <button

@@ -36,7 +36,9 @@ export const createPageContext = ({
   renderResult,
   needsRecalculation,
   onError,
+  recalculationDelay = 0,
 }) => {
+  let recalcTimeout = null;
   /** @type {(() => void)[]} */
   const unsubscribes = [];
 
@@ -53,25 +55,27 @@ export const createPageContext = ({
     return data;
   };
 
-  /**
-   * Handle change from any feature
-   * @param {string} featureName
-   * @param {any} changes
-   */
   const handleFeatureChange = (featureName, changes) => {
+    if (recalculationDelay > 0) {
+      clearTimeout(recalcTimeout);
+      recalcTimeout = setTimeout(() => {
+        performRecalculation(featureName, changes);
+      }, recalculationDelay);
+      return;
+    }
+
+    performRecalculation(featureName, changes);
+  };
+
+  const performRecalculation = (featureName, changes) => {
     try {
-      // 1. Перевіряємо, чи потрібен розрахунок
       if (!needsRecalculation({ feature: featureName, changes })) {
         return;
       }
 
-      // 2. Збираємо актуальні дані з усіх фич
       const inputData = collectInputData();
-
-      // 3. Запускаємо pure calculator
       const result = calculator(inputData);
 
-      // 4. Рендеримо результат у потрібну зону
       if (result) {
         renderResult(featureName, result);
       }

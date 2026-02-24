@@ -110,6 +110,12 @@ p {
   margin: 0 0 var(--spacing-sm);
 }
 
+ul,
+li {
+  margin: 0;
+  padding: 0;
+}
+
 small {
   font-size: var(--font-size-xs);
 }
@@ -408,10 +414,12 @@ td {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  max-width: 100%;
 }
 .form__group--inline {
   flex-direction: row;
   align-items: center;
+  max-width: 100%;
 }
 
 .form__label {
@@ -420,14 +428,15 @@ td {
   justify-content: space-between;
   font-weight: 500;
   font-size: var(--font-size-sm);
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 .form__label-text {
-  flex: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .form__control {
-  width: 100%;
+  width: 80px;
   padding: var(--spacing-xs) var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -442,8 +451,14 @@ td {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
+.form__control:disabled {
+  background-color: #f5f5f5;
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 .form__control--small {
-  width: clamp(70px, 8vw, 100px);
+  width: 60px;
   text-align: right;
 }
 

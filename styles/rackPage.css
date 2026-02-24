@@ -9,8 +9,7 @@
    ============================================================================= */
 
 .section--rack .section__body {
-  /* Використовуємо grid з global.css, але з уточненням */
-  grid-template-columns: clamp(300px, 35vw, 400px) 1fr;
+  grid-template-columns: 300px 1fr;
   gap: var(--spacing-lg);
 }
 
@@ -30,9 +29,8 @@
    2. FORM STYLES
    ============================================================================= */
 
-.rack__form {
-  /* Базові стилі форми вже в global.css */
-  gap: var(--spacing-sm);
+.section--rack .form {
+  max-width: 300px;
 }
 
 .rack__row {
@@ -42,33 +40,8 @@
   flex-wrap: wrap;
 }
 
-.rack__label {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  width: 100%;
-  font-weight: 500;
-  font-size: var(--font-size-sm);
-  gap: var(--spacing-sm);
-}
-
-/* Dot leader (крапки між текстом і інпутом) */
-.rack__label .dots {
-  flex: 1;
-  border-bottom: 1px dotted var(--color-text-secondary);
-  margin: 0 var(--spacing-xs);
-  opacity: 0.6;
-}
-
-.rack__label input,
-.rack__label select {
-  width: clamp(80px, 12ch, 120px);
-  min-width: 80px;
-  text-align: right;
-}
-
 /* Required indicator */
-.rack__label--required::after {
+.form__label--required::after {
   content: '*';
   color: var(--color-danger);
   margin-left: 4px;
@@ -112,11 +85,28 @@
   gap: var(--spacing-xs);
 }
 
-.beam-row {
+.span-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--spacing-sm);
   width: 100%;
+  max-width: 100%;
+}
+
+.span-row .span-select {
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 100%;
+}
+
+.span-row .span-quantity {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.span-row .span-remove {
+  flex-shrink: 0;
 }
 
 /* =============================================================================
@@ -129,14 +119,18 @@
   height: clamp(24px, 3vw, 28px);
 }
 
+.icon-btn--add {
+  outline: none;
+}
+
 .icon-btn--add:hover {
   background-color: rgba(0, 123, 255, 0.1);
   border-color: var(--color-primary);
 }
 
-.icon-btn--add:hover::before,
-.icon-btn--add:hover::after {
-  background-color: var(--color-primary);
+.icon-btn--add:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .icon-btn--remove:hover {
@@ -165,31 +159,62 @@
 
 .rack__components-table {
   margin-top: var(--spacing-sm);
+  margin-left: auto;
+  width: max-content;
   /* Стилі таблиці вже в global.css */
 }
 
 .rack__price {
-  margin-top: var(--spacing-sm);
-  font-size: var(--font-size-base);
+  margin-top: var(--spacing-md);
+  margin-left: auto;
+  width: max-content;
+}
+
+.rack__price-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
 }
 
-.rack__price .price {
-  color: var(--color-primary);
+.rack__price-row {
+  display: flex;
+  align-items: baseline;
+  /* gap: var(--spacing-sm); */
+  margin: 0;
+  padding: 0;
 }
 
-.rack__price .total {
-  font-weight: 700;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
-}
-
-.rack__price .zero-cost {
+.rack__price-label {
+  font-weight: 500;
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-style: italic;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.rack__price-dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--color-border);
+  position: relative;
+  /* top: -0.1em; */
+  min-width: 20px;
+}
+
+.rack__price-value {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rack__price-row--total .rack__price-label {
+  font-weight: 700;
+}
+
+.rack__price-row--total .rack__price-value {
+  font-weight: 700;
 }
 
 /* =============================================================================
@@ -453,7 +478,7 @@
    10. RESPONSIVE
    ============================================================================= */
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .section--rack .section__body {
     grid-template-columns: 1fr;
   }
@@ -461,22 +486,29 @@
   .rack__params {
     position: static;
   }
-}
 
-@media (max-width: 768px) {
-  .rack__label {
-    flex-direction: column;
-    align-items: flex-start;
+  .section--rack .form {
+    max-width: 100%;
+  }
+
+  .form__label {
     gap: var(--spacing-xs);
   }
 
-  .rack__label .dots {
-    display: none; /* Приховуємо крапки на мобільних */
+  .form__control {
+    width: 100%;
   }
 
-  .rack__label input,
-  .rack__label select {
-    width: 100%;
+  .form__group--inline {
+    flex-wrap: wrap;
+  }
+
+  .form__group--inline .form__label {
+    width: auto;
+  }
+
+  .span-row .span-select {
+    min-width: 150px;
   }
 
   .rack-set__qty-controls {
