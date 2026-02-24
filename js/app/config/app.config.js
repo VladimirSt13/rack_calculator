@@ -63,9 +63,9 @@ export const SELECTORS = Object.freeze({
     beamsPerRow: "[data-js='rack-beamsPerRow']",
 
     // Beams dynamic section
-    beamsGroup: "[data-js='rack-beamsGroup']",
-    beamsContainer: "[data-js='rack-beamsContainer']",
-    addBeam: "[data-js='rack-addBeam']",
+    spansGroup: "[data-js='rack-beamsSpans']",
+    spansContainer: "[data-js='rack-spansContainer']",
+    addBeam: "[data-js='rack-addSpan']",
 
     // Results
     name: "[data-js='rackName']",

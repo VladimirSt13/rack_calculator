@@ -51,7 +51,7 @@
       "intermediate": { "price": 1980.0, "weight": null }
     }
   },
-  "beams": {
+  "spans": {
     "600": { "name": "600", "price": 500.0, "weight": 1.6 },
     "750": { "name": "750", "price": 630.0, "weight": 2.1 },
     "900": { "name": "900", "price": 730.0, "weight": 2.56 },

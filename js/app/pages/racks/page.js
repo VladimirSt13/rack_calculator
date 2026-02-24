@@ -1,60 +1,33 @@
-/* eslint-disable no-console */
 // js/app/pages/racks/page.js
 
 import { PAGES } from '../../config/app.config.js';
 import { createPageModule } from '../../ui/createPageModule.js';
-import { createState } from '../../state/createState.js';
-import { pageState } from './state/pageState.js';
+import { createState } from '../../core/createState.js';
+import { createPageContext } from '../../core/PageContext.js';
+import { createEffectRegistry } from '../../core/EffectRegistry.js';
+import { createAutoHandler } from '../../core/InteractiveElement.js';
+import { loadPrice } from './features/priceState.js';
+import { RACK_SELECTORS } from '../../config/selectors.js';
 
-// Calculator imports
-import { loadPrice } from './calculator/state/priceState.js';
-import {
-  addToSetButtonRenderer,
-  componentsTableRenderer,
-  rackNameRenderer,
-} from './calculator/renderer/renderer.js';
-import {
-  getRackCalcSelectors,
-  populateDropdown,
-  updateAddToSetButton,
-  updateComponentsTable,
-  updateRackName,
-} from './calculator/effects/rackCalcEffects.js';
+// Feature contexts
+import { createRackFormContext } from './features/form/context.js';
+import { createSpansContext } from './features/spans/context.js';
+import { createRackResultsContext } from './features/results/context.js';
+import { createRackSetContext } from './features/set/context.js';
 
-// Rack Set imports
-import {
-  rackSetModalRenderer,
-  rackSetSummaryRenderer,
-  rackSetTableRenderer,
-} from './set/renderer/rackSetRenderer.js';
-import {
-  getRackSetSelectors,
-  setButtonDisabled,
-  toggleModal,
-  updateModalContent,
-  updatePageSummary,
-  updatePageTable,
-} from './set/effects/rackSetEffects.js';
+// Calculator
+import { calculateRack } from './core/calculator.js';
 
-import { createCalculatorContext } from './calculator/context.js';
-import { handleAddBeam, handleBeamRemove, handleFormInput } from './handlers/formHandler.js';
-import { onCalculatorStateChange } from './calculator/renderer/onStateChange.js';
-import { createRackSetContext } from './set/context.js';
-import { createRackSetModalModule } from './set/modal.js';
-import {
-  handleAddToSet,
-  handleOpenModal,
-  handleRackSetAction,
-  handleToggleDetails,
-} from './handlers/setHandler.js';
-import { onRackSetStateChange } from './set/renderer/onStateChange.js';
-import { initialRender } from './renderer/initialRender.js';
-// ===== TYPEDEFS =====
-/**
- * @typedef {import('./calculator/state/rackCalcState.js').RackState} RackState
- * @typedef {import('./set/state/rackSetState.js').RackSetState} RackSetState
- * @typedef {import('../../ui/createPageModule.js').PageDependencies} PageDeps
- */
+// ===== PAGE-LEVEL STATE =====
+
+/** @type {import('../../state/createState.js').StateInstance<{ price: Object|null, supportsOptions: string[], verticalSupportsOptions: string[], isLoading: boolean, error: string|null }>} */
+const pageState = createState({
+  price: null,
+  supportsOptions: [],
+  verticalSupportsOptions: [],
+  isLoading: false,
+  error: null,
+});
 
 // ===== PAGE MODULE =====
 
@@ -63,92 +36,132 @@ export const rackPage = createPageModule({
 
   lifecycle: {
     onInit: async () => {
-      const price = await loadPrice();
-      pageState.updateField('price', price);
+      try {
+        pageState.updateField('isLoading', true);
+        const price = await loadPrice();
+
+        pageState.updateField('price', price);
+        pageState.updateField('supportsOptions', Object.keys(price.supports || {}));
+        pageState.updateField(
+          'verticalSupportsOptions',
+          Object.keys(price.vertical_supports || {}),
+        );
+        pageState.updateField('isLoading', false);
+      } catch (error) {
+        console.error('[RackPage] Failed to load price:', error);
+        pageState.updateField('error', 'Не вдалося завантажити прайс');
+        pageState.updateField('isLoading', false);
+      }
     },
-
-    /** @param {PageDeps} deps */
+    /** Активація сторінки
+     * @param {import('../../ui/createPageModule.js').PageDependencies} deps */
     onActivate: (deps) => {
-      const { addListener, registerState } = deps;
-      const price = pageState.get().price;
+      const { addListener } = deps;
+      const { price, supportsOptions, verticalSupportsOptions } = pageState.get();
 
+      // Перевірка наявності прайсу
       if (!price) {
         pageState.updateField('error', 'Ціни не завантажено');
         return;
       }
 
-      // ===== INIT CALCULATOR =====
-      const calculator = createCalculatorContext();
-
-      if (registerState) {
-        registerState('rackCalculator', () => calculator?.state?.get() || null);
-        registerState('rackForm', () => calculator?.state?.get?.().form || null);
-      }
-
-      calculator.init({
-        price,
-        onStateChange: onCalculatorStateChange,
-      });
-
-      // Populate dropdowns
-      populateDropdown(
-        getRackCalcSelectors().verticalSupports,
-        Object.keys(price.vertical_supports),
-      )();
-      populateDropdown(getRackCalcSelectors().supports, Object.keys(price.supports))();
-
-      // ===== INIT RACK SET =====
+      // ===== 1. СТВОРЕННЯ FEATURE CONTEXTS =====
+      const form = createRackFormContext();
+      const spans = createSpansContext();
+      const results = createRackResultsContext();
       const rackSet = createRackSetContext();
-      rackSet.init({
-        onStateChange: onRackSetStateChange,
+
+      // ===== 2. EFFECT REGISTRY =====
+      const effects = createEffectRegistry(RACK_SELECTORS);
+
+      // ===== 3. POPULATE DROPDOWNS =====
+      const populateDropdown = (selector, options, placeholder = 'Виберіть...') => {
+        const el = document.querySelector(selector);
+        if (!el) {
+          return;
+        }
+        el.innerHTML = `
+          <option value="" disabled selected>${placeholder}</option>
+          ${options.map((opt) => `<option value="${opt}">${opt}</option>`).join('')}
+        `;
+      };
+
+      populateDropdown(RACK_SELECTORS.form.supports, supportsOptions);
+      populateDropdown(RACK_SELECTORS.form.verticalSupports, verticalSupportsOptions);
+
+      // ===== 4. PAGE CONTEXT (ORCHESTRATOR) =====
+      const page = createPageContext({
+        features: { form, spans, results, rackSet },
+
+        // Збір даних для розрахунку
+        collectInputData: () => ({
+          form: form.selectors.getForm(),
+          spans: spans.selectors.getData(),
+          price,
+        }),
+
+        // Pure calculator
+        calculator: (data) => calculateRack(data),
+
+        // Рендеринг результатів у DOM
+        renderResult: (featureName, result) => {
+          console.log('🚀 ~ featureName, result->', featureName, result);
+
+          // Рендеримо тільки якщо змінилася форма або прольоти
+          if (['form', 'spans'].includes(featureName) && result) {
+            effects.batch([
+              effects.setText('results', 'name', result.name),
+              effects.setHTML('results', 'componentsTable', result.tableHtml),
+              effects.setText('results', 'totalPrice', `${result.total.toFixed(2)} ₴`),
+              effects.setState('results', 'componentsTable', result.total > 0 ? 'ready' : 'empty'),
+              effects.setState('set', 'addToSetBtn', result.total > 0 ? 'ready' : 'disabled'),
+              effects.setAttr('set', 'addToSetBtn', 'disabled', result.total > 0 ? null : ''),
+            ]);
+          }
+        },
+
+        // Коли потрібен перерахунок
+        needsRecalculation: ({ feature, changes }) => ['form', 'spans'].includes(feature),
+
+        // Обробник помилок
+        onError: (error, context) => {
+          console.error('[RackPage] Calculation error:', error, context);
+          effects.setText('results', 'totalPrice', 'Помилка розрахунку');
+        },
       });
 
-      // Init modal sub-module
-      const modalModule = createRackSetModalModule(rackSet, addListener);
-      modalModule.activate();
+      // ===== 5. INTERACTIVE ELEMENTS (AUTO-HANDLER) =====
+      const pageContainer = document.querySelector(RACK_SELECTORS.page);
+      const autoHandler = pageContainer
+        ? createAutoHandler(pageContainer, { form, spans, results, rackSet })
+        : { cleanup: () => {} };
 
-      // ===== REGISTER EVENTS =====
-      const formEl = getRackCalcSelectors().form();
-      const addBeamBtn = getRackCalcSelectors().addBeamBtn();
-      const addToSetBtn = getRackCalcSelectors().addToSetBtn();
-      const rackSetTableEl = getRackSetSelectors().rackSetTable();
-      const openModalBtn = getRackSetSelectors().openModalBtn();
+      // ===== 6. ДОДАТКОВІ HANDLERS (якщо потрібні) =====
+      // Наприклад, відкриття модалки комплекту
+      const openModalBtn = document.querySelector(RACK_SELECTORS.set.openModalBtn);
+      const openModalHandler = () => {
+        if (openModalBtn) {
+          openModalBtn.addEventListener('click', () => rackSet.actions.openModal());
+        }
+      };
+      openModalHandler();
 
-      if (formEl) {
-        addListener(formEl)('input')((e) => handleFormInput(e, { calculator }));
-        addListener(formEl)('click')((e) => handleBeamRemove(e, { calculator }));
-      }
-      if (addBeamBtn) {
-        addListener(addBeamBtn)('click')(() =>
-          handleAddBeam({ calculator, price }, () => getRackCalcSelectors().beamsContainer()),
-        );
-      }
-      if (addToSetBtn) {
-        addListener(addToSetBtn)('click')(() => handleAddToSet({ calculator, rackSet }));
-      }
-      if (rackSetTableEl) {
-        addListener(rackSetTableEl)('click')((e) => handleRackSetAction(e, { rackSet }));
-        addListener(rackSetTableEl)('click')((e) => handleToggleDetails(e, { rackSet }));
-      }
-      if (openModalBtn) {
-        addListener(openModalBtn)('click')(() => handleOpenModal({ rackSet }));
-      }
+      // ===== 7. ЗАПУСК ОРКЕСТРАЦІЇ =====
+      page.init();
 
-      // ===== INITIAL RENDER =====
-      const calcState = calculator.state.get();
-      const rackSetState = rackSet.state.get();
-      initialRender({ calcState, rackSetState });
-
-      // ===== CLEANUP =====
+      // ===== 8. CLEANUP =====
       return () => {
-        calculator.destroy();
-        rackSet.destroy();
-        modalModule.deactivate();
+        page.destroy();
+        autoHandler.cleanup();
+        if (openModalBtn) {
+          openModalBtn.removeEventListener('click', openModalHandler);
+        }
       };
     },
 
+    /** Деактивація сторінки  */
     onDeactivate: () => {
-      // Additional cleanup if needed
+      // Додатковий cleanup якщо потрібен
     },
   },
 });

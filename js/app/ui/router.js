@@ -1,7 +1,6 @@
 // js/app/ui/router.js
 
-import { pipe } from '../core/compose.js';
-// import { curry } from "../core/curry.js"; // Розкоментуйте, якщо використовуєте
+import { pipe } from '../utils/compose.js';
 
 /**
  * @typedef {Object} Route
@@ -22,6 +21,7 @@ import { pipe } from '../core/compose.js';
  * @property {(id: string) => void} effects.hidePage
  * @property {(id: string) => void} effects.updateNav
  * @property {Function} effects.log
+ * @property {Array<{ id: string, label: string }>} [navItems] - ✅ FIX: список пунктів навігації
  */
 
 /**
@@ -39,6 +39,7 @@ import { pipe } from '../core/compose.js';
  * @property {() => string[]} getRoutes
  * @property {(navConfig: NavConfig) => void} attachNavigation
  * @property {() => void} destroy
+ * @property {() => string} renderNavLinks - ✅ FIX: рендер навігації
  */
 
 /**
@@ -54,25 +55,27 @@ const createInitialContext = (config) => ({
   currentRoute: null,
   routes: config.routes,
   effects: config.effects,
+  navItems: config.navItems || [], // ✅ FIX: пункти навігації
 });
 
 const hasRoute = (ctx, id) => id in ctx.routes;
 const getRoute = (ctx, id) => ctx.routes[id];
-
-// Internal helper
 const hasContext = (ctx, id) => hasRoute(ctx, id);
 
-// ===== SIDE EFFECTS (ізольовані) =====
+// ===== SIDE EFFECTS =====
+
+const getPageElement = (effects, id) => document.querySelector(`[data-js="page-${id}"]`);
 
 const switchView = (ctx, targetId) => {
   const { effects, routes } = ctx;
 
   Object.keys(routes).forEach((routeId) => {
-    const pageEl = effects.getPageElement(routeId);
+    const pageEl = getPageElement(effects, routeId);
     if (pageEl) {
       if (routeId === targetId) {
         effects.showPage(routeId);
         pageEl.hidden = false;
+        pageEl.removeAttribute('hidden');
         pageEl.setAttribute('aria-hidden', 'false');
       } else {
         effects.hidePage(routeId);
@@ -142,7 +145,6 @@ export const createRouter = (config) => {
 
     const newHash = `#view-${id}`;
     if (window.location.hash !== newHash) {
-      // pushState(стан, заголовок, URL)
       history.pushState({ pageId: id }, '', newHash);
     }
 
@@ -151,46 +153,46 @@ export const createRouter = (config) => {
     return true;
   };
 
-  // Обробка кнопок Back/Forward браузера
   const handlePopState = () => {
     const hash = window.location.hash.replace('#view-', '');
     if (hash && hasRoute(context, hash)) {
-      // Рекурсивний виклик navigate (але без pushState, щоб не створювати новий запис в історії)
-      // Або просто викликаємо логіку перемикання
       navigate(hash);
     }
   };
-  // Реєструємо слухач
   window.addEventListener('popstate', handlePopState);
-  const attachNavigation = ({ container, linkSelector = '.nav-link' }) => {
+
+  const attachNavigation = ({ container, linkSelector = '[data-view]' }) => {
     if (!container) {
       context.effects.log?.('[Router] No navigation container', 'warn');
       return;
     }
 
     const links = Array.from(container.querySelectorAll(linkSelector));
+    if (links.length === 0 && context.navItems?.length > 0) {
+      container.innerHTML = renderNavLinks(context.navItems, context.currentRoute);
+    }
 
     const handleClick = async (e, link) => {
       e.preventDefault();
       const targetId = link.dataset.view;
       if (targetId) {
-        await navigate(targetId); // ✅ Await для async navigate
+        await navigate(targetId);
       }
     };
 
-    // Реєстрація слухачів
     const listeners = new Map();
-    links.forEach((link) => {
+    const currentLinks = Array.from(container.querySelectorAll(linkSelector));
+    currentLinks.forEach((link) => {
       const handler = async (e) => handleClick(e, link);
       link.addEventListener('click', handler);
       link.dataset.routerBound = 'true';
       listeners.set(link, handler);
     });
 
-    // Початкова навігація
-    navigate(config.defaultRoute);
+    if (!context.currentRoute) {
+      navigate(config.defaultRoute);
+    }
 
-    // Cleanup
     navigationCleanup = () => {
       listeners.forEach((handler, link) => {
         if (link.dataset.routerBound === 'true') {
@@ -202,12 +204,34 @@ export const createRouter = (config) => {
     };
   };
 
+  const renderNavLinks = (navItems, activeId) => `
+      <ul class="nav-list">
+        ${navItems
+          .map(
+            (item) => `
+          <li>
+            <a 
+              href="#view-${item.id}" 
+              class="nav-link" 
+              data-view="${item.id}"
+              ${item.id === activeId ? 'aria-current="page"' : ''}
+            >
+              ${item.label}
+            </a>
+          </li>
+        `,
+          )
+          .join('')}
+      </ul>
+    `;
+
   return Object.freeze({
     navigate,
     getCurrentRoute: () => context.currentRoute,
     hasRoute: (id) => hasRoute(context, id),
     getRoutes: () => Object.keys(context.routes),
     attachNavigation,
+    renderNavLinks, // ✅ FIX: експортуємо для зовнішнього використання
     destroy: () => {
       navigationCleanup?.();
       window.removeEventListener('popstate', handlePopState);
@@ -224,21 +248,25 @@ export const createRouter = (config) => {
  * @returns {RouterConfig['effects']}
  */
 export const createRouterEffects = (selectors) => ({
-  getPageElement: (id) => document.querySelector(`#view-${id}`),
+  getPageElement: (id) => document.querySelector(`[data-js="page-${id}"]`),
 
   showPage: (id) => {
-    const el = document.querySelector(`#view-${id}`);
+    // ✅ FIX: використовуємо data-js селектор
+    const el = document.querySelector(`[data-js="page-${id}"]`);
     if (el) {
       el.classList.add('is-active');
+      el.hidden = false;
       el.removeAttribute('hidden');
       el.setAttribute('aria-hidden', 'false');
     }
   },
 
   hidePage: (id) => {
-    const el = document.querySelector(`#view-${id}`);
+    // ✅ FIX: використовуємо data-js селектор
+    const el = document.querySelector(`[data-js="page-${id}"]`);
     if (el) {
       el.classList.remove('is-active');
+      el.hidden = true;
       el.setAttribute('hidden', 'true');
       el.setAttribute('aria-hidden', 'true');
     }
@@ -271,9 +299,11 @@ export const createRouterEffects = (selectors) => ({
 /**
  * Helper: реєстрація сторінок у формат роутера
  * @param {Record<string, any>} pages
+ * @param {Object} [extraDeps]
+ * @param {Array<{ id: string, label: string }>} [navItems] - ✅ FIX: пункти навігації
  * @returns {Record<string, Route>}
  */
-export const registerRoutes = (pages, extraDeps = {}) => {
+export const registerRoutes = (pages, extraDeps = {}, navItems = []) => {
   const routes = {};
   Object.entries(pages).forEach(([id, page]) => {
     routes[id] = {
@@ -284,7 +314,7 @@ export const registerRoutes = (pages, extraDeps = {}) => {
       onStateChange: page.onStateChange,
     };
   });
-  return routes;
+  return { routes, navItems }; // ✅ FIX: повертаємо об'єкт з navItems
 };
 
 export default createRouter;

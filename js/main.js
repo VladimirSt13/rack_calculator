@@ -1,9 +1,8 @@
-/* eslint-disable no-unused-vars */
+// js/main.js
+
 import { createRouter, createRouterEffects, registerRoutes } from './app/ui/router.js';
 import { registerAllPages } from './app/pages/index.js';
-import { APP_CONFIG, SELECTORS } from './app/config/app.config.js';
-import { isDev } from './app/config/env.js';
-import { createDebugPanel } from './app/ui/debugPanel.js';
+import { APP_CONFIG, PAGES, SELECTORS } from './app/config/app.config.js';
 
 /**
  * Точка входу додатку
@@ -11,82 +10,36 @@ import { createDebugPanel } from './app/ui/debugPanel.js';
  */
 const initApp = async () => {
   try {
-    // debag panel
-    const dev = isDev();
-    /** @type {import('./app/ui/debugPanel.js').DebugPanelAPI | null} */
-    let debugPanel = null;
+    // ===== 1. REGISTER PAGES =====
+    const { routes: pageModules } = await registerAllPages();
 
-    /** @type {(label: string, getter: () => any) => void} */
-    let registerState = () => {};
-    // ===== DEBUG PANEL SETUP (dev only) =====
-    if (dev) {
-      debugPanel = createDebugPanel({
-        stateRefs: {
-          // Приклад: інспекція глобальних станів
-          // 'rackState': () => rackState.get(),
-          // 'batteryState': () => batteryState.get(),
-        },
-        onLog: (log) => {
-          // Опціонально: відправка логів у сервіс (напр. Sentry у dev)
-          // if (log.type === 'error') reportToSentry(log);
-        },
-      });
+    const navItems = [
+      { id: PAGES.RACK, label: 'Стелаж' },
+      { id: PAGES.BATTERY, label: 'Акумулятор' },
+    ].filter((item) => item.id in pageModules); // тільки зареєстровані сторінки
 
-      debugPanel.mount();
+    const { routes } = registerRoutes(pageModules, {}, navItems);
 
-      const registerState = (label, getter) => {
-        debugPanel.registerState(label, getter);
-      };
-
-      // Приклад реєстрації стану для інспекції:
-      // debugPanel.registerState('rackState', () => rackState?.get?.() || null);
-
-      // Інтеграція з роутером:
-      // const originalNavigate = router.navigate;
-      // router.navigate = async (id) => {
-      //   const result = await originalNavigate.call(router, id);
-      //   debugPanel.updateRoute(id);
-      //   return result;
-      // };
-
-      // Інтеграція з HTTP middleware:
-      // const httpWithDebug = withMiddleware(fetchJson, {
-      //   onRequest: ({ url, options }) => {
-      //     debugPanel.log(`→ ${options.method || 'GET'} ${url}`, 'http');
-      //   },
-      //   onResponse: ({ result }) => {
-      //     debugPanel.log(`← ${result.status} ${result.ok ? '✓' : '✗'}`, result.ok ? 'http' : 'error');
-      //   },
-      // });
-    } else {
-      registerState = () => {};
-    }
-    // 1. Реєстрація сторінок (pure)
-    const { routes } = await registerAllPages();
-    const routerRoutes = registerRoutes(routes, {
-      registerState: (label, getter) => debugPanel?.registerState?.(label, getter),
-    });
-
-    // 2. Створення effects (side-effect, але ізольований)
+    // ===== 2. CREATE ROUTER =====
     const effects = createRouterEffects(SELECTORS);
-
-    // 3. Створення роутера (pure factory)
     const router = createRouter({
-      routes: routerRoutes,
+      routes,
       defaultRoute: APP_CONFIG.DEFAULT_PAGE,
       effects,
+      navItems, // ✅ FIX: передаємо навігацію в роутер
     });
 
-    // 4. Підключення навігації (side-effect)
-    // ✅ ВИПРАВЛЕНО: використовуємо SELECTORS.linkSelector замість hardcoded ".nav-link"
+    // ===== 3. ATTACH NAVIGATION + RENDER LINKS =====
     const navContainer = document.querySelector(SELECTORS.navContainer);
     if (navContainer) {
+      navContainer.innerHTML = router.renderNavLinks(navItems, APP_CONFIG.DEFAULT_PAGE);
       router.attachNavigation({
         container: navContainer,
-        linkSelector: SELECTORS.linkSelector, // ✅ "[data-view]"
+        linkSelector: SELECTORS.linkSelector,
       });
     }
 
+    // ===== 4. INITIAL NAVIGATION =====
     const initialHash = window.location.hash.replace('#view-', '');
     if (initialHash && router.hasRoute(initialHash)) {
       await router.navigate(initialHash);
@@ -94,22 +47,22 @@ const initApp = async () => {
       await router.navigate(APP_CONFIG.DEFAULT_PAGE);
     }
 
-    // 5. Cleanup при unload (опціонально)
+    // ===== 5. CLEANUP ON UNLOAD =====
     window.addEventListener('beforeunload', () => {
       router.destroy();
-      if (dev && debugPanel) {
-        debugPanel.destroy();
-      }
     });
+
+    console.log('[App] Initialization complete');
   } catch (error) {
     console.error('[App] Initialization failed:', error);
   }
 };
 
-// ✅ Безпечний запуск
+// ===== SAFE STARTUP =====
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
 } else {
-  // Якщо DOM вже завантажений (наприклад, після HMR)
   initApp();
 }
+
+export default initApp;

@@ -1,37 +1,35 @@
 // js/app/effects/dom.js
 
-// ===== TYPODEF UPDATE =====
 /**
- * @typedef {Element | HTMLElement | (() => Element|null) | (() => HTMLElement|null)} ElementRef
- */
-/**
- * @typedef {HTMLElement | (() => HTMLElement|null)} ElementRef
+ * @typedef {Element | HTMLElement | null | (() => Element | null) | (() => HTMLElement | null)} ElementRef
  * @typedef {Record<string, string>} Attributes
  * @typedef {ScrollIntoViewOptions} ScrollOptions
  * @typedef {FocusOptions} FocusOpts
+ * @typedef {'input'|'change'|'click'|'keydown'|'keyup'} EventType
  */
 
 /**
- * Pure: отримує HTMLElement з ElementRef (підтримує lazy evaluation)
+ * Pure: отримує Element з ElementRef (підтримує lazy evaluation + null)
  * @param {ElementRef} elementRef
- * @returns {HTMLElement|null}
+ * @returns {Element | null}
  */
 const getElement = (elementRef) => {
   if (!elementRef) {
     return null;
   }
+
   if (typeof elementRef === 'function') {
     const result = elementRef();
     return result instanceof Element ? result : null;
   }
+
   return elementRef instanceof Element ? elementRef : null;
 };
 
 /**
- * Returns a function that queries the document for an element
- * matching the given CSS selector.
- * @param {string} selector - The CSS selector to query the document with.
- * @returns {() => HTMLElement|null} A function that returns the queried element.
+ * Returns a lazy function that queries the document for an element.
+ * @param {string} selector - CSS selector
+ * @returns {() => Element | null} Lazy function returning the element
  */
 export const query = (selector) => () => {
   if (!selector || typeof selector !== 'string') {
@@ -42,23 +40,23 @@ export const query = (selector) => () => {
 };
 
 /**
- * Returns a function that queries ALL elements matching the selector.
- * @param {string} selector - The CSS selector to query with.
- * @returns {() => NodeListOf<HTMLElement>} A function that returns the NodeList.
+ * Returns a lazy function that queries ALL elements matching the selector.
+ * @param {string} selector - CSS selector
+ * @returns {() => NodeListOf<Element>} Lazy function returning NodeList
  */
 export const queryAll = (selector) => () => {
   if (!selector || typeof selector !== 'string') {
     console.warn('[dom.queryAll] Invalid selector:', selector);
-    return document.createDocumentFragment().childNodes; // empty NodeList-like
+    return document.createDocumentFragment().childNodes;
   }
   return document.querySelectorAll(selector);
 };
 
 /**
- * Sets the state of an element using the data-state attribute.
- * @param {ElementRef} elementRef - The element or a function that returns the element.
- * @param {string} state - The state to set the element to.
- * @returns {() => boolean} A function that returns true if state was set.
+ * Sets data-state attribute on element.
+ * @param {ElementRef} elementRef
+ * @param {string} state
+ * @returns {() => boolean}
  */
 export const setState = (elementRef, state) => () => {
   const el = getElement(elementRef);
@@ -71,9 +69,9 @@ export const setState = (elementRef, state) => () => {
 };
 
 /**
- * Gets the current data-state of an element.
+ * Gets data-state attribute from element.
  * @param {ElementRef} elementRef
- * @returns {() => string|null}
+ * @returns {() => string | null}
  */
 export const getState = (elementRef) => () => {
   const el = getElement(elementRef);
@@ -81,7 +79,65 @@ export const getState = (elementRef) => () => {
 };
 
 /**
- * Sets multiple data-* attributes on an element.
+ * Sets data-feature attribute (architecture helper).
+ * @param {ElementRef} elementRef
+ * @param {string} feature - 'form' | 'spans' | 'results' | 'set'
+ * @returns {() => boolean}
+ */
+export const setDataFeature = (elementRef, feature) => () => {
+  const el = getElement(elementRef);
+  if (!el) {
+    return false;
+  }
+  el.dataset.feature = feature;
+  return true;
+};
+
+/**
+ * Sets data-action attribute (architecture helper).
+ * @param {ElementRef} elementRef
+ * @param {string} action - action name for InteractiveElement
+ * @returns {() => boolean}
+ */
+export const setDataAction = (elementRef, action) => () => {
+  const el = getElement(elementRef);
+  if (!el) {
+    return false;
+  }
+  el.dataset.action = action;
+  return true;
+};
+
+/**
+ * Sets data-render-target attribute (architecture helper).
+ * @param {ElementRef} elementRef
+ * @param {string} target - 'name' | 'tableHtml' | 'total' | 'list'
+ * @returns {() => boolean}
+ */
+export const setDataRenderTarget = (elementRef, target) => () => {
+  const el = getElement(elementRef);
+  if (!el) {
+    return false;
+  }
+  el.dataset.renderTarget = target;
+  return true;
+};
+
+/**
+ * Gets all data-* attributes from element as plain object.
+ * @param {ElementRef} elementRef
+ * @returns {() => Record<string, string> | null}
+ */
+export const getDataset = (elementRef) => () => {
+  const el = getElement(elementRef);
+  if (!el?.dataset) {
+    return null;
+  }
+  return { ...el.dataset };
+};
+
+/**
+ * Sets multiple data-* attributes on element.
  * @param {ElementRef} elementRef
  * @param {Attributes} attributes
  * @returns {() => boolean}
@@ -99,11 +155,11 @@ export const setAttributes = (elementRef, attributes) => () => {
 };
 
 /**
- * Toggles a CSS class on an element.
+ * Toggles CSS class on element.
  * @param {ElementRef} elementRef
  * @param {string} className
- * @param {boolean} [force] - true to add, false to remove, undefined to toggle
- * @returns {() => boolean} - whether class is now present
+ * @param {boolean} [force] - true=add, false=remove, undefined=toggle
+ * @returns {() => boolean}
  */
 export const toggleClass = (elementRef, className, force) => () => {
   const el = getElement(elementRef);
@@ -119,9 +175,9 @@ export const toggleClass = (elementRef, className, force) => () => {
 };
 
 /**
- * Adds CSS class(es) to an element.
+ * Adds CSS class(es) to element.
  * @param {ElementRef} elementRef
- * @param {string|string[]} classNames
+ * @param {string | string[]} classNames
  * @returns {() => boolean}
  */
 export const addClass = (elementRef, classNames) => () => {
@@ -136,9 +192,9 @@ export const addClass = (elementRef, classNames) => () => {
 };
 
 /**
- * Removes CSS class(es) from an element.
+ * Removes CSS class(es) from element.
  * @param {ElementRef} elementRef
- * @param {string|string[]} classNames
+ * @param {string | string[]} classNames
  * @returns {() => boolean}
  */
 export const removeClass = (elementRef, classNames) => () => {
@@ -153,10 +209,10 @@ export const removeClass = (elementRef, classNames) => () => {
 };
 
 /**
- * Sets innerHTML safely (with optional sanitization hook).
+ * Sets innerHTML safely (with optional sanitization).
  * @param {ElementRef} elementRef
  * @param {string} html
- * @param {(html: string) => string} [sanitize] - optional sanitizer function
+ * @param {(html: string) => string} [sanitize]
  * @returns {() => boolean}
  */
 export const setHTML = (elementRef, html, sanitize) => () => {
@@ -171,7 +227,7 @@ export const setHTML = (elementRef, html, sanitize) => () => {
 };
 
 /**
- * Sets textContent of an element (safe from XSS).
+ * Sets textContent (XSS-safe).
  * @param {ElementRef} elementRef
  * @param {string} text
  * @returns {() => boolean}
@@ -187,9 +243,9 @@ export const setText = (elementRef, text) => () => {
 };
 
 /**
- * Sets value of a form element (input, select, textarea).
+ * Sets value of form element + dispatches input event.
  * @param {ElementRef} elementRef
- * @param {string|number} value
+ * @param {string | number} value
  * @returns {() => boolean}
  */
 export const setValue = (elementRef, value) => () => {
@@ -199,15 +255,14 @@ export const setValue = (elementRef, value) => () => {
   }
 
   el.value = value ?? '';
-  // Trigger input event for reactive frameworks
   el.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
 };
 
 /**
- * Gets value of a form element.
+ * Gets value of form element.
  * @param {ElementRef} elementRef
- * @returns {() => string|null}
+ * @returns {() => string | null}
  */
 export const getValue = (elementRef) => () => {
   const el = getElement(elementRef);
@@ -218,7 +273,7 @@ export const getValue = (elementRef) => () => {
 };
 
 /**
- * Focuses an element.
+ * Focuses element with options.
  * @param {ElementRef} elementRef
  * @param {FocusOpts} [options]
  * @returns {() => boolean}
@@ -228,13 +283,12 @@ export const focus = (elementRef, options) => () => {
   if (!el || typeof el.focus !== 'function') {
     return false;
   }
-
   el.focus(options);
   return true;
 };
 
 /**
- * Blurs an element.
+ * Blurs element.
  * @param {ElementRef} elementRef
  * @returns {() => boolean}
  */
@@ -243,7 +297,6 @@ export const blur = (elementRef) => () => {
   if (!el || typeof el.blur !== 'function') {
     return false;
   }
-
   el.blur();
   return true;
 };
@@ -261,13 +314,12 @@ export const scrollIntoView =
     if (!el || typeof el.scrollIntoView !== 'function') {
       return false;
     }
-
     el.scrollIntoView(options);
     return true;
   };
 
 /**
- * Sets hidden attribute on element.
+ * Sets hidden attribute.
  * @param {ElementRef} elementRef
  * @param {boolean} [hidden=true]
  * @returns {() => boolean}
@@ -279,17 +331,12 @@ export const setHidden =
     if (!el) {
       return false;
     }
-
-    if (hidden) {
-      el.setAttribute('hidden', '');
-    } else {
-      el.removeAttribute('hidden');
-    }
+    hidden ? el.setAttribute('hidden', '') : el.removeAttribute('hidden');
     return true;
   };
 
 /**
- * Sets aria-hidden attribute on element.
+ * Sets aria-hidden attribute.
  * @param {ElementRef} elementRef
  * @param {boolean} [hidden=true]
  * @returns {() => boolean}
@@ -301,15 +348,14 @@ export const setAriaHidden =
     if (!el) {
       return false;
     }
-
     el.setAttribute('aria-hidden', String(hidden));
     return true;
   };
 
 /**
- * Sets aria-current attribute (for navigation).
+ * Sets aria-current attribute for navigation.
  * @param {ElementRef} elementRef
- * @param {string|boolean} [current='page'] - 'page', 'step', 'location', 'date', 'time', or true/false
+ * @param {string | boolean} [current='page']
  * @returns {() => boolean}
  */
 export const setAriaCurrent =
@@ -331,7 +377,7 @@ export const setAriaCurrent =
   };
 
 /**
- * Checks if element matches a selector.
+ * Checks if element matches selector.
  * @param {ElementRef} elementRef
  * @param {string} selector
  * @returns {() => boolean}
@@ -341,12 +387,25 @@ export const matches = (elementRef, selector) => () => {
   if (!el || typeof el.matches !== 'function' || !selector) {
     return false;
   }
-
   return el.matches(selector);
 };
 
 /**
- * Checks if element is visible (not hidden, not display:none, not zero size).
+ * Finds closest ancestor matching selector (for event delegation).
+ * @param {ElementRef} elementRef
+ * @param {string} selector
+ * @returns {() => Element | null}
+ */
+export const closest = (elementRef, selector) => () => {
+  const el = getElement(elementRef);
+  if (!el || typeof el.closest !== 'function' || !selector) {
+    return null;
+  }
+  return el.closest(selector);
+};
+
+/**
+ * Checks if element is visible.
  * @param {ElementRef} elementRef
  * @returns {() => boolean}
  */
@@ -355,27 +414,25 @@ export const isVisible = (elementRef) => () => {
   if (!el) {
     return false;
   }
-
   const style = window.getComputedStyle(el);
   return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
 };
 
 /**
- * Creates a DOM element with optional attributes and children.
+ * Creates DOM element with options (pure factory → lazy effect).
  * @param {string} tagName
  * @param {Object} [options]
  * @param {Attributes} [options.dataset]
  * @param {Record<string, string>} [options.attrs]
  * @param {string} [options.className]
  * @param {string} [options.textContent]
- * @param {(HTMLElement|Node)[]} [options.children]
+ * @param {(HTMLElement | Node)[]} [options.children]
  * @returns {() => HTMLElement}
  */
 export const createElement =
   (tagName, options = {}) =>
   () => {
     const { dataset, attrs, className, textContent, children = [] } = options;
-
     const el = document.createElement(tagName);
 
     if (dataset) {
@@ -397,14 +454,13 @@ export const createElement =
         el.appendChild(child);
       }
     }
-
     return el;
   };
 
 /**
- * Appends child nodes to a parent element.
+ * Appends child nodes to parent.
  * @param {ElementRef} parentRef
- * @param {(HTMLElement|Node)[]} children
+ * @param {(HTMLElement | Node)[]} children
  * @returns {() => boolean}
  */
 export const appendChildren = (parentRef, children) => () => {
@@ -412,7 +468,6 @@ export const appendChildren = (parentRef, children) => () => {
   if (!parent || !Array.isArray(children)) {
     return false;
   }
-
   for (const child of children) {
     if (child instanceof Node) {
       parent.appendChild(child);
@@ -422,7 +477,7 @@ export const appendChildren = (parentRef, children) => () => {
 };
 
 /**
- * Removes an element from DOM.
+ * Removes element from DOM.
  * @param {ElementRef} elementRef
  * @returns {() => boolean}
  */
@@ -431,15 +486,14 @@ export const removeElement = (elementRef) => () => {
   if (!el || !el.parentNode) {
     return false;
   }
-
   el.parentNode.removeChild(el);
   return true;
 };
 
 /**
- * Replaces an element with new content.
+ * Replaces element with new content.
  * @param {ElementRef} elementRef
- * @param {HTMLElement|Node} newContent
+ * @param {HTMLElement | Node} newContent
  * @returns {() => boolean}
  */
 export const replaceElement = (elementRef, newContent) => () => {
@@ -447,16 +501,57 @@ export const replaceElement = (elementRef, newContent) => () => {
   if (!el || !el.parentNode || !(newContent instanceof Node)) {
     return false;
   }
-
   el.parentNode.replaceChild(newContent, el);
   return true;
 };
+
+/**
+ * Batch multiple DOM effects in single rAF frame (avoid layout thrashing).
+ * @param {(() => boolean)[]} effects - array of lazy DOM effects
+ * @returns {() => Promise<boolean[]>}
+ */
+export const batchDOM = (effects) => () =>
+  new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      const results = effects.map((effect) => {
+        try {
+          return effect();
+        } catch (e) {
+          console.warn('[dom.batchDOM] Effect failed:', e);
+          return false;
+        }
+      });
+      resolve(results);
+    });
+  });
+
+/**
+ * Debounced DOM update helper.
+ * @param {(() => boolean)[]} effects
+ * @param {number} delay - ms
+ * @returns {() => void}
+ */
+export const debouncedDOM =
+  (effects, delay = 100) =>
+  () => {
+    let timeout;
+    return () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        batchDOM(effects)();
+      }, delay);
+    };
+  };
 
 export default {
   query,
   queryAll,
   setState,
   getState,
+  setDataFeature,
+  setDataAction,
+  setDataRenderTarget,
+  getDataset,
   setAttributes,
   toggleClass,
   addClass,
@@ -472,9 +567,12 @@ export default {
   setAriaHidden,
   setAriaCurrent,
   matches,
+  closest,
   isVisible,
   createElement,
   appendChildren,
   removeElement,
   replaceElement,
+  batchDOM,
+  debouncedDOM,
 };

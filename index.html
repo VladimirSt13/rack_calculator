@@ -20,7 +20,9 @@
           <nav class="site-nav" aria-label="Головна навігація" data-js="site-nav">
             <ul class="nav-list">
               <li>
-                <a href="#view-rack" class="nav-link" data-view="rack" aria-current="page"> Стелаж </a>
+                <a href="#view-rack" class="nav-link" data-view="rack" aria-current="page">
+                  Стелаж
+                </a>
               </li>
               <li>
                 <a href="#view-battery" class="nav-link" data-view="battery"> Акумулятор </a>
@@ -34,11 +36,12 @@
       <main id="app" class="site-main">
         <!-- === Секція: Розрахунок стелажа === -->
         <section
-          id="view-rack"
           class="section section--rack"
           aria-labelledby="rack-title"
-          data-js="section-rack"
+          data-js="page-rack"
+          data-page="rack"
           data-state="ready"
+          hidden
         >
           <header class="section__header">
             <h2 id="rack-title" class="section__title">Розрахунок стелажа</h2>
@@ -48,113 +51,140 @@
           <div class="section__body">
             <!-- Форма налаштувань -->
             <aside class="section__sidebar">
-              <form id="rackForm" class="form" novalidate data-js="rackForm" data-state="ready">
+              <form
+                class="form"
+                novalidate
+                data-js="rackForm"
+                data-feature="form"
+                data-state="ready"
+              >
                 <fieldset class="form__fieldset">
                   <legend class="form__legend">Параметри стелажа</legend>
 
+                  <!-- Кількість поверхів -->
                   <div class="form__group">
                     <label class="form__label" for="rack-floors">
                       <span class="form__label-text">Кількість поверхів</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="rack-floors"
                         name="floors"
                         min="1"
                         max="10"
                         value="1"
                         required
                         data-js="rack-floors"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="floors"
+                        data-transform="number"
                         data-state="ready"
                       />
                     </label>
                   </div>
 
+                  <!-- Вертикальна опора -->
                   <div class="form__group">
                     <label class="form__label" for="rack-verticalSupports">
                       <span class="form__label-text">Вертикальна опора</span>
                       <select
                         class="form__control"
-                        id="rack-verticalSupports"
                         name="verticalSupports"
                         required
                         data-js="rack-verticalSupports"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="verticalSupports"
                         data-state="ready"
                       ></select>
                     </label>
                   </div>
 
+                  <!-- Опора -->
                   <div class="form__group">
                     <label class="form__label" for="rack-supports">
                       <span class="form__label-text">Опора</span>
                       <select
                         class="form__control"
-                        id="rack-supports"
                         name="supports"
                         required
                         data-js="rack-supports"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="supports"
                         data-state="ready"
                       ></select>
                     </label>
                   </div>
 
+                  <!-- Кількість рядів -->
                   <div class="form__group">
                     <label class="form__label" for="rack-rows">
                       <span class="form__label-text">Кількість рядів</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="rack-rows"
                         name="rows"
                         min="1"
                         max="4"
                         value="1"
                         required
                         data-js="rack-rows"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="rows"
+                        data-transform="number"
                         data-state="ready"
                       />
                     </label>
                   </div>
 
+                  <!-- Балок в ряду -->
                   <div class="form__group">
                     <label class="form__label" for="rack-beamsPerRow">
                       <span class="form__label-text">Балок в ряду</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="rack-beamsPerRow"
                         name="beamsPerRow"
                         min="2"
                         max="4"
                         value="2"
                         required
                         data-js="rack-beamsPerRow"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="beamsPerRow"
+                        data-transform="number"
                         data-state="ready"
                       />
                     </label>
                   </div>
 
+                  <!-- Динамічні прольоти (spans) -->
                   <div
                     class="form__group form__group--dynamic"
-                    data-dynamic="beams"
-                    data-js="rack-beamsGroup"
+                    data-js="rack-spansGroup"
+                    data-feature="spans"
                     data-state="ready"
                   >
                     <div class="form__label-group">
                       <span class="form__label-text">Прольоти</span>
                       <button
                         type="button"
-                        id="rack-addBeam"
                         class="icon-btn icon-btn--add"
                         aria-label="Додати проліт"
-                        data-js="rack-addBeam"
+                        data-js="rack-addSpan"
+                        data-feature="spans"
+                        data-action="addSpan"
                         data-state="ready"
                       ></button>
                     </div>
                     <div
-                      id="rack-beamsContainer"
                       class="form__dynamic-container"
-                      data-js="rack-beamsContainer"
+                      data-js="rack-spansContainer"
+                      data-feature="spans"
+                      data-render-target="list"
                       data-state="empty"
                     ></div>
                   </div>
@@ -163,14 +193,19 @@
             </aside>
 
             <!-- Результати -->
-            <div class="section__content">
+            <div class="section__content" data-feature="results">
               <!-- Картка: Назва стелажа -->
               <article class="card card--result">
                 <header class="card__header">
                   <h3 class="card__title">Назва стелажа</h3>
                 </header>
                 <div class="card__body">
-                  <output id="rackName" class="result-value result-value--primary" data-js="rackName" data-state="empty"
+                  <output
+                    class="result-value result-value--primary"
+                    data-js="rackName"
+                    data-feature="results"
+                    data-render-target="name"
+                    data-state="empty"
                     >---</output
                   >
                 </div>
@@ -183,21 +218,26 @@
                 </header>
                 <div class="card__body">
                   <div
-                    id="rack-componentsTable"
                     class="data-table"
-                    data-component="components"
-                    data-empty="Компоненти з'являться після заповнення форми"
                     data-js="rack-componentsTable"
+                    data-feature="results"
+                    data-render-target="tableHtml"
                     data-state="empty"
                   ></div>
-                  <output id="rackPrice" class="result-price" data-js="rackPrice" data-state="empty"></output>
+                  <output
+                    class="result-price"
+                    data-js="rackTotalPrice"
+                    data-feature="results"
+                    data-render-target="total"
+                    data-state="empty"
+                  ></output>
                 </div>
                 <footer class="card__footer">
                   <button
-                    id="rack-addToSetBtn"
                     class="btn btn--primary"
-                    disabled
                     data-js="rack-addToSetBtn"
+                    data-feature="set"
+                    data-action="addRack"
                     data-state="disabled"
                   >
                     Додати до комплекту
@@ -212,26 +252,26 @@
                 </header>
                 <div class="card__body">
                   <div
-                    id="rack-setTable"
                     class="data-table"
-                    data-component="rackSet"
-                    data-empty="Комплект порожній. Додайте стелажі"
                     data-js="rack-setTable"
+                    data-feature="set"
+                    data-render-target="list"
                     data-state="empty"
                   ></div>
                   <output
-                    id="rack-setSummary"
                     class="result-total"
                     data-js="rack-setSummary"
+                    data-feature="set"
+                    data-render-target="total"
                     data-state="empty"
                   ></output>
                 </div>
                 <footer class="card__footer">
                   <button
-                    id="rack-openSetModalBtn"
                     class="btn btn--outline"
-                    data-modal="rackSetModal"
                     data-js="rack-openSetModalBtn"
+                    data-modal="rackSet"
+                    data-action="openModal"
                     data-state="disabled"
                   >
                     Переглянути комплект
@@ -244,12 +284,12 @@
 
         <!-- === Секція: Підбір під акумулятор === -->
         <section
-          id="view-battery"
           class="section section--battery"
           aria-labelledby="battery-title"
-          hidden
-          data-js="section-battery"
+          data-js="page-battery"
+          data-page="battery"
           data-state="ready"
+          hidden
         >
           <header class="section__header">
             <h2 id="battery-title" class="section__title">Підбір стелажа для батареї</h2>
@@ -259,20 +299,30 @@
           <div class="section__body">
             <!-- Форма -->
             <aside class="section__sidebar">
-              <form id="batteryForm" class="form" novalidate data-js="batteryForm" data-state="ready">
+              <form
+                class="form"
+                novalidate
+                data-js="batteryForm"
+                data-feature="form"
+                data-state="ready"
+              >
                 <fieldset class="form__fieldset">
                   <legend class="form__legend">Параметри акумулятора</legend>
 
+                  <!-- Довжина + допуск -->
                   <div class="form__group form__group--inline">
                     <label class="form__label" for="battery-length">
                       <span class="form__label-text">Довжина (L)</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="battery-length"
                         name="length"
                         required
                         data-js="battery-length"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="length"
+                        data-transform="number"
                         data-state="ready"
                       />
                     </label>
@@ -282,75 +332,94 @@
                       <input
                         class="form__control form__control--small"
                         type="number"
-                        id="battery-gap"
                         name="gap"
                         placeholder="допуск"
                         data-js="battery-gap"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="gap"
+                        data-transform="number"
                         data-state="ready"
                       />
                     </label>
                     <span class="form__unit">мм</span>
                   </div>
 
+                  <!-- Ширина -->
                   <div class="form__group">
                     <label class="form__label" for="battery-width">
                       <span class="form__label-text">Ширина (W)</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="battery-width"
                         name="width"
                         required
                         data-js="battery-width"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="width"
+                        data-transform="number"
                         data-state="ready"
                       />
                       <span class="form__unit">мм</span>
                     </label>
                   </div>
 
+                  <!-- Висота -->
                   <div class="form__group">
                     <label class="form__label" for="battery-height">
                       <span class="form__label-text">Висота (H)</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="battery-height"
                         name="height"
                         required
                         data-js="battery-height"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="height"
+                        data-transform="number"
                         data-state="ready"
                       />
                       <span class="form__unit">мм</span>
                     </label>
                   </div>
 
+                  <!-- Вага -->
                   <div class="form__group">
                     <label class="form__label" for="battery-weight">
                       <span class="form__label-text">Вага</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="battery-weight"
                         name="weight"
                         data-js="battery-weight"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="weight"
+                        data-transform="number"
                         data-state="ready"
                       />
                       <span class="form__unit">кг</span>
                     </label>
                   </div>
 
+                  <!-- Кількість -->
                   <div class="form__group">
                     <label class="form__label" for="battery-count">
                       <span class="form__label-text">Кількість</span>
                       <input
                         class="form__control"
                         type="number"
-                        id="battery-count"
                         name="count"
                         min="1"
                         value="1"
                         required
                         data-js="battery-count"
+                        data-feature="form"
+                        data-action="updateField"
+                        data-field="count"
+                        data-transform="number"
                         data-state="ready"
                       />
                       <span class="form__unit">шт</span>
@@ -361,6 +430,8 @@
                   type="submit"
                   class="btn btn--primary btn--block"
                   data-js="battery-calculateBtn"
+                  data-feature="form"
+                  data-action="calculate"
                   data-state="ready"
                 >
                   Підібрати варіанти
@@ -369,7 +440,7 @@
             </aside>
 
             <!-- Результати -->
-            <div class="section__content">
+            <div class="section__content" data-feature="results">
               <article class="card card--results">
                 <header class="card__header">
                   <h3 class="card__title">Знайдені варіанти</h3>
@@ -377,10 +448,10 @@
                 <div class="card__body">
                   <div class="data-table__wrapper">
                     <table
-                      id="battery-resultsTable"
                       class="data-table"
-                      data-component="batteryResults"
                       data-js="battery-resultsTable"
+                      data-feature="results"
+                      data-render-target="table"
                       data-state="empty"
                     >
                       <thead>
@@ -393,8 +464,9 @@
                         </tr>
                       </thead>
                       <tbody
-                        data-empty="Вкажіть параметри для пошуку"
                         data-js="battery-resultsBody"
+                        data-feature="results"
+                        data-render-target="tableBody"
                         data-state="empty"
                       ></tbody>
                     </table>
@@ -410,10 +482,10 @@
 
       <!-- Модалка: Комплект стелажів -->
       <dialog
-        id="rackSetModal"
         class="modal"
         aria-labelledby="modal-rackSet-title"
         data-js="modal-rackSet"
+        data-modal="rackSet"
         data-state="closed"
       >
         <div class="modal__dialog">
@@ -423,8 +495,9 @@
               class="modal__close"
               type="button"
               aria-label="Закрити"
-              data-close-modal
-              data-js="modal-rackSet-close"
+              data-js="modal-close"
+              data-modal="rackSet"
+              data-action="closeModal"
               data-state="ready"
             >
               &times;
@@ -432,24 +505,39 @@
           </header>
           <div class="modal__body">
             <div
-              id="modal-rackSetTable"
               class="data-table"
-              data-component="rackSetModal"
               data-js="modal-rackSetTable"
+              data-feature="set"
+              data-render-target="list"
               data-state="empty"
             ></div>
             <output
-              id="modal-rackSetSummary"
               class="result-total result-total--modal"
               data-js="modal-rackSetSummary"
+              data-feature="set"
+              data-render-target="total"
               data-state="empty"
             ></output>
           </div>
           <footer class="modal__footer">
-            <button class="btn btn--outline" data-close-modal data-js="modal-rackSet-cancel" data-state="ready">
+            <button
+              class="btn btn--outline"
+              data-js="modal-close"
+              data-modal="rackSet"
+              data-action="closeModal"
+              data-state="ready"
+            >
               Закрити
             </button>
-            <button class="btn btn--primary" data-js="modal-rackSet-export" data-state="disabled">Експортувати</button>
+            <button
+              class="btn btn--primary"
+              data-js="modal-export"
+              data-feature="set"
+              data-action="exportSet"
+              data-state="disabled"
+            >
+              Експортувати
+            </button>
           </footer>
         </div>
       </dialog>

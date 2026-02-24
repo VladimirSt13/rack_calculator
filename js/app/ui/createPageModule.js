@@ -1,7 +1,7 @@
 // js/app/ui/createPageModule.js
 
 import { createEventManager } from '../effects/events.js';
-import { pipe } from '../core/compose.js';
+import { pipe } from '../utils/compose.js';
 
 /**
  * @typedef {Object} PageDependencies
