@@ -4,6 +4,7 @@
  * @typedef {Object} RackInSet
  * @property {string} id - унікальний ID (абревіатура + довжина)
  * @property {import('../results/state.js').ResultsState} rack - дані стелажа з results
+ * @property {import('../form/state.js').FormState | null} formConfig - параметри форми, за якими було розраховано стелаж
  * @property {number} qty - кількість таких стелажів у комплекті
  */
 

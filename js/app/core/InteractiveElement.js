@@ -225,13 +225,19 @@ export const createAutoHandler = (container, features) => {
       }
 
       const field = actionEl.dataset?.field;
-      const idAttr = actionEl.dataset?.id;
+      const idAttr = actionEl.dataset?.id || actionEl.dataset?.rackId;
       const id = idAttr ? (isNaN(Number(idAttr)) ? idAttr : Number(idAttr)) : undefined;
 
       // Call action with correct parameters
       if (action === 'updateSpan' && field && id !== undefined) {
         featureContext.actions[action](id, field, value);
       } else if (action === 'removeSpan' && id !== undefined) {
+        featureContext.actions[action](id);
+      } else if (action === 'removeRack' && id !== undefined) {
+        featureContext.actions[action](id);
+      } else if (action === 'increaseQty' && id !== undefined) {
+        featureContext.actions[action](id);
+      } else if (action === 'decreaseQty' && id !== undefined) {
         featureContext.actions[action](id);
       } else if (field !== undefined) {
         featureContext.actions[action](field, value);

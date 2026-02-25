@@ -2,15 +2,13 @@
 
 import { PAGES } from '../../config/app.config.js';
 import { createPageModule } from '../../ui/createPageModule.js';
-import { createState } from '../../core/createState.js';
 import { createPageContext } from '../../core/PageContext.js';
 import { createEffectRegistry } from '../../core/EffectRegistry.js';
 import { createAutoHandler } from '../../core/InteractiveElement.js';
-import { loadPrice } from './features//priceState.js';
 import { RACK_SELECTORS } from '../../config/selectors.js';
 
 // DOM effects
-import { query, toggleClass } from '../../effects/dom.js';
+import { query } from '../../effects/dom.js';
 
 // Feature contexts
 import { createRackFormContext } from './features/form/context.js';
@@ -18,42 +16,25 @@ import { createSpansContext } from './features/spans/context.js';
 import { createRackResultsContext } from './features/results/context.js';
 import { createRackSetContext } from './features/set/context.js';
 
+// Feature initializers
+import { initForm } from './features/form/initForm.js';
+import { initResults } from './features/results/initResults.js';
+import { initSetModal } from './features/set/initSetModal.js';
+import { subscribeSpansDOM } from './features/spans/spansDOMUpdater.js';
+
 // Calculator
 import { calculateRack } from './core/calculator.js';
+
+// Core
+import { initRackPage } from './core/initRackPage.js';
+import { pageState } from './core/rackPageState.js';
 
 // Effects
 import { renderRackResults } from './effects/renderResults.js';
 
 import { log } from '../../config/env.js';
 
-import {
-  appendSpanRow,
-  removeSpanRow,
-  renderAllSpans,
-  updateSpanRow,
-} from './features/spans/domUtils.js';
-
-// ===== PAGE-LEVEL STATE =====
-
-/**
- * @typedef {Object} RackPageState
- * @property {Object|null} price
- * @property {string[]} supportsOptions
- * @property {string[]} verticalSupportsOptions
- * @property {string[]} spanOptions
- * @property {boolean} isLoading
- * @property {string|null} error
- */
-
-/** @type {import('../../core/createState.js').StateInstance<RackPageState>} */
-const pageState = createState({
-  price: null,
-  supportsOptions: [],
-  verticalSupportsOptions: [],
-  spanOptions: [],
-  isLoading: false,
-  error: null,
-});
+import { renderAllSpans } from './features/spans/domUtils.js';
 
 const _pageState = new WeakMap();
 
@@ -63,25 +44,7 @@ export const rackPage = createPageModule({
   id: PAGES.RACK,
 
   lifecycle: {
-    onInit: async () => {
-      try {
-        pageState.updateField('isLoading', true);
-        const price = await loadPrice();
-
-        pageState.updateField('price', price);
-        pageState.updateField('supportsOptions', Object.keys(price.supports || {}));
-        pageState.updateField(
-          'verticalSupportsOptions',
-          Object.keys(price.vertical_supports || {}),
-        );
-        pageState.updateField('spanOptions', Object.keys(price.spans || {}));
-        pageState.updateField('isLoading', false);
-      } catch (error) {
-        console.error('[RackPage] Failed to load price:', error);
-        pageState.updateField('error', 'Не вдалося завантажити прайс');
-        pageState.updateField('isLoading', false);
-      }
-    },
+    onInit: () => initRackPage(pageState),
 
     /** Активація сторінки
      * @param {import('../../ui/createPageModule.js').PageDependencies} deps */
@@ -120,73 +83,51 @@ export const rackPage = createPageModule({
       // ===== 2. EFFECT REGISTRY =====
       const effects = createEffectRegistry(RACK_SELECTORS);
 
-      // ===== 3. POPULATE DROPDOWNS =====
-      const populateDropdown = (selector, options, placeholder = 'Виберіть...') => {
-        const el = query(selector)();
-        if (!el) {
-          return;
-        }
-        el.innerHTML = `
-          <option value="" disabled selected>${placeholder}</option>
-          ${options.map((opt) => `<option value="${opt}">${opt}</option>`).join('')}
-        `;
-      };
+      // ===== 3. INITIALIZE FORM =====
+      const { unsubscribe: formUnsubscribe } = initForm({
+        formContext: form,
+        supportsOptions,
+        verticalSupportsOptions,
+      });
 
-      populateDropdown(RACK_SELECTORS.form.supports, supportsOptions);
-      populateDropdown(RACK_SELECTORS.form.verticalSupports, verticalSupportsOptions);
-
-      // ===== 4. RENDER SPANS CONTAINER =====
+      // ===== 4. INITIALIZE SPANS =====
       const spansContainer = query(RACK_SELECTORS.spans.container)();
-
       if (spansContainer) {
         renderAllSpans(spansContainer, spans.selectors.getSpans(), spanOptions);
       }
 
-      const spansUnsubscribe = spans.subscribe((newState) => {
-        if (!spansContainer) {
-          return;
-        }
-
-        const prevSpans = _pageState.get(rackPage)?.prevSpans || new Map();
-        const currSpans = newState.spans;
-
-        // Додані або змінені прольоти
-        for (const [id, span] of currSpans.entries()) {
-          const prevSpan = prevSpans.get(id);
-
-          if (!prevSpan) {
-            appendSpanRow(spansContainer, id, span, spanOptions);
-          } else if (prevSpan.item !== span.item || prevSpan.quantity !== span.quantity) {
-            updateSpanRow(spansContainer, id, span, spanOptions);
-          }
-        }
-
-        // Видалені прольоти
-        for (const id of prevSpans.keys()) {
-          if (!currSpans.has(id)) {
-            removeSpanRow(spansContainer, id);
-          }
-        }
-
-        // Оновлення стану кнопки додавання
-        const addSpanBtn = query(RACK_SELECTORS.spans.addBtn)();
-        if (addSpanBtn) {
-          const isMaxReached = spans.selectors.isMaxSpansReached();
-          addSpanBtn.disabled = isMaxReached;
-          addSpanBtn.setAttribute('aria-disabled', String(isMaxReached));
-          toggleClass(addSpanBtn, 'btn--disabled', isMaxReached)();
-        }
-
-        // Зберегти поточний стан для наступного порівняння
-        _pageState.set(rackPage, {
-          isActivated: true,
-          prevSpans: new Map(currSpans),
-        });
-
-        log('[RackPage]', 'Spans DOM updated granularly');
+      const spansUnsubscribe = subscribeSpansDOM({
+        spansContainer,
+        spansContext: spans,
+        spanOptions,
+        rackPage,
+        pageState: _pageState,
       });
 
-      // ===== 5. PAGE CONTEXT (ORCHESTRATOR) =====
+      // ===== 5. INITIALIZE RESULTS =====
+      const addToSetBtn = query(RACK_SELECTORS.results.addToSetBtn)();
+      const { unsubscribe: resultsUnsubscribe } = initResults({
+        resultsContext: results,
+        addToSetBtn,
+        addListener,
+      });
+
+      // ===== 6. INITIALIZE SET MODAL =====
+      const { unsubscribe: rackSetUnsubscribe } = initSetModal({
+        setContext: rackSet,
+        resultsContext: results,
+        formContext: form,
+        spansContext: spans,
+        addListener,
+      });
+
+      // ===== 7. INTERACTIVE ELEMENTS (AUTO-HANDLER) =====
+      const pageContainer = query(RACK_SELECTORS.page)();
+      const autoHandler = pageContainer
+        ? createAutoHandler(pageContainer, { form, spans, results, rackSet })
+        : { cleanup: () => {} };
+
+      // ===== 8. PAGE CONTEXT (ORCHESTRATOR) =====
       const page = createPageContext({
         features: { form, spans, results, rackSet },
         collectInputData: () => ({
@@ -196,6 +137,14 @@ export const rackPage = createPageModule({
         }),
         calculator: (data) => calculateRack({ ...data, price }),
         renderResult: (featureName, result) => {
+          // Завжди оновлюємо results.state
+          if (result) {
+            results.actions.setResult(result);
+          } else {
+            results.actions.clear();
+          }
+
+          // Рендеримо в DOM тільки для form/spans
           if (['form', 'spans'].includes(featureName)) {
             renderRackResults(result, effects);
           }
@@ -208,106 +157,17 @@ export const rackPage = createPageModule({
         },
       });
 
-      // ===== 6. VERTICAL SUPPORTS BLOCKING LOGIC =====
-      const verticalSupportsEl = query(RACK_SELECTORS.form.verticalSupports)();
-
-      const updateVerticalSupportsState = () => {
-        const floors = form.selectors.getField('floors');
-        if (!verticalSupportsEl) {
-          return;
-        }
-
-        if (floors === 1) {
-          // Скидаємо значення і блокуємо
-          verticalSupportsEl.value = '';
-          verticalSupportsEl.disabled = true;
-        } else {
-          // Розблоковуємо
-          verticalSupportsEl.disabled = false;
-        }
-      };
-
-      // Початковий стан
-      updateVerticalSupportsState();
-
-      // Підписка на зміни форми
-      const formUnsubscribe = form.subscribe((newState) => {
-        if (newState.form?.floors !== undefined) {
-          updateVerticalSupportsState();
-        }
-      });
-
-      // ===== 6. INTERACTIVE ELEMENTS (AUTO-HANDLER) =====
-      const pageContainer = query(RACK_SELECTORS.page)();
-      const autoHandler = pageContainer
-        ? createAutoHandler(pageContainer, { form, spans, results, rackSet })
-        : { cleanup: () => {} };
-
-      // ===== 6.5. CUSTOM HANDLER FOR ADD TO SET BUTTON =====
-      const addToSetBtn = query(RACK_SELECTORS.results.addToSetBtn)();
-      const handleAddToSet = () => {
-        const rackData = results.selectors.getRack();
-        if (rackData && rackData.total > 0) {
-          rackSet.actions.addRack({ rack: rackData });
-        }
-      };
-
-      if (addToSetBtn) {
-        addListener('click', handleAddToSet);
-      }
-
-      // ===== 6.6. TOGGLE PRICES CHECKBOX HANDLER =====
-      const handleTogglePrices = (event) => {
-        const showPrices = event.target.checked;
-        results.actions.togglePrices(showPrices);
-
-        // Зміна тексту лейбла
-        const label = event.target.closest('.rack__price-toggle-label');
-        if (label) {
-          const textSpan = label.querySelector('.rack__price-toggle-text');
-          if (textSpan) {
-            textSpan.textContent = showPrices ? 'Приховати ціни' : 'Показати ціни';
-          }
-        }
-
-        // Перемикання видимості цін через клас на wrapper
-        const componentsTable = query(RACK_SELECTORS.results.componentsTable)();
-        if (componentsTable) {
-          const wrapper = componentsTable.querySelector('.rack__components-table-wrapper');
-          if (wrapper) {
-            if (showPrices) {
-              wrapper.classList.remove('rack__prices-hidden');
-            } else {
-              wrapper.classList.add('rack__prices-hidden');
-            }
-          }
-        }
-      };
-
-      // Делегування події для динамічно створеного чекбокса
-      if (pageContainer) {
-        pageContainer.addEventListener('change', (e) => {
-          if (e.target.matches('[data-js="rack-togglePrices"]')) {
-            handleTogglePrices(e);
-          }
-        });
-      }
-
-      // ===== 7. ЗАПУСК ОРКЕСТРАЦІЇ =====
+      // ===== 8. ЗАПУСК ОРКЕСТРАЦІЇ =====
       page.init();
 
-      // ===== 8. CLEANUP =====
+      // ===== 9. CLEANUP =====
       return () => {
         page.destroy();
         autoHandler.cleanup();
-        spansUnsubscribe?.();
         formUnsubscribe?.();
-        if (addToSetBtn) {
-          addToSetBtn.removeEventListener('click', handleAddToSet);
-        }
-        if (pageContainer) {
-          pageContainer.removeEventListener('change', handleTogglePrices);
-        }
+        spansUnsubscribe?.();
+        resultsUnsubscribe?.();
+        rackSetUnsubscribe?.();
         _pageState.delete(rackPage);
       };
     },

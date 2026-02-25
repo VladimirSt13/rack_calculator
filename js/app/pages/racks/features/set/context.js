@@ -1,5 +1,6 @@
 // js/app/pages/racks/features/set/context.js
 
+import { log } from '../../../../config/env.js';
 import { createFeatureContext } from '../../../../core/FeatureContext.js';
 import { initialSetState } from './state.js';
 
@@ -20,13 +21,15 @@ export const createRackSetContext = () =>
     createActions: (state) => ({
       /**
        * Додати стелаж до комплекту (об'єднати якщо вже існує)
-       * @param {{ rack?: import('../results/state.js').ResultsState, qty?: number } | null} payload
+       * @param {{ rack?: import('../results/state.js').ResultsState, formConfig?: import('../form/state.js').FormState, qty?: number } | null} payload
        */
       addRack: (payload) => {
+        log('[Set.addRack] payload:', payload);
         const current = state.get();
 
         // Отримуємо дані з payload
         const rackData = payload?.rack;
+        const formConfig = payload?.formConfig;
 
         if (!rackData) {
           console.warn('[Set.addRack] No rack data provided');
@@ -36,7 +39,8 @@ export const createRackSetContext = () =>
         const qty = payload?.qty ?? 1;
 
         // Генеруємо унікальний ID на основі характеристик стелажа
-        const id = rackData.name || `${rackData.components?.supports?.name || 'rack'}_${rackData.total}`;
+        const id =
+          rackData.name || `${rackData.components?.supports?.name || 'rack'}_${rackData.total}`;
         const existing = current.racks.find((r) => r.id === id);
 
         if (existing) {
@@ -44,8 +48,16 @@ export const createRackSetContext = () =>
           const newRacks = current.racks.map((r) => (r.id === id ? { ...r, qty: r.qty + qty } : r));
           state.updateField('racks', newRacks);
         } else {
-          // Додаємо новий стелаж
-          state.updateField('racks', [...current.racks, { id, rack: structuredClone(rackData), qty }]);
+          // Додаємо новий стелаж з formConfig
+          state.updateField('racks', [
+            ...current.racks,
+            {
+              id,
+              rack: structuredClone(rackData),
+              formConfig: formConfig ? structuredClone(formConfig) : null,
+              qty,
+            },
+          ]);
         }
       },
 
@@ -68,6 +80,7 @@ export const createRackSetContext = () =>
        */
       updateQty: (id, qty) => {
         if (qty <= 0) {
+          const current = state.get();
           return state.updateField(
             'racks',
             current.racks.filter((r) => r.id !== id),
@@ -78,6 +91,36 @@ export const createRackSetContext = () =>
           'racks',
           current.racks.map((r) => (r.id === id ? { ...r, qty } : r)),
         );
+      },
+
+      /**
+       * Збільшити кількість стелажа на 1
+       * @param {string} id
+       */
+      increaseQty: (id) => {
+        const current = state.get();
+        const rack = current.racks.find((r) => r.id === id);
+        if (rack) {
+          state.updateField(
+            'racks',
+            current.racks.map((r) => (r.id === id ? { ...r, qty: r.qty + 1 } : r)),
+          );
+        }
+      },
+
+      /**
+       * Зменшити кількість стелажа на 1
+       * @param {string} id
+       */
+      decreaseQty: (id) => {
+        const current = state.get();
+        const rack = current.racks.find((r) => r.id === id);
+        if (rack && rack.qty > 1) {
+          state.updateField(
+            'racks',
+            current.racks.map((r) => (r.id === id ? { ...r, qty: r.qty - 1 } : r)),
+          );
+        }
       },
 
       /**
@@ -122,11 +165,11 @@ export const createRackSetContext = () =>
       getTotalItems: () => state.get().racks.reduce((sum, r) => sum + r.qty, 0),
 
       /**
-       * Отримати загальну вартість комплекту
+       * Отримати загальну вартість комплекту (розраховується по нульових цінах)
        * @returns {number}
        */
       getTotalCost: () =>
-        state.get().racks.reduce((sum, r) => sum + (r.rack?.total || 0) * r.qty, 0),
+        state.get().racks.reduce((sum, r) => sum + (r.rack?.zeroBase || 0) * r.qty, 0),
 
       /**
        * Перевірити чи комплект порожній

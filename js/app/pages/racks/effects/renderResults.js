@@ -15,13 +15,15 @@ export const renderRackResults = (result, effects) => {
       effects.setText('results', 'totalWithoutIsolators', '0.00 ₴'),
       effects.setText('results', 'zeroBase', '0.00 ₴'),
       effects.setState('results', 'componentsTable', 'empty'),
-      effects.setState('set', 'addToSetBtn', 'disabled'),
-      effects.setAttr('set', 'addToSetBtn', 'disabled', ''),
+      effects.setState('results', 'addToSetBtn', 'disabled'),
+      effects.setAttr('results', 'addToSetBtn', 'disabled', ''),
     ]);
     return;
   }
 
   // Показ результатів
+  const addToSetBtn = document.querySelector('[data-js="rack-addToSetBtn"]');
+  
   effects.batch([
     effects.setText('results', 'name', result.name),
     effects.setHTML('results', 'componentsTable', result.tableHtml),
@@ -33,9 +35,14 @@ export const renderRackResults = (result, effects) => {
     ),
     effects.setText('results', 'zeroBase', `${result.zeroBase.toFixed(2)} ₴`),
     effects.setState('results', 'componentsTable', 'ready'),
-    effects.setState('set', 'addToSetBtn', 'ready'),
-    effects.setAttr('set', 'addToSetBtn', 'disabled', null),
+    effects.setState('results', 'addToSetBtn', 'ready'),
   ]);
+
+  // Видаляємо атрибут disabled після активації
+  if (addToSetBtn) {
+    addToSetBtn.removeAttribute('disabled');
+    addToSetBtn.removeAttribute('aria-disabled');
+  }
 };
 
 export default renderRackResults;

@@ -1,156 +1,224 @@
 /* styles/batteryPage.css */
 
-/* ==============================
-   BatteryPage — layout
-============================== */
+/**
+ * Battery Page Specific Styles
+ * Працює поверх global.css
+ */
 
-.battery .section__content {
-  flex-wrap: nowrap;
+/* =============================================================================
+   1. LAYOUT
+   ============================================================================= */
+
+.section--battery .section__body {
+  display: grid;
+  grid-template-columns: clamp(280px, 30vw, 350px) 1fr;
+  gap: var(--spacing-6);
+  align-items: start;
 }
 
-@media (max-width: 768px) {
-  .battery .section__content {
-    flex-direction: column;
-    flex-wrap: wrap;
-  }
+.section--battery .section__sidebar {
+  position: sticky;
+  top: var(--spacing-16);
 }
 
-/* ==============================
-   BatteryPage — blocks
-============================== */
+.section--battery .section__content {
+  min-width: 0;
+}
+
+/* =============================================================================
+   2. FORM
+   ============================================================================= */
 
 .batteryForm {
-  flex: 1 1 35%;
-  align-self: flex-start;
-  min-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
 }
 
-.battery-results {
-  flex: 1 1 75%;
-  min-width: 600px;
-}
-
-/* ==============================
-   Battery form (надбудова над .form)
-============================== */
-
-.batteryForm {
-  gap: 0.75rem; /* менший вертикальний крок, ніж глобальний */
-}
-
-/* ---- Рядки форми ---- */
+/* Inline fields (length + gap) */
 .batteryForm__form-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
   flex-wrap: wrap;
 }
 
-/* ---- Однакова ширина лейблів ---- */
 .batteryForm__form-row label {
-  width: 90px;
+  min-width: 90px;
   flex-shrink: 0;
-  text-align: left;
 }
 
-/* ---- Одиниці виміру ---- */
 .batteryForm__form-row span {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
 }
 
-/* ---- Спеціальні рядки ---- */
-.batteryForm__form-row--count {
-  margin-left: 17px;
-}
-
-/* ==============================
-   Delta / відстань (+ −)
-============================== */
-
+/* Delta label */
 .label-delta {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.batteryForm__form-row .label-delta {
-  width: auto;
-}
-
-/* вирівнювання по baseline для складних рядків */
-.batteryForm .batteryForm__form-row--length {
-  /* align-items: flex-end; */
-}
-
-/* ==============================
-   Fieldset
-============================== */
-
-.battery-params__fieldset {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* ==============================
-   Button
-============================== */
-
-#batteryCalculateBtn {
-  margin-top: 1rem;
-  width: 100%;
-}
-
-/* ==============================
-   Tables
-============================== */
-
-.battery-rack-table {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
+  justify-content: center;
+  width: auto !important;
 }
 
 .label-delta + input[type='number'] {
   width: 6ch;
+  text-align: center;
 }
 
 .delta-wrapper {
   position: relative;
 }
 
-.label-delta {
-  position: absolute;
-  transform: translate(+120%, -80%);
+/* Count row */
+.batteryForm__form-row--count {
+  margin-left: var(--spacing-4);
 }
-/* ---- Ширина колонок ---- */
+
+/* Calculate button */
+#batteryCalculateBtn {
+  margin-top: var(--spacing-4);
+  width: 100%;
+}
+
+/* =============================================================================
+   3. RESULTS TABLE
+   ============================================================================= */
+
+.battery-rack-table {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: hsl(var(--card));
+  width: 100%;
+}
+
+.battery-rack-table__wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Column widths */
 .battery-rack-table th:nth-child(1),
 .battery-rack-table td:nth-child(1) {
   width: 5%;
+  text-align: center;
 }
 
 .battery-rack-table th:nth-child(2),
 .battery-rack-table td:nth-child(2) {
   width: 20%;
+  text-align: left;
 }
 
 .battery-rack-table th:nth-child(3),
 .battery-rack-table td:nth-child(3) {
   width: 20%;
+  text-align: left;
 }
 
 .battery-rack-table th:nth-child(4),
 .battery-rack-table td:nth-child(4) {
   width: 55%;
+  text-align: right;
 }
 
-/* ---- Чергування рядків ---- */
+/* Row styling */
 .battery-rack-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9; /* акцентний фон для через один рядок */
+  background-color: hsl(var(--secondary));
 }
 
-/* ---- Ховер для рядка ---- */
 .battery-rack-table tbody tr:hover {
-  background-color: #e6f0ff; /* акцентний колір при наведенні */
+  background-color: hsl(var(--accent));
   cursor: pointer;
+}
+
+/* Table header */
+.battery-rack-table thead th {
+  height: calc(var(--spacing-10));
+  padding: var(--spacing-2) var(--spacing-4);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--secondary));
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+/* Table body */
+.battery-rack-table tbody td {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+}
+
+.battery-rack-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =============================================================================
+   4. RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 500px) {
+  .section--battery .section__body {
+    grid-template-columns: 1fr;
+  }
+
+  .section--battery .section__sidebar {
+    position: static;
+  }
+
+  .batteryForm {
+    max-width: 100%;
+  }
+
+  .batteryForm__form-row label {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .battery-rack-table {
+    font-size: var(--font-size-xs);
+  }
+
+  .battery-rack-table th,
+  .battery-rack-table td {
+    padding: var(--spacing-2) var(--spacing-2);
+  }
+
+  .battery-rack-table thead {
+    display: none;
+  }
+
+  .battery-rack-table tbody tr {
+    display: block;
+    margin-bottom: var(--spacing-3);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: var(--spacing-2);
+  }
+
+  .battery-rack-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .battery-rack-table tbody td::before {
+    content: attr(data-label);
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+    margin-right: var(--spacing-4);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .battery-rack-table tbody td:last-child {
+    border-bottom: none;
+  }
 }

@@ -2,6 +2,7 @@
 
 /**
  * Rack Page Specific Styles
+ * Працює поверх global.css
  */
 
 /* =============================================================================
@@ -11,14 +12,14 @@
 .section--rack .section__body {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-6);
 }
 
-/* Верхній ряд: Форма + Стелаж */
+/* Верхній ряд: Форма + Результати */
 .rack__top-row {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: var(--spacing-lg);
+  grid-template-columns: clamp(250px, 25vw, 300px) 1fr;
+  gap: var(--spacing-6);
   align-items: start;
   width: 100%;
 }
@@ -30,115 +31,44 @@
 .rack__results-column {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-4);
   min-width: 0;
   width: 100%;
 }
 
-.rack__results-column .card--result {
-  margin-bottom: 0;
-}
-
-/* Нижній ряд: Комплект на всю ширину */
+/* Нижній ряд: Комплект */
 .rack__set-full {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding-top: var(--spacing-lg);
-  border-top: 2px solid var(--color-border);
+  padding-top: var(--spacing-6);
+  border-top: 2px solid hsl(var(--border));
   width: 100%;
 }
 
-.rack__section-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-primary);
-  margin: 0 0 var(--spacing-md) 0;
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 2px solid var(--color-border);
-}
-
-.rack__subsection-title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 1px solid var(--color-border);
-}
-
 /* =============================================================================
-   2. FORM STYLES
+   2. FORM SPECIFIC
    ============================================================================= */
 
 .section--rack .form {
-  max-width: 300px;
+  max-width: 100%;
 }
 
-.rack__row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-/* Required indicator */
-.form__label--required::after {
-  content: '*';
-  color: var(--color-danger);
-  margin-left: 4px;
-  font-weight: 600;
-}
-
-/* Form validation states */
-.rack__form input:invalid,
-.rack__form select:invalid {
-  border-color: var(--color-border-error);
-  background-color: #fff5f5;
-}
-
-.rack__form input:valid,
-.rack__form select:valid {
-  border-color: var(--color-success);
-}
-
-/* =============================================================================
-   3. BEAMS DYNAMIC SECTION
-   ============================================================================= */
-
-.rack__row--beams {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-  width: 100%;
-}
-
-.rack__beams-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.rack__beams {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+/* Dynamic spans section */
+.form__group--dynamic {
+  margin-top: var(--spacing-2);
 }
 
 .span-row {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
   width: 100%;
-  max-width: 100%;
 }
 
 .span-row .span-select {
-  flex: 1 1 auto;
-  min-width: 120px;
+  flex: 1;
   max-width: 100%;
+  min-width: 0;
 }
 
 .span-row .span-quantity {
@@ -151,91 +81,44 @@
 }
 
 /* =============================================================================
-   4. ICON BUTTONS (Unified)
+   3. RESULTS & PRICING
    ============================================================================= */
 
-/* Базовий стиль вже в global.css, тут специфічні для форми */
-.rack__form .icon-btn {
-  width: clamp(24px, 3vw, 28px);
-  height: clamp(24px, 3vw, 28px);
+.rack__subsection-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: hsl(var(--foreground));
+  margin: var(--spacing-4) 0 var(--spacing-2) 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
-.icon-btn--add {
-  outline: none;
-}
-
-.icon-btn--add:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-  border-color: var(--color-primary);
-}
-
-.icon-btn--add:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.icon-btn--remove:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  border-color: var(--color-danger);
-}
-
-.icon-btn--remove:hover::before {
-  background-color: var(--color-danger);
-}
-
-/* =============================================================================
-   5. RESULT CARDS
-   ============================================================================= */
-
-.rack__card {
-  /* Базові стилі картки вже в global.css */
-  margin-bottom: 0;
-}
-
-.rack__name-value {
-  font-size: clamp(1.1rem, 1.05rem + 0.25vw, 1.25rem);
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.rack__components-table {
-  margin-top: var(--spacing-sm);
-  margin-left: auto;
-  width: max-content;
-  /* Стилі таблиці вже в global.css */
-}
-
-/* Приховування цін */
-.rack__components-table-wrapper.rack__prices-hidden .rack__price-cell,
-.rack__components-table-wrapper.rack__prices-hidden .rack__price-header {
-  display: none;
-}
-
+/* Price toggle */
 .rack__price-toggle {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-2);
 }
 
 .rack__price-toggle-label {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-2);
   cursor: pointer;
   user-select: none;
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  color: hsl(var(--muted-foreground));
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius);
+  transition: all var(--transition-all);
 }
 
 .rack__price-toggle-label:hover {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-primary);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
 }
 
-.rack__price-toggle-label input[type="checkbox"] {
+.rack__price-toggle-label input[type='checkbox'] {
   position: absolute;
   opacity: 0;
   width: 0;
@@ -243,14 +126,15 @@
   pointer-events: none;
 }
 
-.rack__price-toggle-text {
-  font-size: var(--font-size-xs);
-  color: inherit;
-  white-space: nowrap;
+/* Price visibility */
+.rack__components-table-wrapper.rack__prices-hidden .rack__price-cell,
+.rack__components-table-wrapper.rack__prices-hidden .rack__price-header {
+  display: none;
 }
 
+/* Price list */
 .rack__price {
-  margin-top: var(--spacing-md);
+  margin-top: var(--spacing-4);
   margin-left: auto;
   width: max-content;
 }
@@ -266,211 +150,270 @@
 .rack__price-row {
   display: flex;
   align-items: baseline;
-  /* gap: var(--spacing-sm); */
   margin: 0;
   padding: 0;
 }
 
 .rack__price-label {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
+  color: hsl(var(--foreground));
   white-space: nowrap;
 }
 
 .rack__price-dots {
   flex: 1;
-  border-bottom: 1px dotted var(--color-border);
-  position: relative;
-  /* top: -0.1em; */
+  border-bottom: 1px dotted hsl(var(--border));
   min-width: 20px;
+  margin: 0 var(--spacing-2);
 }
 
 .rack__price-value {
-  font-weight: 600;
-  font-size: var(--font-size-base);
-  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  color: hsl(var(--primary));
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.rack__price-row--total .rack__price-label {
-  font-weight: 700;
-}
-
+.rack__price-row--total .rack__price-label,
 .rack__price-row--total .rack__price-value {
-  font-weight: 700;
-}
-
-/* =============================================================================
-   6. RACK SET (комплект стелажів)
-   ============================================================================= */
-
-.rack-set {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.rack-set__title {
-  font-weight: 600;
-  font-size: var(--font-size-base);
-  margin-bottom: var(--spacing-xs);
-}
-
-.rack-set__table {
-  /* Стилі таблиці вже в global.css */
-}
-
-.rack-set__summary {
-  background-color: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-weight: 600;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.rack-set__summary .total {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-lg);
-  color: var(--color-primary);
-}
-
-.rack-set__actions {
-  display: flex;
-  justify-content: flex-end;
 }
 
 /* =============================================================================
-   7. RACK SET TABLE (Page & Modal)
+   4. RACK SET TABLE
    ============================================================================= */
 
-/* Main row styles */
-.rack-set__main-row {
-  border-bottom: 2px solid var(--color-border);
+.rack__set-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
 }
 
-.rack-set__main-row:last-child {
-  border-bottom: 1px solid var(--color-border);
+.rack__set-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
 }
 
-/* Components sub-table */
-.rack-set__components-row td {
+/* Header */
+.rack__set-table th {
+  text-align: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-weight: var(--font-weight-semibold);
+  color: hsl(var(--muted-foreground));
+  border-bottom: 2px solid hsl(var(--border));
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: hsl(var(--secondary));
+}
+
+/* Column alignment */
+.rack__set-table th:first-child,
+.rack__set-table td:first-child {
+  text-align: center;
+}
+
+.rack__set-table th:nth-child(2),
+.rack__set-table td:nth-child(2) {
+  text-align: left;
+}
+
+.rack__set-table th:not(:first-child, :nth-child(2)),
+.rack__set-table td:not(:first-child, :nth-child(2)) {
+  text-align: center;
+}
+
+/* Cells */
+.rack__set-table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid hsl(var(--border));
+  vertical-align: middle;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+/* Main row */
+.rack__set-table__main-row {
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.rack__set-table__main-row:hover {
+  background-color: hsl(var(--secondary));
+}
+
+/* Rack name */
+.rack__set-table__name {
+  min-width: 250px;
+  text-align: left !important;
+}
+
+.rack__set-table__rack-name {
+  font-weight: var(--font-weight-semibold);
+  color: hsl(var(--foreground));
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+.rack__set-table__rack-abbrev {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-family-mono);
+  text-align: left;
+}
+
+/* Quantity controls */
+.rack__set-table__qty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  justify-content: center;
+}
+
+.btn--qty {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius);
+}
+
+.btn--qty:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rack__set-table__qty-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Zero base price */
+.rack__set-table__zero-base {
+  font-weight: var(--font-weight-semibold);
+  color: hsl(var(--primary));
+  white-space: nowrap;
+  text-align: center !important;
+}
+
+/* Remove button */
+.btn--remove {
+  background-color: transparent;
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--destructive));
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-all);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn--remove:hover {
+  background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+
+/* Components subtable */
+.rack__set-table__components-row td {
   padding: 0 !important;
-  background-color: var(--color-bg-alt);
+  background-color: hsl(var(--secondary));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
-.rack-set__components-wrapper {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-bg-alt);
-  border-radius: var(--border-radius);
-  margin: var(--spacing-xs) 0;
+.rack__set-table__components-wrapper {
+  padding: var(--spacing-6);
+  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--card)) 100%);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-inner);
+  width: 100%;
 }
 
-.rack-set__components-label {
+.rack__set-table__components-label {
   display: block;
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xs);
-  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--spacing-4);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.rack-set__components-table {
+.rack__set-table__components-subtable {
   width: 100%;
-  font-size: var(--font-size-sm);
   border-collapse: collapse;
+  background-color: hsl(var(--card));
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
-.rack-set__components-table th {
-  text-align: left;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+.rack__set-table__components-subtable th {
+  text-align: center;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-weight: var(--font-weight-semibold);
+  color: hsl(var(--muted-foreground));
+  border-bottom: 2px solid hsl(var(--border));
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--border)) 100%);
+  vertical-align: middle;
+}
+
+.rack__set-table__components-subtable td {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
   font-size: var(--font-size-xs);
 }
 
-.rack-set__components-table td {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.rack-set__components-table tr:last-child td {
+.rack__set-table__components-subtable tr:last-child td {
   border-bottom: none;
 }
 
-/* Quantity controls (page only) */
-.rack-set__qty-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  justify-content: center;
+.rack__set-table__components-subtable tbody tr:nth-child(odd) {
+  background-color: hsl(var(--background));
 }
 
-.btn-qty-decrease,
-.btn-qty-increase {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background-color: var(--color-bg-alt);
-  cursor: pointer;
-  font-size: var(--font-size-lg);
-  line-height: 1;
-  transition: all var(--transition-base);
+.rack__set-table__components-subtable tbody tr:hover {
+  background-color: hsl(var(--accent));
 }
 
-.btn-qty-decrease:hover,
-.btn-qty-increase:hover {
-  background-color: var(--color-border);
-}
-
-.rack-set__qty-value {
-  min-width: 24px;
-  text-align: center;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Remove button */
-.btn-remove {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-danger);
-  color: var(--color-text-inverse);
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  transition: background-color var(--transition-base);
-}
-
-.btn-remove:hover {
-  background-color: #c82333;
+/* Price visibility in set */
+.rack__set-table-wrapper.rack__prices-hidden .rack__price-cell,
+.rack__set-table-wrapper.rack__prices-hidden .rack__price-header,
+.rack__set-table-wrapper.rack__prices-hidden .rack__set-table__zero-base {
+  display: none;
 }
 
 /* =============================================================================
-   8. EMPTY STATES
+   5. EMPTY STATES
    ============================================================================= */
 
-/* Використовуємо data-state з global.css, але додаємо специфічні стилі */
 .rack__components-table[data-state='empty'],
 .rack-set__table[data-state='empty'] {
-  min-height: clamp(100px, 15vh, 150px);
+  min-height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-bg-alt) 0%, #e9ecef 100%);
-  border: 2px dashed var(--color-border);
-  color: var(--color-text-secondary);
+  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--background)) 100%);
+  border: 2px dashed hsl(var(--border));
+  color: hsl(var(--muted-foreground));
   font-style: italic;
   font-size: var(--font-size-sm);
-  padding: var(--spacing-md);
+  padding: var(--spacing-6);
   text-align: center;
 }
 
@@ -478,59 +421,19 @@
 .rack-set__table[data-state='empty']::before {
   content: '📋';
   display: block;
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-2);
   opacity: 0.5;
 }
 
-/* Fallback для :empty якщо data-state не використовується */
-.rack__components-table:empty,
-.rack-set__table:empty {
-  min-height: clamp(100px, 15vh, 150px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-bg-alt) 0%, #e9ecef 100%);
-  border: 2px dashed var(--color-border);
-  border-radius: var(--border-radius);
-  color: var(--color-text-secondary);
-  font-style: italic;
-  font-size: var(--font-size-sm);
-  padding: var(--spacing-md);
-  text-align: center;
-}
-
-.rack__components-table:empty::after,
-.rack-set__table:empty::after {
-  content: attr(data-empty-text, 'Немає даних');
-  display: block;
-  max-width: 250px;
-}
-
-/* Summary empty state */
-.rack-set__summary:empty {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  font-style: italic;
-  background-color: var(--color-bg-alt);
-  border-radius: var(--border-radius);
-}
-
-.rack-set__summary:empty::after {
-  content: 'Загальна сума: 0.00';
-}
-
 /* =============================================================================
-   9. ANIMATIONS
+   6. ANIMATIONS
    ============================================================================= */
 
 .rack__components-table:not(:empty),
 .rack-set__table:not(:empty),
 .rack__price:not(:empty) {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 300ms var(--transition-timing);
 }
 
 @keyframes fadeIn {
@@ -544,26 +447,11 @@
   }
 }
 
-/* Pulse animation for invalid form */
-.rack__form:has(input:invalid) ~ .rack__card .btn:not(:disabled):not(.btn--disabled) {
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(255, 165, 0, 0);
-  }
-}
-
 /* =============================================================================
-   10. RESPONSIVE
+   7. RESPONSIVE
    ============================================================================= */
 
-@media (max-width: 768px) {
+@media (max-width: 500px) {
   .rack__top-row {
     grid-template-columns: 1fr;
   }
@@ -573,18 +461,8 @@
     width: 100%;
   }
 
-  .rack__set-full {
-    padding-top: var(--spacing-md);
-    border-top: none;
-    margin-top: var(--spacing-md);
-  }
-
   .section--rack .form {
     max-width: 100%;
-  }
-
-  .form__label {
-    gap: var(--spacing-xs);
   }
 
   .form__control {
@@ -595,63 +473,69 @@
     flex-wrap: wrap;
   }
 
-  .form__group--inline .form__label {
-    width: auto;
+  .span-row {
+    flex-wrap: wrap;
   }
 
   .span-row .span-select {
     min-width: 150px;
+    flex: 1 1 100%;
   }
 
-  .rack-set__qty-controls {
-    flex-wrap: wrap;
-  }
-
-  .btn-remove {
+  .span-row .span-quantity {
     width: 100%;
-    margin-top: var(--spacing-xs);
+    flex: 1 1 auto;
   }
 
-  /* Stack table on mobile */
+  .btn--remove {
+    width: 100%;
+    margin-top: var(--spacing-2);
+  }
+
+  /* Mobile table */
   .rack-set-table thead {
     display: none;
   }
 
   .rack-set-table tbody tr {
     display: block;
-    margin-bottom: var(--spacing-md);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-4);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: var(--spacing-3);
   }
 
   .rack-set-table tbody td {
     display: flex;
     justify-content: space-between;
     text-align: right !important;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid hsl(var(--border));
   }
 
   .rack-set-table tbody td::before {
     content: attr(data-label);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     text-align: left;
-    margin-right: var(--spacing-md);
-    color: var(--color-text-secondary);
+    margin-right: var(--spacing-4);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rack-set-table tbody td:last-child {
+    border-bottom: none;
   }
 }
 
 /* =============================================================================
-   11. PRINT STYLES
+   8. PRINT STYLES
    ============================================================================= */
 
 @media print {
   .rack__params,
   .rack-set__actions,
   .icon-btn,
-  .btn-remove,
-  .btn-qty-decrease,
-  .btn-qty-increase {
+  .btn--remove,
+  .btn--qty {
     display: none !important;
   }
 
@@ -661,5 +545,9 @@
 
   .rack-set__table {
     border: 1px solid #000;
+  }
+
+  .rack__price-toggle {
+    display: none;
   }
 }

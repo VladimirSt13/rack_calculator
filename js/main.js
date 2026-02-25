@@ -2,7 +2,8 @@
 
 import { createRouter, createRouterEffects, registerRoutes } from './app/ui/router.js';
 import { registerAllPages } from './app/pages/index.js';
-import { APP_CONFIG, PAGES, SELECTORS } from './app/config/app.config.js';
+import { APP_CONFIG, PAGES } from './app/config/app.config.js';
+import { GLOBAL_SELECTORS } from './app/config/selectors.js';
 
 /**
  * Точка входу додатку
@@ -21,7 +22,7 @@ const initApp = async () => {
     const { routes } = registerRoutes(pageModules, {}, navItems);
 
     // ===== 2. CREATE ROUTER =====
-    const effects = createRouterEffects(SELECTORS);
+    const effects = createRouterEffects(GLOBAL_SELECTORS);
     const router = createRouter({
       routes,
       defaultRoute: APP_CONFIG.DEFAULT_PAGE,
@@ -30,12 +31,12 @@ const initApp = async () => {
     });
 
     // ===== 3. ATTACH NAVIGATION + RENDER LINKS =====
-    const navContainer = document.querySelector(SELECTORS.navContainer);
+    const navContainer = document.querySelector(GLOBAL_SELECTORS.siteNav);
     if (navContainer) {
       navContainer.innerHTML = router.renderNavLinks(navItems, APP_CONFIG.DEFAULT_PAGE);
       router.attachNavigation({
         container: navContainer,
-        linkSelector: SELECTORS.linkSelector,
+        linkSelector: GLOBAL_SELECTORS.navLink,
       });
     }
 
