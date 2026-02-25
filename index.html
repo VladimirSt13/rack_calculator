@@ -49,219 +49,217 @@
           </header>
 
           <div class="section__body">
-            <!-- Форма налаштувань -->
-            <aside class="section__sidebar">
-              <form
-                class="form"
-                novalidate
-                data-js="rackForm"
-                data-feature="form"
-                data-state="ready"
-              >
-                <fieldset class="form__fieldset">
-                  <legend class="form__legend">Параметри стелажа</legend>
-
-                  <!-- Кількість поверхів -->
-                  <div class="form__group">
-                    <label class="form__label" for="rack-floors">
-                      <span class="form__label-text">Кількість поверхів</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="floors"
-                        min="1"
-                        max="10"
-                        value="1"
-                        required
-                        data-js="rack-floors"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="floors"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                    </label>
-                  </div>
-
-                  <!-- Вертикальна опора -->
-                  <div class="form__group">
-                    <label class="form__label" for="rack-verticalSupports">
-                      <span class="form__label-text">Вертикальна опора</span>
-                      <select
-                        class="form__control"
-                        name="verticalSupports"
-                        required
-                        data-js="rack-verticalSupports"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="verticalSupports"
-                        data-state="ready"
-                      ></select>
-                    </label>
-                  </div>
-
-                  <!-- Опора -->
-                  <div class="form__group">
-                    <label class="form__label" for="rack-supports">
-                      <span class="form__label-text">Опора</span>
-                      <select
-                        class="form__control"
-                        name="supports"
-                        required
-                        data-js="rack-supports"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="supports"
-                        data-state="ready"
-                      ></select>
-                    </label>
-                  </div>
-
-                  <!-- Кількість рядів -->
-                  <div class="form__group">
-                    <label class="form__label" for="rack-rows">
-                      <span class="form__label-text">Кількість рядів</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="rows"
-                        min="1"
-                        max="4"
-                        value="1"
-                        required
-                        data-js="rack-rows"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="rows"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                    </label>
-                  </div>
-
-                  <!-- Балок в ряду -->
-                  <div class="form__group">
-                    <label class="form__label" for="rack-beamsPerRow">
-                      <span class="form__label-text">Балок в ряду</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="beamsPerRow"
-                        min="2"
-                        max="4"
-                        value="2"
-                        required
-                        data-js="rack-beamsPerRow"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="beamsPerRow"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                    </label>
-                  </div>
-
-                  <!-- Динамічні прольоти (spans) -->
-                  <div
-                    class="form__group form__group--dynamic"
-                    data-js="rack-spansGroup"
-                    data-feature="spans"
-                    data-state="ready"
-                  >
-                    <div class="form__label-group">
-                      <span class="form__label-text">Прольоти</span>
-                      <button
-                        type="button"
-                        class="icon-btn icon-btn--add"
-                        aria-label="Додати проліт"
-                        data-js="rack-addSpan"
-                        data-feature="spans"
-                        data-action="addSpan"
-                        data-state="ready"
-                      ></button>
+            <!-- Верхній ряд: Форма + Стелаж -->
+            <div class="rack__top-row">
+              <!-- Ліва колонка: Форма -->
+              <aside class="rack__form-column">
+                <h3 class="rack__section-title">Параметри</h3>
+                <form
+                  class="form"
+                  novalidate
+                  data-js="rackForm"
+                  data-feature="form"
+                  data-state="ready"
+                >
+                  <fieldset class="form__fieldset">
+                    <!-- Кількість поверхів -->
+                    <div class="form__group">
+                      <label class="form__label" for="rack-floors">
+                        <span class="form__label-text">Кількість поверхів</span>
+                        <input
+                          class="form__control"
+                          type="number"
+                          name="floors"
+                          min="1"
+                          max="10"
+                          value="1"
+                          required
+                          data-js="rack-floors"
+                          data-feature="form"
+                          data-action="updateField"
+                          data-field="floors"
+                          data-transform="number"
+                          data-state="ready"
+                        />
+                      </label>
                     </div>
-                    <ul
-                      class="form__dynamic-container"
-                      data-js="rack-spansContainer"
+
+                    <!-- Вертикальна опора -->
+                    <div class="form__group">
+                      <label class="form__label" for="rack-verticalSupports">
+                        <span class="form__label-text">Вертикальна опора</span>
+                        <select
+                          class="form__control"
+                          name="verticalSupports"
+                          required
+                          data-js="rack-verticalSupports"
+                          data-feature="form"
+                          data-action="updateField"
+                          data-field="verticalSupports"
+                          data-state="ready"
+                        ></select>
+                      </label>
+                    </div>
+
+                    <!-- Опора -->
+                    <div class="form__group">
+                      <label class="form__label" for="rack-supports">
+                        <span class="form__label-text">Опора</span>
+                        <select
+                          class="form__control"
+                          name="supports"
+                          required
+                          data-js="rack-supports"
+                          data-feature="form"
+                          data-action="updateField"
+                          data-field="supports"
+                          data-state="ready"
+                        ></select>
+                      </label>
+                    </div>
+
+                    <!-- Кількість рядів -->
+                    <div class="form__group">
+                      <label class="form__label" for="rack-rows">
+                        <span class="form__label-text">Кількість рядів</span>
+                        <input
+                          class="form__control"
+                          type="number"
+                          name="rows"
+                          min="1"
+                          max="4"
+                          value="1"
+                          required
+                          data-js="rack-rows"
+                          data-feature="form"
+                          data-action="updateField"
+                          data-field="rows"
+                          data-transform="number"
+                          data-state="ready"
+                        />
+                      </label>
+                    </div>
+
+                    <!-- Балок в ряду -->
+                    <div class="form__group">
+                      <label class="form__label" for="rack-beamsPerRow">
+                        <span class="form__label-text">Балок в ряду</span>
+                        <input
+                          class="form__control"
+                          type="number"
+                          name="beamsPerRow"
+                          min="2"
+                          max="4"
+                          value="2"
+                          required
+                          data-js="rack-beamsPerRow"
+                          data-feature="form"
+                          data-action="updateField"
+                          data-field="beamsPerRow"
+                          data-transform="number"
+                          data-state="ready"
+                        />
+                      </label>
+                    </div>
+
+                    <!-- Динамічні прольоти (spans) -->
+                    <div
+                      class="form__group form__group--dynamic"
+                      data-js="rack-spansGroup"
                       data-feature="spans"
-                      data-render-target="list"
+                      data-state="ready"
+                    >
+                      <div class="form__label-group">
+                        <span class="form__label-text">Прольоти</span>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--add"
+                          aria-label="Додати проліт"
+                          data-js="rack-addSpan"
+                          data-feature="spans"
+                          data-action="addSpan"
+                          data-state="ready"
+                        ></button>
+                      </div>
+                      <ul
+                        class="form__dynamic-container"
+                        data-js="rack-spansContainer"
+                        data-feature="spans"
+                        data-render-target="list"
+                        data-state="empty"
+                      ></ul>
+                    </div>
+                  </fieldset>
+                </form>
+              </aside>
+
+              <!-- Права колонка: Результати-->
+              <div class="rack__results-column">
+                <h3 class="rack__section-title">Стелаж</h3>
+                <!-- Картка: Стелаж (єдиний артикль) -->
+                <article class="card card--result">
+                  <header class="card__header">
+                    <h3 class="card__title">Назва:</h3>
+                    <output
+                      class="result-value result-value--primary"
+                      data-js="rackName"
+                      data-feature="results"
+                      data-render-target="name"
                       data-state="empty"
-                    ></ul>
+                      >---</output
+                    >
+                  </header>
+                  <div class="card__body">
+                    <h4 class="rack__subsection-title">Компоненти стелажа</h4>
+                    <div
+                      class="data-table"
+                      data-js="rack-componentsTable"
+                      data-feature="results"
+                      data-render-target="tableHtml"
+                      data-state="empty"
+                    ></div>
+                    <div class="rack__price">
+                      <ul class="rack__price-list">
+                        <li class="rack__price-row">
+                          <span class="rack__price-label">Загальна</span>
+                          <span class="rack__price-dots"></span>
+                          <span class="rack__price-value" data-js="rack-totalPrice">0.00 ₴</span>
+                        </li>
+                        <li class="rack__price-row">
+                          <span class="rack__price-label">Без ізоляторів</span>
+                          <span class="rack__price-dots"></span>
+                          <span class="rack__price-value" data-js="rack-totalWithoutIsolators"
+                            >0.00 ₴</span
+                          >
+                        </li>
+                        <li class="rack__price-row rack__price-row--total">
+                          <span class="rack__price-label">Нульова</span>
+                          <span class="rack__price-dots"></span>
+                          <span class="rack__price-value" data-js="rack-zeroBase">0.00 ₴</span>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </fieldset>
-              </form>
-            </aside>
+                  <footer class="card__footer">
+                    <button
+                      class="btn btn--primary"
+                      data-js="rack-addToSetBtn"
+                      data-feature="set"
+                      data-action="addRack"
+                      data-state="disabled"
+                    >
+                      Додати до комплекту
+                    </button>
+                  </footer>
+                </article>
+              </div>
+            </div>
 
-            <!-- Результати -->
-            <div class="section__content" data-feature="results">
-              <!-- Картка: Назва стелажа -->
-              <article class="card card--result">
-                <header class="card__header">
-                  <h3 class="card__title">Назва стелажа</h3>
-                </header>
-                <div class="card__body">
-                  <output
-                    class="result-value result-value--primary"
-                    data-js="rackName"
-                    data-feature="results"
-                    data-render-target="name"
-                    data-state="empty"
-                    >---</output
-                  >
-                </div>
-              </article>
-
-              <!-- Картка: Компоненти стелажа -->
-              <article class="card card--result">
-                <header class="card__header">
-                  <h3 class="card__title">Компоненти стелажа</h3>
-                </header>
-                <div class="card__body">
-                  <div
-                    class="data-table"
-                    data-js="rack-componentsTable"
-                    data-feature="results"
-                    data-render-target="tableHtml"
-                    data-state="empty"
-                  ></div>
-                  <div class="rack__price">
-                    <ul class="rack__price-list">
-                      <li class="rack__price-row">
-                        <span class="rack__price-label">Загальна</span>
-                        <span class="rack__price-dots"></span>
-                        <span class="rack__price-value" data-js="rack-totalPrice">0.00 ₴</span>
-                      </li>
-                      <li class="rack__price-row">
-                        <span class="rack__price-label">Без ізоляторів</span>
-                        <span class="rack__price-dots"></span>
-                        <span class="rack__price-value" data-js="rack-totalWithoutIsolators">0.00 ₴</span>
-                      </li>
-                      <li class="rack__price-row rack__price-row--total">
-                        <span class="rack__price-label">Нульова</span>
-                        <span class="rack__price-dots"></span>
-                        <span class="rack__price-value" data-js="rack-zeroBase">0.00 ₴</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <footer class="card__footer">
-                  <button
-                    class="btn btn--primary"
-                    data-js="rack-addToSetBtn"
-                    data-feature="set"
-                    data-action="addRack"
-                    data-state="disabled"
-                  >
-                    Додати до комплекту
-                  </button>
-                </footer>
-              </article>
-
+            <!-- Нижній ряд: Комплект на всю ширину -->
+            <div class="rack__set-full">
+              <h3 class="rack__section-title">Комплект стелажів</h3>
               <!-- Картка: Комплект стелажів -->
               <article class="card card--set">
-                <header class="card__header">
-                  <h3 class="card__title">Комплект стелажів</h3>
-                </header>
                 <div class="card__body">
                   <div
                     class="data-table"
@@ -293,6 +291,8 @@
             </div>
           </div>
         </section>
+
+        <!-- Комплект на всю ширину (окрема секція) -->
 
         <!-- === Секція: Підбір під акумулятор === -->
         <section

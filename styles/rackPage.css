@@ -9,20 +9,61 @@
    ============================================================================= */
 
 .section--rack .section__body {
-  grid-template-columns: 300px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-lg);
 }
 
-.rack__params {
-  /* Sidebar вже має sticky в global.css */
-  min-width: 0; /* Дозволяє стискатися в grid */
+/* Верхній ряд: Форма + Стелаж */
+.rack__top-row {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--spacing-lg);
+  align-items: start;
+  width: 100%;
 }
 
-.rack__results {
+.rack__form-column {
+  min-width: 0;
+}
+
+.rack__results-column {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  min-width: 0; /* Дозволяє стискатися в grid */
+  min-width: 0;
+  width: 100%;
+}
+
+.rack__results-column .card--result {
+  margin-bottom: 0;
+}
+
+/* Нижній ряд: Комплект на всю ширину */
+.rack__set-full {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-top: var(--spacing-lg);
+  border-top: 2px solid var(--color-border);
+  width: 100%;
+}
+
+.rack__section-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.rack__subsection-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* =============================================================================
@@ -479,12 +520,19 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  .section--rack .section__body {
+  .rack__top-row {
     grid-template-columns: 1fr;
   }
 
-  .rack__params {
-    position: static;
+  .rack__form-column,
+  .rack__results-column {
+    width: 100%;
+  }
+
+  .rack__set-full {
+    padding-top: var(--spacing-md);
+    border-top: none;
+    margin-top: var(--spacing-md);
   }
 
   .section--rack .form {

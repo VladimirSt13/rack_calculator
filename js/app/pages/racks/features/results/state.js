@@ -14,6 +14,8 @@
  * @property {string} name - назва стелажа (абревіатура)
  * @property {string} tableHtml - HTML таблиці компонентів
  * @property {number} total - загальна вартість
+ * @property {number} totalWithoutIsolators - вартість без ізоляторів
+ * @property {number} zeroBase - нульова вартість
  * @property {Object.<string, ComponentItem|ComponentItem[]>} components - компоненти за типами
  * @property {number|null} lastCalculated - timestamp останнього розрахунку
  */
@@ -26,6 +28,8 @@ export const initialResultsState = {
   name: '',
   tableHtml: '',
   total: 0,
+  totalWithoutIsolators: 0,
+  zeroBase: 0,
   components: {},
   lastCalculated: null,
 };

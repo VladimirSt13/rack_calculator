@@ -75,6 +75,12 @@ export const createRackResultsContext = () =>
       hasResult: () => state.get().total > 0 && state.get().name !== '',
 
       /**
+       * Отримати повний об'єкт результату (для додавання до комплекту)
+       * @returns {ResultsState}
+       */
+      getRack: () => state.get(),
+
+      /**
        * Отримати дані для PageContext.collectInputData()
        * @returns {ResultsState}
        */

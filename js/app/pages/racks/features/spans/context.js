@@ -6,6 +6,12 @@ import { initialSpansState } from './state.js';
 import { log } from '../../../../config/env.js';
 
 /**
+ * Максимальна кількість прольотів
+ * @type {number}
+ */
+const MAX_SPANS = 8;
+
+/**
  * @typedef {import('./state.js').SpanItem} SpanItem
  * @typedef {import('./state.js').SpansState} SpansState
  */
@@ -27,10 +33,16 @@ export const createSpansContext = () =>
       /**
        * Додати новий проліт з унікальним ID
        * @param {{ id?: number }} [options] - опціональний ID (для тестів)
-       * @returns {number} ID нового прольоту
+       * @returns {number | null} ID нового прольоту або null якщо досягнуто ліміту
        */
       addSpan: (options = {}) => {
         const current = state.get();
+
+        // Перевірка ліміту
+        if (current.spans.size >= MAX_SPANS) {
+          log('[Spans]', 'addSpan: max limit reached', { max: MAX_SPANS, current: current.spans.size });
+          return null;
+        }
 
         const id = options.id ?? current.nextId;
         const newSpans = new Map(current.spans);
@@ -150,6 +162,18 @@ export const createSpansContext = () =>
         const spans = state.get().spans;
         return Array.from(spans.values()).some((s) => s.item && s.quantity && s.quantity > 0);
       },
+
+      /**
+       * Перевірити чи досягнуто ліміту прольотів
+       * @returns {boolean}
+       */
+      isMaxSpansReached: () => state.get().spans.size >= MAX_SPANS,
+
+      /**
+       * Отримати максимальну кількість прольотів
+       * @returns {number}
+       */
+      getMaxSpans: () => MAX_SPANS,
     }),
   });
 

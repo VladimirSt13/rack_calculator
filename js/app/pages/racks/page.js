@@ -9,6 +9,9 @@ import { createAutoHandler } from '../../core/InteractiveElement.js';
 import { loadPrice } from './features//priceState.js';
 import { RACK_SELECTORS } from '../../config/selectors.js';
 
+// DOM effects
+import { query, toggleClass } from '../../effects/dom.js';
+
 // Feature contexts
 import { createRackFormContext } from './features/form/context.js';
 import { createSpansContext } from './features/spans/context.js';
@@ -17,6 +20,9 @@ import { createRackSetContext } from './features/set/context.js';
 
 // Calculator
 import { calculateRack } from './core/calculator.js';
+
+// Effects
+import { renderRackResults } from './effects/renderResults.js';
 
 import { log } from '../../config/env.js';
 
@@ -80,6 +86,8 @@ export const rackPage = createPageModule({
     /** Активація сторінки
      * @param {import('../../ui/createPageModule.js').PageDependencies} deps */
     onActivate: (deps) => {
+      const { addListener } = deps;
+      log('[RackPage] onActivate deps->', deps);
       if (_pageState.get(rackPage)?.isActivated) {
         log('[RackPage]', 'Already activated, skipping');
         return;
@@ -90,7 +98,6 @@ export const rackPage = createPageModule({
         prevSpans: new Map(),
       });
 
-      const { addListener } = deps;
       const { price, supportsOptions, verticalSupportsOptions, spanOptions } = pageState.get();
       log('[RackPage] onActivate', {
         price: !!price,
@@ -115,7 +122,7 @@ export const rackPage = createPageModule({
 
       // ===== 3. POPULATE DROPDOWNS =====
       const populateDropdown = (selector, options, placeholder = 'Виберіть...') => {
-        const el = document.querySelector(selector);
+        const el = query(selector)();
         if (!el) {
           return;
         }
@@ -129,7 +136,7 @@ export const rackPage = createPageModule({
       populateDropdown(RACK_SELECTORS.form.verticalSupports, verticalSupportsOptions);
 
       // ===== 4. RENDER SPANS CONTAINER =====
-      const spansContainer = document.querySelector(RACK_SELECTORS.spans.container);
+      const spansContainer = query(RACK_SELECTORS.spans.container)();
 
       if (spansContainer) {
         renderAllSpans(spansContainer, spans.selectors.getSpans(), spanOptions);
@@ -161,6 +168,15 @@ export const rackPage = createPageModule({
           }
         }
 
+        // Оновлення стану кнопки додавання
+        const addSpanBtn = query(RACK_SELECTORS.spans.addBtn)();
+        if (addSpanBtn) {
+          const isMaxReached = spans.selectors.isMaxSpansReached();
+          addSpanBtn.disabled = isMaxReached;
+          addSpanBtn.setAttribute('aria-disabled', String(isMaxReached));
+          toggleClass(addSpanBtn, 'btn--disabled', isMaxReached)();
+        }
+
         // Зберегти поточний стан для наступного порівняння
         _pageState.set(rackPage, {
           isActivated: true,
@@ -180,32 +196,12 @@ export const rackPage = createPageModule({
         }),
         calculator: (data) => calculateRack({ ...data, price }),
         renderResult: (featureName, result) => {
-          if (['form', 'spans'].includes(featureName) && result) {
-            log('[RackPage] renderResult:', {
-              total: result.total,
-              withoutIsolators: result.totalWithoutIsolators,
-              zeroBase: result.zeroBase,
-            });
-            effects.batch([
-              effects.setText('results', 'name', result.name),
-              effects.setHTML('results', 'componentsTable', result.tableHtml),
-              effects.setText('results', 'totalPrice', `${result.total.toFixed(2)} ₴`),
-              effects.setText('results', 'totalWithoutIsolators', `${result.totalWithoutIsolators.toFixed(2)} ₴`),
-              effects.setText('results', 'zeroBase', `${result.zeroBase.toFixed(2)} ₴`),
-              effects.setState('results', 'componentsTable', result.total > 0 ? 'ready' : 'empty'),
-              effects.setState('set', 'addToSetBtn', result.total > 0 ? 'ready' : 'disabled'),
-              effects.setAttr('set', 'addToSetBtn', 'disabled', result.total > 0 ? null : ''),
-            ]);
-          } else if (['form', 'spans'].includes(featureName) && !result) {
-            // Скидаємо результати якщо немає даних
-            effects.batch([
-              effects.setText('results', 'totalPrice', '0.00 ₴'),
-              effects.setText('results', 'totalWithoutIsolators', '0.00 ₴'),
-              effects.setText('results', 'zeroBase', '0.00 ₴'),
-            ]);
+          if (['form', 'spans'].includes(featureName)) {
+            renderRackResults(result, effects);
           }
         },
-        needsRecalculation: ({ feature, changes }) => ['form', 'spans'].includes(feature),
+        needsRecalculation: ({ feature }) => ['form', 'spans'].includes(feature),
+
         onError: (error, context) => {
           console.error('[RackPage] Calculation error:', error, context);
           effects.setText('results', 'totalPrice', 'Помилка розрахунку');
@@ -213,7 +209,7 @@ export const rackPage = createPageModule({
       });
 
       // ===== 6. VERTICAL SUPPORTS BLOCKING LOGIC =====
-      const verticalSupportsEl = document.querySelector(RACK_SELECTORS.form.verticalSupports);
+      const verticalSupportsEl = query(RACK_SELECTORS.form.verticalSupports)();
 
       const updateVerticalSupportsState = () => {
         const floors = form.selectors.getField('floors');
@@ -242,10 +238,23 @@ export const rackPage = createPageModule({
       });
 
       // ===== 6. INTERACTIVE ELEMENTS (AUTO-HANDLER) =====
-      const pageContainer = document.querySelector(RACK_SELECTORS.page);
+      const pageContainer = query(RACK_SELECTORS.page)();
       const autoHandler = pageContainer
         ? createAutoHandler(pageContainer, { form, spans, results, rackSet })
         : { cleanup: () => {} };
+
+      // ===== 6.5. CUSTOM HANDLER FOR ADD TO SET BUTTON =====
+      const addToSetBtn = query(RACK_SELECTORS.results.addToSetBtn)();
+      const handleAddToSet = () => {
+        const rackData = results.selectors.getRack();
+        if (rackData && rackData.total > 0) {
+          rackSet.actions.addRack({ rack: rackData });
+        }
+      };
+
+      if (addToSetBtn) {
+        addListener('click', handleAddToSet);
+      }
 
       // ===== 7. ЗАПУСК ОРКЕСТРАЦІЇ =====
       page.init();
@@ -256,6 +265,9 @@ export const rackPage = createPageModule({
         autoHandler.cleanup();
         spansUnsubscribe?.();
         formUnsubscribe?.();
+        if (addToSetBtn) {
+          addToSetBtn.removeEventListener('click', handleAddToSet);
+        }
         _pageState.delete(rackPage);
       };
     },

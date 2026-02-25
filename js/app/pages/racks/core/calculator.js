@@ -3,6 +3,22 @@
 import { log } from '../../../config/env.js';
 
 /**
+ * Перевірити наявність обов'язкових даних
+ * Виводить лог з назвою функції та відсутнім полем
+ * @param {any} value - значення для перевірки
+ * @param {string} fieldName - назва поля
+ * @param {string} callerFn - назва функції, що викликає
+ * @returns {boolean} - true якщо валідне, false якщо ні
+ */
+const validateRequired = (value, fieldName, callerFn) => {
+  if (!value) {
+    log(`[${callerFn}] Missing required field: ${fieldName}`);
+    return false;
+  }
+  return true;
+};
+
+/**
  * @typedef {Object} RackConfig
  * @property {number} floors - кількість поверхів
  * @property {number} rows - кількість рядів
@@ -64,10 +80,20 @@ export const calculateRack = (data) => {
   }
 
   // 1. Валідація вхідних даних
-  if (!form || !price || spans.length === 0) {
-    log('[calculateRack] invalid data');
+  if (
+    !validateRequired(form, 'form', 'calculateRack') ||
+    !validateRequired(price, 'price', 'calculateRack') ||
+    !validateRequired(spans.length, 'spans', 'calculateRack') ||
+    !validateRequired(form.floors, 'form.floors', 'calculateRack') ||
+    !validateRequired(form.rows, 'form.rows', 'calculateRack') ||
+    !validateRequired(form.supports, 'form.supports', 'calculateRack') ||
+    !validateRequired(form.beamsPerRow, 'form.beamsPerRow', 'calculateRack') ||
+    (form.floors > 1 &&
+      !validateRequired(form.verticalSupports, 'form.verticalSupports', 'calculateRack'))
+  ) {
     return null;
   }
+  log('[calculateRack] form', form);
 
   const isEnoughDataForCalculation =
     price !== null ||
@@ -90,8 +116,6 @@ export const calculateRack = (data) => {
     log('[calculateRack] no valid spans');
     return null;
   }
-  log('[calculateRack] form', form);
-  log('[calculateRack] form', form.floors, form.rows, form.beamsPerRow);
 
   // 3. Розрахунок параметрів стелажа
   const rackConfig = {
@@ -182,16 +206,16 @@ const calculateComponents = (config, price) => {
  * @returns {ComponentItem[]}
  */
 const calculateSupports = (config, price) => {
-  const { floors, rows, spans, supports } = config;
+  const { floors, spans, supports } = config;
   const result = [];
 
   // Кількість прольотів
   const totalSpans = spans.reduce((sum, s) => sum + (s.quantity || 0), 0);
 
-  // Крайні опори: 2 × поверхи × ряди
-  const edgeSupports = 2 * floors * rows;
-  // Проміжні опори: (прольоти - 1) × поверхи × ряди
-  const intermediateSupports = Math.max(0, totalSpans - 1) * floors * rows;
+  // Крайні опори: 2 × поверхи
+  const edgeSupports = 2 * floors;
+  // Проміжні опори: (прольоти - 1) × поверхи
+  const intermediateSupports = Math.max(0, totalSpans - 1) * floors;
 
   // Ціни з прайсу
   const supportPrice = price.supports?.[supports];
@@ -235,7 +259,6 @@ const calculateSpans = (config, price) => {
     spansMap.set(code, current + qty);
   });
 
-  // Перетворюємо в масив компонентів
   const result = [];
   spansMap.forEach((amount, code) => {
     const beamPrice = price.spans?.[code]?.price || 0;
@@ -245,6 +268,12 @@ const calculateSpans = (config, price) => {
       price: beamPrice,
       total: amount * beamPrice,
     });
+  });
+
+  result.sort((a, b) => {
+    const aCode = parseInt(a.name.replace('Балка ', '')) || 0;
+    const bCode = parseInt(b.name.replace('Балка ', '')) || 0;
+    return aCode - bCode;
   });
 
   return result;

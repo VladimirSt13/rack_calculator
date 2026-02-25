@@ -20,13 +20,23 @@ export const createRackSetContext = () =>
     createActions: (state) => ({
       /**
        * Додати стелаж до комплекту (об'єднати якщо вже існує)
-       * @param {{ rack: import('../results/state.js').ResultsState, qty?: number }} payload
+       * @param {{ rack?: import('../results/state.js').ResultsState, qty?: number } | null} payload
        */
-      addRack: ({ rack, qty = 1 }) => {
+      addRack: (payload) => {
         const current = state.get();
+        
+        // Отримуємо дані з payload
+        const rackData = payload?.rack;
+        
+        if (!rackData) {
+          console.warn('[Set.addRack] No rack data provided');
+          return;
+        }
+
+        const qty = payload?.qty ?? 1;
 
         // Генеруємо унікальний ID на основі характеристик стелажа
-        const id = rack.name || `${rack.components?.supports?.name || 'rack'}_${rack.total}`;
+        const id = rackData.name || `${rackData.components?.supports?.name || 'rack'}_${rackData.total}`;
         const existing = current.racks.find((r) => r.id === id);
 
         if (existing) {
@@ -35,7 +45,7 @@ export const createRackSetContext = () =>
           state.updateField('racks', newRacks);
         } else {
           // Додаємо новий стелаж
-          state.updateField('racks', [...current.racks, { id, rack: structuredClone(rack), qty }]);
+          state.updateField('racks', [...current.racks, { id, rack: structuredClone(rackData), qty }]);
         }
       },
 

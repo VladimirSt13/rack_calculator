@@ -76,9 +76,8 @@ export const createPageContext = ({
       const inputData = collectInputData();
       const result = calculator(inputData);
 
-      if (result) {
-        renderResult(featureName, result);
-      }
+      // Викликати renderResult завжди (навіть з null для скидання UI)
+      renderResult(featureName, result);
     } catch (error) {
       console.error(`[PageContext] Error handling ${featureName} change:`, error);
       onError?.(error, { feature: featureName, changes });
