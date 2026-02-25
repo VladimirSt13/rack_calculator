@@ -35,6 +35,14 @@ export const createRackResultsContext = () =>
       clear: () => {
         state.set(initialResultsState);
       },
+
+      /**
+       * Перемкнути видимість цін
+       * @param {boolean} show
+       */
+      togglePrices: (show) => {
+        state.updateField('showPrices', show);
+      },
     }),
 
     createSelectors: (state) => ({
@@ -85,6 +93,12 @@ export const createRackResultsContext = () =>
        * @returns {ResultsState}
        */
       getData: () => state.get(),
+
+      /**
+       * Отримати стан видимості цін
+       * @returns {boolean}
+       */
+      getShowPrices: () => state.get().showPrices,
     }),
   });
 

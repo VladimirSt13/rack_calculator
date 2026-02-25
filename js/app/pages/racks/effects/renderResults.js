@@ -9,7 +9,7 @@ export const renderRackResults = (result, effects) => {
   if (!result) {
     // Скидання до початкового стану
     effects.batch([
-      effects.setText('results', 'name', ''),
+      effects.setText('results', 'name', '---'),
       effects.setHTML('results', 'componentsTable', ''),
       effects.setText('results', 'totalPrice', '0.00 ₴'),
       effects.setText('results', 'totalWithoutIsolators', '0.00 ₴'),
@@ -26,7 +26,11 @@ export const renderRackResults = (result, effects) => {
     effects.setText('results', 'name', result.name),
     effects.setHTML('results', 'componentsTable', result.tableHtml),
     effects.setText('results', 'totalPrice', `${result.total.toFixed(2)} ₴`),
-    effects.setText('results', 'totalWithoutIsolators', `${result.totalWithoutIsolators.toFixed(2)} ₴`),
+    effects.setText(
+      'results',
+      'totalWithoutIsolators',
+      `${result.totalWithoutIsolators.toFixed(2)} ₴`,
+    ),
     effects.setText('results', 'zeroBase', `${result.zeroBase.toFixed(2)} ₴`),
     effects.setState('results', 'componentsTable', 'ready'),
     effects.setState('set', 'addToSetBtn', 'ready'),

@@ -24,10 +24,10 @@ export const createRackSetContext = () =>
        */
       addRack: (payload) => {
         const current = state.get();
-        
+
         // Отримуємо дані з payload
         const rackData = payload?.rack;
-        
+
         if (!rackData) {
           console.warn('[Set.addRack] No rack data provided');
           return;

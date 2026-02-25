@@ -133,8 +133,8 @@ export const calculateRack = (data) => {
   // 5. Генерація назви
   const name = generateRackName(rackConfig);
 
-  // 6. Генерація HTML таблиці
-  const tableHtml = generateComponentsTable(components);
+  // 6. Генерація HTML таблиці (за замовчуванням показуємо ціни)
+  const tableHtml = generateComponentsTable(components, true);
 
   // 7. Підрахунок загальної вартості
   const total = calculateTotalCost(components);
@@ -411,20 +411,24 @@ const generateRackName = (config) => {
 /**
  * Генерація HTML таблиці компонентів
  * @param {Object.<string, ComponentItem|ComponentItem[]>} components
+ * @param {boolean} showPrices - чи показувати ціни
  * @returns {string}
  */
-const generateComponentsTable = (components) => {
+const generateComponentsTable = (components, showPrices = true) => {
   const rows = [];
+  const priceVisibilityClass = showPrices ? '' : ' rack__prices-hidden';
+  const checkboxCheckedAttr = showPrices ? 'checked' : '';
+  const toggleLabelText = showPrices ? 'Приховати ціни' : 'Показати ціни';
 
-  for (const [type, items] of Object.entries(components)) {
+  for (const items of Object.values(components)) {
     const itemsArray = Array.isArray(items) ? items : [items];
     itemsArray.forEach((item) => {
       rows.push(`
         <tr class="rack__components-table__row">
           <td>${item.name}</td>
           <td>${item.amount}</td>
-          <td>${item.price.toFixed(2)}</td>
-          <td>${item.total.toFixed(2)}</td>
+          <td class="rack__price-cell" data-price="${item.price.toFixed(2)}">${item.price.toFixed(2)}</td>
+          <td class="rack__price-cell" data-total="${item.total.toFixed(2)}">${item.total.toFixed(2)}</td>
         </tr>
       `);
     });
@@ -435,19 +439,31 @@ const generateComponentsTable = (components) => {
   }
 
   return `
-    <table class="rack__components-table__table">
-      <thead>
-        <tr class="rack__components-table__header">
-          <th>Компонент</th>
-          <th>Кількість</th>
-          <th>Ціна за од.</th>
-          <th>Загальна вартість</th>
-        </tr>
-      </thead>
-      <tbody class="rack__components-table__body">
-        ${rows.join('')}
-      </tbody>
-    </table>
+    <div class="rack__components-table-wrapper${priceVisibilityClass}">
+      <div class="rack__price-toggle">
+        <label class="rack__price-toggle-label">
+          <input
+            type="checkbox"
+            data-js="rack-togglePrices"
+            ${checkboxCheckedAttr}
+          />
+          <span class="rack__price-toggle-text">${toggleLabelText}</span>
+        </label>
+      </div>
+      <table class="rack__components-table__table">
+        <thead>
+          <tr class="rack__components-table__header">
+            <th>Компонент</th>
+            <th>Кількість</th>
+            <th class="rack__price-header">Ціна за од.</th>
+            <th class="rack__price-header">Загальна вартість</th>
+          </tr>
+        </thead>
+        <tbody class="rack__components-table__body">
+          ${rows.join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 };
 

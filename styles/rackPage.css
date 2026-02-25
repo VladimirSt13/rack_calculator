@@ -205,6 +205,50 @@
   /* Стилі таблиці вже в global.css */
 }
 
+/* Приховування цін */
+.rack__components-table-wrapper.rack__prices-hidden .rack__price-cell,
+.rack__components-table-wrapper.rack__prices-hidden .rack__price-header {
+  display: none;
+}
+
+.rack__price-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-sm);
+}
+
+.rack__price-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.rack__price-toggle-label:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-primary);
+}
+
+.rack__price-toggle-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.rack__price-toggle-text {
+  font-size: var(--font-size-xs);
+  color: inherit;
+  white-space: nowrap;
+}
+
 .rack__price {
   margin-top: var(--spacing-md);
   margin-left: auto;

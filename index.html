@@ -53,7 +53,6 @@
             <div class="rack__top-row">
               <!-- Ліва колонка: Форма -->
               <aside class="rack__form-column">
-                <h3 class="rack__section-title">Параметри</h3>
                 <form
                   class="form"
                   novalidate
@@ -62,6 +61,7 @@
                   data-state="ready"
                 >
                   <fieldset class="form__fieldset">
+                    <legend class="form__legend">Параметри</legend>
                     <!-- Кількість поверхів -->
                     <div class="form__group">
                       <label class="form__label" for="rack-floors">
@@ -195,11 +195,13 @@
 
               <!-- Права колонка: Результати-->
               <div class="rack__results-column">
-                <h3 class="rack__section-title">Стелаж</h3>
                 <!-- Картка: Стелаж (єдиний артикль) -->
                 <article class="card card--result">
                   <header class="card__header">
-                    <h3 class="card__title">Назва:</h3>
+                    <h3 class="card-title">Стелаж</h3>
+                  </header>
+                  <div class="card__body">
+                    <h4 class="rack__subsection-title">Назва:</h4>
                     <output
                       class="result-value result-value--primary"
                       data-js="rackName"
@@ -208,8 +210,6 @@
                       data-state="empty"
                       >---</output
                     >
-                  </header>
-                  <div class="card__body">
                     <h4 class="rack__subsection-title">Компоненти стелажа</h4>
                     <div
                       class="data-table"
@@ -257,9 +257,11 @@
 
             <!-- Нижній ряд: Комплект на всю ширину -->
             <div class="rack__set-full">
-              <h3 class="rack__section-title">Комплект стелажів</h3>
               <!-- Картка: Комплект стелажів -->
               <article class="card card--set">
+                <header class="card__header">
+                  <h3 class="card-title">Комплект стелажів</h3>
+                </header>
                 <div class="card__body">
                   <div
                     class="data-table"

@@ -18,6 +18,7 @@
  * @property {number} zeroBase - нульова вартість
  * @property {Object.<string, ComponentItem|ComponentItem[]>} components - компоненти за типами
  * @property {number|null} lastCalculated - timestamp останнього розрахунку
+ * @property {boolean} showPrices - чи показувати ціни (true = показати, false = приховати)
  */
 
 /**
@@ -32,6 +33,7 @@ export const initialResultsState = {
   zeroBase: 0,
   components: {},
   lastCalculated: null,
+  showPrices: true,
 };
 
 export default initialResultsState;

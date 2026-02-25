@@ -256,6 +256,43 @@ export const rackPage = createPageModule({
         addListener('click', handleAddToSet);
       }
 
+      // ===== 6.6. TOGGLE PRICES CHECKBOX HANDLER =====
+      const handleTogglePrices = (event) => {
+        const showPrices = event.target.checked;
+        results.actions.togglePrices(showPrices);
+
+        // Зміна тексту лейбла
+        const label = event.target.closest('.rack__price-toggle-label');
+        if (label) {
+          const textSpan = label.querySelector('.rack__price-toggle-text');
+          if (textSpan) {
+            textSpan.textContent = showPrices ? 'Приховати ціни' : 'Показати ціни';
+          }
+        }
+
+        // Перемикання видимості цін через клас на wrapper
+        const componentsTable = query(RACK_SELECTORS.results.componentsTable)();
+        if (componentsTable) {
+          const wrapper = componentsTable.querySelector('.rack__components-table-wrapper');
+          if (wrapper) {
+            if (showPrices) {
+              wrapper.classList.remove('rack__prices-hidden');
+            } else {
+              wrapper.classList.add('rack__prices-hidden');
+            }
+          }
+        }
+      };
+
+      // Делегування події для динамічно створеного чекбокса
+      if (pageContainer) {
+        pageContainer.addEventListener('change', (e) => {
+          if (e.target.matches('[data-js="rack-togglePrices"]')) {
+            handleTogglePrices(e);
+          }
+        });
+      }
+
       // ===== 7. ЗАПУСК ОРКЕСТРАЦІЇ =====
       page.init();
 
@@ -267,6 +304,9 @@ export const rackPage = createPageModule({
         formUnsubscribe?.();
         if (addToSetBtn) {
           addToSetBtn.removeEventListener('click', handleAddToSet);
+        }
+        if (pageContainer) {
+          pageContainer.removeEventListener('change', handleTogglePrices);
         }
         _pageState.delete(rackPage);
       };
