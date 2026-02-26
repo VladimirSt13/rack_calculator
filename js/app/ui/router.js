@@ -205,16 +205,15 @@ export const createRouter = (config) => {
   };
 
   const renderNavLinks = (navItems, activeId) => `
-      <ul class="nav-list">
+      <ul class="nav">
         ${navItems
           .map(
             (item) => `
           <li>
-            <a 
-              href="#view-${item.id}" 
-              class="nav-link" 
+            <a
+              href="#view-${item.id}"
+              class="nav__link ${item.id === activeId ? 'nav__link--active' : ''}"
               data-view="${item.id}"
-              ${item.id === activeId ? 'aria-current="page"' : ''}
             >
               ${item.label}
             </a>
@@ -251,10 +250,8 @@ export const createRouterEffects = (selectors) => ({
   getPageElement: (id) => document.querySelector(`[data-js="page-${id}"]`),
 
   showPage: (id) => {
-    // ✅ FIX: використовуємо data-js селектор
     const el = document.querySelector(`[data-js="page-${id}"]`);
     if (el) {
-      el.classList.add('is-active');
       el.hidden = false;
       el.removeAttribute('hidden');
       el.setAttribute('aria-hidden', 'false');
@@ -262,10 +259,8 @@ export const createRouterEffects = (selectors) => ({
   },
 
   hidePage: (id) => {
-    // ✅ FIX: використовуємо data-js селектор
     const el = document.querySelector(`[data-js="page-${id}"]`);
     if (el) {
-      el.classList.remove('is-active');
       el.hidden = true;
       el.setAttribute('hidden', 'true');
       el.setAttribute('aria-hidden', 'true');
@@ -276,11 +271,9 @@ export const createRouterEffects = (selectors) => ({
     document.querySelectorAll('[data-view]').forEach((link) => {
       const isActive = link.dataset.view === activeId;
       if (isActive) {
-        link.setAttribute('aria-current', 'page');
-        link.classList.add('is-active');
+        link.classList.add('nav__link--active');
       } else {
-        link.removeAttribute('aria-current');
-        link.classList.remove('is-active');
+        link.classList.remove('nav__link--active');
       }
     });
   },

@@ -2,10 +2,13 @@
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
-    <title>Розрахунок стелажу</title>
+    <title>Акку-енерго | Калькулятор стелажів</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Калькулятор розрахунку стелажів та підбору акумуляторів" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css?family=Roboto:regular,500,600,700,800,900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles/styles.css" />
@@ -13,532 +16,728 @@
   <body>
     <div class="app-container">
       <!-- ===== HEADER ===== -->
-      <header class="site-header">
-        <div class="header__inner">
-          <h1 class="site-title">Акку-енерго Калькулятор</h1>
+      <header class="header">
+        <div class="container header__container">
+          <div class="header__brand">
+            <div class="header__logo">А</div>
+            <div>
+              <h1 class="header__title">Акку-енерго</h1>
+              <p class="header__subtitle" style="margin: 0; font-size: 0.75rem">
+                Калькулятор стелажів
+              </p>
+            </div>
+          </div>
 
-          <nav class="site-nav" aria-label="Головна навігація" data-js="site-nav">
-            <ul class="nav-list">
+          <nav class="header__nav" aria-label="Головна навігація">
+            <ul class="nav">
               <li>
-                <a href="#view-rack" class="nav-link" data-view="rack" aria-current="page">
+                <a href="#view-rack" class="nav__link nav__link--active" data-view="rack">
+                  <svg class="nav__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect
+                      x="3"
+                      y="3"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <rect
+                      x="14"
+                      y="3"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <rect
+                      x="3"
+                      y="14"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <rect
+                      x="14"
+                      y="14"
+                      width="7"
+                      height="7"
+                      rx="1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
                   Стелаж
                 </a>
               </li>
               <li>
-                <a href="#view-battery" class="nav-link" data-view="battery"> Акумулятор </a>
+                <a href="#view-battery" class="nav__link" data-view="battery">
+                  <svg class="nav__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect
+                      x="2"
+                      y="7"
+                      width="20"
+                      height="14"
+                      rx="2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line x1="6" y1="11" x2="6" y2="17" stroke="currentColor" stroke-width="2" />
+                    <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" />
+                    <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" />
+                    <line x1="18" y1="11" x2="18" y2="17" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                  Акумулятор
+                </a>
               </li>
             </ul>
           </nav>
         </div>
       </header>
 
-      <!-- ===== MAIN ===== -->
-      <main id="app" class="site-main">
-        <!-- === Секція: Розрахунок стелажа === -->
-        <section
-          class="section section--rack"
-          aria-labelledby="rack-title"
-          data-js="page-rack"
-          data-page="rack"
-          data-state="ready"
-          hidden
-        >
-          <header class="section__header">
-            <h2 id="rack-title" class="section__title">Розрахунок стелажа</h2>
-            <p class="section__description">Налаштуйте параметри та отримайте специфікацію</p>
-          </header>
-
-          <div class="section__body">
-            <!-- Верхній ряд: Форма + Стелаж -->
-            <div class="rack__top-row">
-              <!-- Ліва колонка: Форма -->
-              <aside class="rack__form-column">
-                <form
-                  class="form"
-                  novalidate
-                  data-js="rackForm"
-                  data-feature="form"
-                  data-state="ready"
-                >
-                  <fieldset class="form__fieldset">
-                    <legend class="form__legend">Параметри</legend>
-                    <!-- Кількість поверхів -->
-                    <div class="form__group">
-                      <label class="form__label" for="rack-floors">
-                        <span class="form__label-text">Кількість поверхів</span>
-                        <input
-                          class="form__control"
-                          type="number"
-                          name="floors"
-                          min="1"
-                          max="10"
-                          value="1"
-                          required
-                          data-js="rack-floors"
-                          data-feature="form"
-                          data-action="updateField"
-                          data-field="floors"
-                          data-transform="number"
-                          data-state="ready"
-                        />
-                      </label>
-                    </div>
-
-                    <!-- Вертикальна опора -->
-                    <div class="form__group">
-                      <label class="form__label" for="rack-verticalSupports">
-                        <span class="form__label-text">Вертикальна опора</span>
-                        <select
-                          class="form__control"
-                          name="verticalSupports"
-                          required
-                          data-js="rack-verticalSupports"
-                          data-feature="form"
-                          data-action="updateField"
-                          data-field="verticalSupports"
-                          data-state="ready"
-                        ></select>
-                      </label>
-                    </div>
-
-                    <!-- Опора -->
-                    <div class="form__group">
-                      <label class="form__label" for="rack-supports">
-                        <span class="form__label-text">Опора</span>
-                        <select
-                          class="form__control"
-                          name="supports"
-                          required
-                          data-js="rack-supports"
-                          data-feature="form"
-                          data-action="updateField"
-                          data-field="supports"
-                          data-state="ready"
-                        ></select>
-                      </label>
-                    </div>
-
-                    <!-- Кількість рядів -->
-                    <div class="form__group">
-                      <label class="form__label" for="rack-rows">
-                        <span class="form__label-text">Кількість рядів</span>
-                        <input
-                          class="form__control"
-                          type="number"
-                          name="rows"
-                          min="1"
-                          max="4"
-                          value="1"
-                          required
-                          data-js="rack-rows"
-                          data-feature="form"
-                          data-action="updateField"
-                          data-field="rows"
-                          data-transform="number"
-                          data-state="ready"
-                        />
-                      </label>
-                    </div>
-
-                    <!-- Балок в ряду -->
-                    <div class="form__group">
-                      <label class="form__label" for="rack-beamsPerRow">
-                        <span class="form__label-text">Балок в ряду</span>
-                        <input
-                          class="form__control"
-                          type="number"
-                          name="beamsPerRow"
-                          min="2"
-                          max="4"
-                          value="2"
-                          required
-                          data-js="rack-beamsPerRow"
-                          data-feature="form"
-                          data-action="updateField"
-                          data-field="beamsPerRow"
-                          data-transform="number"
-                          data-state="ready"
-                        />
-                      </label>
-                    </div>
-
-                    <!-- Динамічні прольоти (spans) -->
-                    <div
-                      class="form__group form__group--dynamic"
-                      data-js="rack-spansGroup"
-                      data-feature="spans"
-                      data-state="ready"
-                    >
-                      <div class="form__label-group">
-                        <span class="form__label-text">Прольоти</span>
-                        <button
-                          type="button"
-                          class="icon-btn icon-btn--add"
-                          aria-label="Додати проліт"
-                          data-js="rack-addSpan"
-                          data-feature="spans"
-                          data-action="addSpan"
-                          data-state="ready"
-                        ></button>
-                      </div>
-                      <ul
-                        class="form__dynamic-container"
-                        data-js="rack-spansContainer"
-                        data-feature="spans"
-                        data-render-target="list"
-                        data-state="empty"
-                      ></ul>
-                    </div>
-                  </fieldset>
-                </form>
-              </aside>
-
-              <!-- Права колонка: Результати-->
-              <div class="rack__results-column">
-                <!-- Картка: Стелаж (єдиний артикль) -->
-                <article class="card card--result">
-                  <header class="card__header">
-                    <h3 class="card-title">Стелаж</h3>
-                  </header>
-                  <div class="card__body">
-                    <h4 class="rack__subsection-title">Назва</h4>
-                    <output
-                      class="result-value result-value--primary"
-                      data-js="rackName"
-                      data-feature="results"
-                      data-render-target="name"
-                      data-state="empty"
-                      >---</output
-                    >
-                    <h4 class="rack__subsection-title">Компоненти</h4>
-                    <div
-                      class="data-table"
-                      data-js="rack-componentsTable"
-                      data-feature="results"
-                      data-render-target="tableHtml"
-                      data-state="empty"
-                    ></div>
-                    <div class="rack__price">
-                      <ul class="rack__price-list">
-                        <li class="rack__price-row">
-                          <span class="rack__price-label">Загальна</span>
-                          <span class="rack__price-dots"></span>
-                          <span class="rack__price-value" data-js="rack-totalPrice">0.00 ₴</span>
-                        </li>
-                        <li class="rack__price-row">
-                          <span class="rack__price-label">Без ізоляторів</span>
-                          <span class="rack__price-dots"></span>
-                          <span class="rack__price-value" data-js="rack-totalWithoutIsolators"
-                            >0.00 ₴</span
-                          >
-                        </li>
-                        <li class="rack__price-row rack__price-row--total">
-                          <span class="rack__price-label">Нульова</span>
-                          <span class="rack__price-dots"></span>
-                          <span class="rack__price-value" data-js="rack-zeroBase">0.00 ₴</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <footer class="card__footer">
-                    <button
-                      class="btn btn--primary"
-                      data-js="rack-addToSetBtn"
-                      data-state="disabled"
-                      disabled
-                    >
-                      Додати до комплекту
-                    </button>
-                  </footer>
-                </article>
+      <!-- ===== MAIN CONTENT ===== -->
+      <main class="main" id="app">
+        <div class="container">
+          <!-- === RACK PAGE === -->
+          <section class="page" data-js="page-rack" data-page="rack" hidden>
+            <div class="page__header">
+              <div>
+                <h2 class="page__title">Розрахунок стелажа</h2>
+                <p class="page__description">Налаштуйте параметри та отримайте специфікацію</p>
               </div>
             </div>
 
-            <!-- Нижній ряд: Комплект на всю ширину -->
-            <div class="rack__set-full">
-              <!-- Картка: Комплект стелажів -->
-              <article class="card card--set">
-                <header class="card__header">
-                  <h3 class="card-title">Комплект стелажів</h3>
-                </header>
-                <div class="card__body">
-                  <div
-                    class="data-table"
-                    data-js="rack-setTable"
-                    data-feature="set"
-                    data-render-target="list"
-                    data-state="empty"
-                  ></div>
-                  <output
-                    class="result-total"
-                    data-js="rack-setSummary"
-                    data-feature="set"
-                    data-render-target="total"
-                    data-state="empty"
-                  ></output>
+            <div class="page__content page__content--two-cols">
+              <!-- Sidebar: Form -->
+              <aside class="sidebar">
+                <div class="card">
+                  <div class="card__header">
+                    <h3 class="card__title">Параметри</h3>
+                  </div>
+                  <div class="card__body">
+                    <form class="form" data-js="rackForm" data-feature="form" novalidate>
+                      <!-- Поверхи -->
+                      <div class="form__field">
+                        <label class="form__label" for="rack-floors">
+                          <span class="form__label-text">Кількість поверхів</span>
+                          <span class="form__dots"></span>
+                          <input
+                            class="form__input"
+                            type="number"
+                            id="rack-floors"
+                            name="floors"
+                            min="1"
+                            max="10"
+                            value="1"
+                            data-js="rack-floors"
+                            data-feature="form"
+                            data-action="updateField"
+                            data-field="floors"
+                            data-transform="number"
+                          />
+                        </label>
+                      </div>
+
+                      <!-- Вертикальна опора -->
+                      <div class="form__field">
+                        <label class="form__label" for="rack-verticalSupports">
+                          <span class="form__label-text">Вертикальна опора</span>
+                          <span class="form__dots"></span>
+                          <select
+                            class="form__select"
+                            id="rack-verticalSupports"
+                            name="verticalSupports"
+                            data-js="rack-verticalSupports"
+                            data-feature="form"
+                            data-action="updateField"
+                            data-field="verticalSupports"
+                          ></select>
+                        </label>
+                      </div>
+
+                      <!-- Опора -->
+                      <div class="form__field">
+                        <label class="form__label" for="rack-supports">
+                          <span class="form__label-text">Опора</span>
+                          <span class="form__dots"></span>
+                          <select
+                            class="form__select"
+                            id="rack-supports"
+                            name="supports"
+                            data-js="rack-supports"
+                            data-feature="form"
+                            data-action="updateField"
+                            data-field="supports"
+                          ></select>
+                        </label>
+                      </div>
+
+                      <!-- Ряди -->
+                      <div class="form__field">
+                        <label class="form__label" for="rack-rows">
+                          <span class="form__label-text">Кількість рядів</span>
+                          <span class="form__dots"></span>
+                          <input
+                            class="form__input"
+                            type="number"
+                            id="rack-rows"
+                            name="rows"
+                            min="1"
+                            max="4"
+                            value="1"
+                            data-js="rack-rows"
+                            data-feature="form"
+                            data-action="updateField"
+                            data-field="rows"
+                            data-transform="number"
+                          />
+                        </label>
+                      </div>
+
+                      <!-- Балки -->
+                      <div class="form__field">
+                        <label class="form__label" for="rack-beamsPerRow">
+                          <span class="form__label-text">Балок в ряду</span>
+                          <span class="form__dots"></span>
+                          <input
+                            class="form__input"
+                            type="number"
+                            id="rack-beamsPerRow"
+                            name="beamsPerRow"
+                            min="2"
+                            max="4"
+                            value="2"
+                            data-js="rack-beamsPerRow"
+                            data-feature="form"
+                            data-action="updateField"
+                            data-field="beamsPerRow"
+                            data-transform="number"
+                          />
+                        </label>
+                      </div>
+
+                      <!-- Прольоти -->
+                      <div
+                        class="form__field form__field--dynamic"
+                        data-js="rack-spansGroup"
+                        data-feature="spans"
+                      >
+                        <div class="form__label-group">
+                          <label class="form__label" for="rack-spans">
+                            <span class="form__label-text">Прольоти</span>
+                          </label>
+                          <button
+                            type="button"
+                            class="btn btn--icon btn--sm"
+                            data-js="rack-addSpan"
+                            data-action="addSpan"
+                            data-feature="spans"
+                            aria-label="Додати проліт"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M12 5v14M5 12h14"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        <div
+                          class="form__dynamic-list"
+                          data-js="rack-spansContainer"
+                          data-feature="spans"
+                          data-render-target="list"
+                        ></div>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-                <footer class="card__footer">
-                  <button
-                    class="btn btn--outline"
-                    data-js="rack-openSetModalBtn"
-                    data-modal="rackSet"
-                    data-action="openModal"
-                    data-state="disabled"
-                  >
-                    Переглянути комплект
-                  </button>
-                </footer>
-              </article>
-            </div>
-          </div>
-        </section>
+              </aside>
 
-        <!-- Комплект на всю ширину (окрема секція) -->
-
-        <!-- === Секція: Підбір під акумулятор === -->
-        <section
-          class="section section--battery"
-          aria-labelledby="battery-title"
-          data-js="page-battery"
-          data-page="battery"
-          data-state="ready"
-          hidden
-        >
-          <header class="section__header">
-            <h2 id="battery-title" class="section__title">Підбір стелажа для батареї</h2>
-            <p class="section__description">Вкажіть розміри та вагу акумулятора для пошуку</p>
-          </header>
-
-          <div class="section__body">
-            <!-- Форма -->
-            <aside class="section__sidebar">
-              <form
-                class="form"
-                novalidate
-                data-js="batteryForm"
-                data-feature="form"
-                data-state="ready"
-              >
-                <fieldset class="form__fieldset">
-                  <legend class="form__legend">Параметри акумулятора</legend>
-
-                  <!-- Довжина + допуск -->
-                  <div class="form__group form__group--inline">
-                    <label class="form__label" for="battery-length">
-                      <span class="form__label-text">Довжина (L)</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="length"
-                        required
-                        data-js="battery-length"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="length"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                    </label>
-                    <span class="form__separator">+</span>
-                    <label class="form__label" for="battery-gap">
-                      <span class="form__label-text">&Delta;</span>
-                      <input
-                        class="form__control form__control--small"
-                        type="number"
-                        name="gap"
-                        placeholder="допуск"
-                        data-js="battery-gap"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="gap"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                    </label>
-                    <span class="form__unit">мм</span>
+              <!-- Main: Results -->
+              <div class="content">
+                <!-- Rack Result Card -->
+                <article class="card card--highlight">
+                  <div class="card__header">
+                    <div class="card__header-content">
+                      <svg
+                        class="card__icon"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="7"
+                          height="7"
+                          rx="1"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <rect
+                          x="14"
+                          y="3"
+                          width="7"
+                          height="7"
+                          rx="1"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <rect
+                          x="3"
+                          y="14"
+                          width="7"
+                          height="7"
+                          rx="1"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <rect
+                          x="14"
+                          y="14"
+                          width="7"
+                          height="7"
+                          rx="1"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                      </svg>
+                      <h3 class="card__title">Стелаж</h3>
+                    </div>
                   </div>
-
-                  <!-- Ширина -->
-                  <div class="form__group">
-                    <label class="form__label" for="battery-width">
-                      <span class="form__label-text">Ширина (W)</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="width"
-                        required
-                        data-js="battery-width"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="width"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                      <span class="form__unit">мм</span>
-                    </label>
-                  </div>
-
-                  <!-- Висота -->
-                  <div class="form__group">
-                    <label class="form__label" for="battery-height">
-                      <span class="form__label-text">Висота (H)</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="height"
-                        required
-                        data-js="battery-height"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="height"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                      <span class="form__unit">мм</span>
-                    </label>
-                  </div>
-
-                  <!-- Вага -->
-                  <div class="form__group">
-                    <label class="form__label" for="battery-weight">
-                      <span class="form__label-text">Вага</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="weight"
-                        data-js="battery-weight"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="weight"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                      <span class="form__unit">кг</span>
-                    </label>
-                  </div>
-
-                  <!-- Кількість -->
-                  <div class="form__group">
-                    <label class="form__label" for="battery-count">
-                      <span class="form__label-text">Кількість</span>
-                      <input
-                        class="form__control"
-                        type="number"
-                        name="count"
-                        min="1"
-                        value="1"
-                        required
-                        data-js="battery-count"
-                        data-feature="form"
-                        data-action="updateField"
-                        data-field="count"
-                        data-transform="number"
-                        data-state="ready"
-                      />
-                      <span class="form__unit">шт</span>
-                    </label>
-                  </div>
-                </fieldset>
-                <button
-                  type="submit"
-                  class="btn btn--primary btn--block"
-                  data-js="battery-calculateBtn"
-                  data-feature="form"
-                  data-action="calculate"
-                  data-state="ready"
-                >
-                  Підібрати варіанти
-                </button>
-              </form>
-            </aside>
-
-            <!-- Результати -->
-            <div class="section__content" data-feature="results">
-              <article class="card card--results">
-                <header class="card__header">
-                  <h3 class="card__title">Знайдені варіанти</h3>
-                </header>
-                <div class="card__body">
-                  <div class="data-table__wrapper">
-                    <table
-                      class="data-table"
-                      data-js="battery-resultsTable"
-                      data-feature="results"
-                      data-render-target="table"
-                      data-state="empty"
-                    >
-                      <thead>
-                        <tr>
-                          <th>Стелаж</th>
-                          <th>Габарити</th>
-                          <th>Навантаження</th>
-                          <th>Ціна</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody
-                        data-js="battery-resultsBody"
+                  <div class="card__body">
+                    <div class="result-block">
+                      <span class="result-block__label">Назва</span>
+                      <output
+                        class="result-block__value result-block__value--lg"
+                        data-js="rackName"
                         data-feature="results"
-                        data-render-target="tableBody"
-                        data-state="empty"
-                      ></tbody>
-                    </table>
+                        data-render-target="name"
+                        >---</output
+                      >
+                    </div>
+
+                    <div class="result-block">
+                      <span class="result-block__label">Компоненти</span>
+                      <div
+                        class="table-container"
+                        data-js="rack-componentsTable"
+                        data-feature="results"
+                        data-render-target="tableHtml"
+                      ></div>
+                    </div>
+
+                    <div class="pricing">
+                      <h4>Вартість</h4>
+                      <div class="pricing__row">
+                        <span class="pricing__label">Загальна</span>
+                        <span class="pricing__dots"></span>
+                        <span class="pricing__value" data-js="rack-totalPrice">0.00 ₴</span>
+                      </div>
+                      <div class="pricing__row">
+                        <span class="pricing__label">Без ізоляторів</span>
+                        <span class="pricing__dots"></span>
+                        <span class="pricing__value" data-js="rack-totalWithoutIsolators"
+                          >0.00 ₴</span
+                        >
+                      </div>
+                      <div class="pricing__row pricing__row--total">
+                        <span class="pricing__label">Нульова</span>
+                        <span class="pricing__dots"></span>
+                        <span class="pricing__value pricing__value--lg" data-js="rack-zeroBase"
+                          >0.00 ₴</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card__footer">
+                    <button
+                      class="btn btn--primary"
+                      data-js="rack-addToSetBtn"
+                      data-feature="set"
+                      data-action="addRack"
+                      data-state="disabled"
+                      disabled
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M12 5v14M5 12h14"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        />
+                      </svg>
+                      Додати до комплекту
+                    </button>
+                  </div>
+                </article>
+
+                <!-- Rack Set Card -->
+                <article class="card card--dashed">
+                  <div class="card__header">
+                    <div class="card__header-content">
+                      <svg
+                        class="card__icon"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M20 7h-9M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <path d="M14 3v4a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="2" />
+                      </svg>
+                      <h3 class="card__title">Комплект стелажів</h3>
+                    </div>
+                  </div>
+                  <div class="card__body">
+                    <div
+                      class="table-container"
+                      data-js="rack-setTable"
+                      data-feature="set"
+                      data-render-target="list"
+                    ></div>
+                    <output
+                      class="result-total"
+                      data-js="rack-setSummary"
+                      data-feature="set"
+                      data-render-target="total"
+                    ></output>
+                  </div>
+                  <div class="card__footer">
+                    <button
+                      class="btn btn--outline"
+                      data-js="rack-openSetModalBtn"
+                      data-feature="set"
+                      data-action="openModal"
+                      data-modal="rackSet"
+                      data-state="disabled"
+                    >
+                      Переглянути комплект
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M9 18l6-6-6-6"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <!-- === BATTERY PAGE === -->
+          <section class="page" data-js="page-battery" data-page="battery" hidden>
+            <div class="page__header">
+              <div>
+                <h2 class="page__title">Підбір стелажа для батареї</h2>
+                <p class="page__description">Вкажіть розміри та вагу акумулятора для пошуку</p>
+              </div>
+            </div>
+
+            <div class="page__content page__content--two-cols">
+              <!-- Sidebar: Form -->
+              <aside class="sidebar">
+                <div class="card">
+                  <div class="card__header">
+                    <h3 class="card__title">Параметри акумулятора</h3>
+                  </div>
+                  <div class="card__body">
+                    <form class="form" data-js="batteryForm" data-feature="form" novalidate>
+                      <!-- Довжина + допуск -->
+                      <div class="form__field">
+                        <label class="form__label" for="battery-length">
+                          <span class="form__label-text">Довжина</span>
+                          <span class="form__dots"></span>
+                          <div class="form__input-group">
+                            <input
+                              class="form__input"
+                              type="number"
+                              id="battery-length"
+                              name="length"
+                              placeholder="0"
+                              data-js="battery-length"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="length"
+                              data-transform="number"
+                            />
+                            <span class="form__separator">+</span>
+                            <input
+                              class="form__input form__input--sm"
+                              type="number"
+                              id="battery-gap"
+                              name="gap"
+                              placeholder="Δ"
+                              data-js="battery-gap"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="gap"
+                              data-transform="number"
+                            />
+                            <span class="form__unit">мм</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Ширина -->
+                      <div class="form__field">
+                        <label class="form__label" for="battery-width">
+                          <span class="form__label-text">Ширина</span>
+                          <span class="form__dots"></span>
+                          <div class="form__input-group">
+                            <input
+                              class="form__input"
+                              type="number"
+                              id="battery-width"
+                              name="width"
+                              placeholder="0"
+                              data-js="battery-width"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="width"
+                              data-transform="number"
+                            />
+                            <span class="form__unit">мм</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Висота -->
+                      <div class="form__field">
+                        <label class="form__label" for="battery-height">
+                          <span class="form__label-text">Висота</span>
+                          <span class="form__dots"></span>
+                          <div class="form__input-group">
+                            <input
+                              class="form__input"
+                              type="number"
+                              id="battery-height"
+                              name="height"
+                              placeholder="0"
+                              data-js="battery-height"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="height"
+                              data-transform="number"
+                            />
+                            <span class="form__unit">мм</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Вага -->
+                      <div class="form__field">
+                        <label class="form__label" for="battery-weight">
+                          <span class="form__label-text">Вага</span>
+                          <span class="form__dots"></span>
+                          <div class="form__input-group">
+                            <input
+                              class="form__input"
+                              type="number"
+                              id="battery-weight"
+                              name="weight"
+                              placeholder="0"
+                              data-js="battery-weight"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="weight"
+                              data-transform="number"
+                            />
+                            <span class="form__unit">кг</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Кількість -->
+                      <div class="form__field">
+                        <label class="form__label" for="battery-count">
+                          <span class="form__label-text">Кількість</span>
+                          <span class="form__dots"></span>
+                          <div class="form__input-group">
+                            <input
+                              class="form__input"
+                              type="number"
+                              id="battery-count"
+                              name="count"
+                              min="1"
+                              value="1"
+                              data-js="battery-count"
+                              data-feature="form"
+                              data-action="updateField"
+                              data-field="count"
+                              data-transform="number"
+                            />
+                            <span class="form__unit">шт</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <button
+                        type="submit"
+                        class="btn btn--primary btn--block btn--lg"
+                        data-js="battery-calculateBtn"
+                        data-feature="form"
+                        data-action="calculate"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                          <path
+                            d="M21 21l-4.35-4.35"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                          />
+                          <path
+                            d="M11 8v6M8 11h6"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                        Підібрати варіанти
+                      </button>
+                    </form>
                   </div>
                 </div>
-              </article>
+              </aside>
+
+              <!-- Main: Results -->
+              <div class="content">
+                <article class="card">
+                  <div class="card__header">
+                    <div class="card__header-content">
+                      <svg
+                        class="card__icon"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <rect
+                          x="9"
+                          y="3"
+                          width="6"
+                          height="4"
+                          rx="1"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <path
+                          d="M9 12h6M9 16h6"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        />
+                      </svg>
+                      <h3 class="card__title">Знайдені варіанти</h3>
+                    </div>
+                  </div>
+                  <div class="card__body">
+                    <div class="table-container">
+                      <table class="table" data-js="battery-resultsTable" data-feature="results">
+                        <thead>
+                          <tr>
+                            <th>Стелаж</th>
+                            <th>Габарити</th>
+                            <th>Навантаження</th>
+                            <th class="text-right">Ціна</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody
+                          data-js="battery-resultsBody"
+                          data-feature="results"
+                          data-render-target="tableBody"
+                        ></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </article>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
 
-      <!-- ===== MODALS ===== -->
-
-      <!-- Модалка: Комплект стелажів -->
+      <!-- ===== MODAL: RACK SET ===== -->
       <dialog
         class="modal"
-        aria-labelledby="modal-rackSet-title"
         data-js="modal-rackSet"
         data-modal="rackSet"
-        data-state="closed"
+        aria-labelledby="modal-title"
       >
-        <div class="modal__dialog">
-          <header class="modal__header">
-            <h3 id="modal-rackSet-title" class="modal__title">Деталі комплекту</h3>
+        <div class="modal__overlay"></div>
+        <div class="modal__content">
+          <div class="modal__header">
+            <div>
+              <h3 id="modal-title" class="modal__title">Деталі комплекту</h3>
+              <p class="modal__description">Перегляньте та відредагуйте ваш комплект стелажів</p>
+            </div>
             <button
               class="modal__close"
               type="button"
-              aria-label="Закрити"
               data-js="modal-close"
               data-modal="rackSet"
+              data-feature="set"
               data-action="closeModal"
-              data-state="ready"
+              aria-label="Закрити модальне вікно"
             >
-              &times;
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
             </button>
-          </header>
+          </div>
           <div class="modal__body">
             <div
-              class="data-table"
+              class="table-container"
               data-js="modal-rackSetTable"
               data-feature="set"
               data-render-target="list"
-              data-state="empty"
             ></div>
             <output
-              class="result-total result-total--modal"
+              class="result-total result-total--lg"
               data-js="modal-rackSetSummary"
               data-feature="set"
               data-render-target="total"
-              data-state="empty"
             ></output>
           </div>
-          <footer class="modal__footer">
+          <div class="modal__footer">
             <button
               class="btn btn--outline"
               data-js="modal-close"
               data-modal="rackSet"
+              data-feature="set"
               data-action="closeModal"
-              data-state="ready"
             >
               Закрити
             </button>
@@ -549,16 +748,25 @@
               data-action="exportSet"
               data-state="disabled"
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
               Експортувати
             </button>
-          </footer>
+          </div>
         </div>
       </dialog>
 
       <!-- ===== FOOTER ===== -->
-      <footer class="site-footer">
-        <div class="footer__inner">
-          <p>&copy; 2026 Акку-енерго. Всі права захищені.</p>
+      <footer class="footer">
+        <div class="container footer__container">
+          <p class="footer__text">&copy; 2026 Акку-енерго. Всі права захищені.</p>
         </div>
       </footer>
     </div>

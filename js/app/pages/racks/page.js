@@ -92,6 +92,7 @@ export const rackPage = createPageModule({
 
       // ===== 4. INITIALIZE SPANS =====
       const spansContainer = query(RACK_SELECTORS.spans.container)();
+      
       if (spansContainer) {
         renderAllSpans(spansContainer, spans.selectors.getSpans(), spanOptions);
       }

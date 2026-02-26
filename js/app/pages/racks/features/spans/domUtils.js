@@ -42,13 +42,13 @@ export const updateSpanRow = (container, id, span, spanOptions) => {
   }
 
   // ✅ Оновити select
-  const select = row.querySelector('.span-select');
+  const select = row.querySelector('.span-row__select');
   if (select && select.value !== span.item) {
     select.value = span.item;
   }
 
   // ✅ Оновити input quantity
-  const input = row.querySelector('.span-quantity');
+  const input = row.querySelector('.span-row__input');
   if (input && input.value !== (span.quantity ?? '')) {
     input.value = span.quantity ?? '';
   }

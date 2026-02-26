@@ -2,17 +2,15 @@
 
 /**
  * Debug Panel Styles
- * Інтегровано в shadcn/ui дизайн-систему
  */
 
 @layer debug {
-  /* ===== CONTAINER ===== */
   #debug-panel {
     position: fixed;
     bottom: 0;
     right: 0;
-    z-index: var(--z-modal);
-    width: min(420px, 95vw);
+    z-index: 1050;
+    width: min(400px, 95vw);
     max-height: 70vh;
     background-color: hsl(var(--card));
     border: 1px solid hsl(var(--border));
@@ -21,14 +19,13 @@
     display: flex;
     flex-direction: column;
     font-size: var(--font-size-sm);
-    transition: transform var(--transition-all);
+    transition: transform var(--transition-normal);
   }
 
   #debug-panel[data-collapsed='true'] {
     transform: translateY(calc(100% - 48px));
   }
 
-  /* ===== HEADER ===== */
   .debug-panel__header {
     display: flex;
     align-items: center;
@@ -41,11 +38,8 @@
   }
 
   .debug-panel__title {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
   }
 
   .debug-panel__toggle {
@@ -56,14 +50,12 @@
     cursor: pointer;
     padding: var(--spacing-1);
     border-radius: var(--radius);
-    transition: background-color var(--transition-all);
   }
 
   .debug-panel__toggle:hover {
     background-color: hsl(var(--foreground) / 0.15);
   }
 
-  /* ===== BODY ===== */
   .debug-panel__body {
     padding: var(--spacing-3);
     overflow-y: auto;
@@ -71,7 +63,6 @@
     gap: var(--spacing-4);
   }
 
-  /* ===== SECTIONS ===== */
   .debug-section {
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
@@ -85,9 +76,6 @@
     font-size: var(--font-size-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     color: hsl(var(--muted-foreground));
   }
 
@@ -97,15 +85,8 @@
     overflow-y: auto;
   }
 
-  /* ===== STATE INSPECTOR ===== */
-  .debug-state__selector {
-    display: flex;
-    gap: var(--spacing-2);
-    margin-bottom: var(--spacing-2);
-  }
-
   .debug-state__input {
-    flex: 1;
+    width: 100%;
     padding: var(--spacing-2);
     border: 1px solid hsl(var(--input));
     border-radius: var(--radius);
@@ -113,28 +94,13 @@
     font-family: var(--font-family-mono);
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    margin-bottom: var(--spacing-2);
   }
 
   .debug-state__input:focus {
     outline: none;
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-  }
-
-  .debug-state__btn {
-    padding: var(--spacing-2) var(--spacing-3);
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    transition: opacity var(--transition-all);
-  }
-
-  .debug-state__btn:hover {
-    opacity: 0.9;
   }
 
   .debug-state__output {
@@ -150,7 +116,6 @@
     color: hsl(var(--foreground));
   }
 
-  /* ===== LOGS ===== */
   .debug-log {
     display: flex;
     gap: var(--spacing-2);
@@ -174,7 +139,7 @@
     border-radius: var(--radius);
     font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .debug-log__type--info {
@@ -192,95 +157,29 @@
     color: hsl(var(--destructive));
   }
 
-  .debug-log__type--http {
-    background-color: hsl(var(--success) / 0.1);
-    color: hsl(var(--success));
-  }
-
   .debug-log__message {
     flex: 1;
     word-break: break-word;
     color: hsl(var(--foreground));
   }
 
-  /* ===== LISTENERS TABLE ===== */
-  .debug-listeners__table {
-    width: 100%;
-    font-size: var(--font-size-xs);
-    border-collapse: collapse;
-  }
-
-  .debug-listeners__table th,
-  .debug-listeners__table td {
-    padding: var(--spacing-2);
-    border-bottom: 1px solid hsl(var(--border));
-    text-align: left;
-    color: hsl(var(--foreground));
-  }
-
-  .debug-listeners__table th {
-    font-weight: var(--font-weight-semibold);
-    background-color: hsl(var(--secondary));
-    font-size: 10px;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .debug-listeners__table code {
-    font-family: var(--font-family-mono);
-    background-color: hsl(var(--foreground) / 0.05);
-    padding: 2px 4px;
-    border-radius: var(--radius);
-    font-size: 0.9em;
-  }
-
-  /* ===== BADGES ===== */
-  .debug-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    font-size: 10px;
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
-  }
-
-  .debug-badge--active {
-    background-color: hsl(var(--success) / 0.15);
-    color: hsl(var(--success));
-  }
-
-  .debug-badge--inactive {
-    background-color: hsl(var(--muted-foreground) / 0.15);
-    color: hsl(var(--muted-foreground));
-  }
-
-  /* ===== SCROLLBAR ===== */
+  /* Scrollbar */
   .debug-panel__body::-webkit-scrollbar,
-  .debug-section__content::-webkit-scrollbar,
-  .debug-state__output::-webkit-scrollbar {
+  .debug-section__content::-webkit-scrollbar {
     width: 6px;
   }
 
   .debug-panel__body::-webkit-scrollbar-track,
-  .debug-section__content::-webkit-scrollbar-track,
-  .debug-state__output::-webkit-scrollbar-track {
+  .debug-section__content::-webkit-scrollbar-track {
     background: transparent;
   }
 
   .debug-panel__body::-webkit-scrollbar-thumb,
-  .debug-section__content::-webkit-scrollbar-thumb,
-  .debug-state__output::-webkit-scrollbar-thumb {
+  .debug-section__content::-webkit-scrollbar-thumb {
     background-color: hsl(var(--foreground) / 0.2);
     border-radius: 3px;
   }
 
-  .debug-panel__body::-webkit-scrollbar-thumb:hover,
-  .debug-section__content::-webkit-scrollbar-thumb:hover,
-  .debug-state__output::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--foreground) / 0.35);
-  }
-
-  /* ===== RESPONSIVE ===== */
   @media (max-width: 480px) {
     #debug-panel {
       width: 100vw;
@@ -289,14 +188,6 @@
 
     #debug-panel[data-collapsed='true'] {
       transform: translateY(calc(100% - 40px));
-    }
-
-    .debug-panel__header {
-      padding: var(--spacing-2);
-    }
-
-    .debug-panel__body {
-      padding: var(--spacing-2);
     }
   }
 }

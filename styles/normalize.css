@@ -125,20 +125,7 @@ details > summary::-webkit-details-marker {
 }
 
 /*
-  16. Remove number input spinners
-*/
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
-/*
-  17. Remove search input cancel button
+  16. Remove search input cancel button
 */
 input[type='search']::-webkit-search-decoration,
 input[type='search']::-webkit-search-cancel-button {

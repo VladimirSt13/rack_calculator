@@ -18,11 +18,11 @@ export const renderSpanRow = (id, span, spanOptions) => {
   log('[SpansRenderer]', 'renderSpanRow:', { id, span, optionsCount: spanOptions.length });
 
   return `
-    <li class="span-row form__group" data-js="span-row" data-id="${id}">
-      <select 
-        class="form__control span-select" 
-        data-action="updateSpan" 
-        data-field="item" 
+    <div class="span-row" data-js="span-row" data-id="${id}">
+      <select
+        class="form__select span-row__select"
+        data-action="updateSpan"
+        data-field="item"
         data-id="${id}"
         data-feature="spans"
       >
@@ -35,31 +35,34 @@ export const renderSpanRow = (id, span, spanOptions) => {
           )
           .join('')}
       </select>
-      
-      <input 
-        type="number" 
-        class="form__control span-quantity" 
-        data-action="updateSpan" 
-        data-field="quantity" 
+
+      <input
+        type="number"
+        class="form__input span-row__input"
+        data-action="updateSpan"
+        data-field="quantity"
         data-id="${id}"
         data-feature="spans"
         data-transform="number"
-        min="1" 
-        max="10" 
-        value="${span.quantity ?? ''}" 
+        min="1"
+        max="10"
+        value="${span.quantity ?? ''}"
         placeholder="К-сть"
       />
-      
-      <button 
-        type="button" 
-        class="icon-btn icon-btn--remove span-remove" 
-        data-action="removeSpan" 
+
+      <button
+        type="button"
+        class="btn btn--icon btn--sm span-row__remove"
+        data-action="removeSpan"
         data-id="${id}"
         data-feature="spans"
         aria-label="Видалити проліт"
-      > 
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
-    </li>
+    </div>
   `;
 };
 

@@ -2,20 +2,13 @@
 
 /**
  * Main Stylesheet
- * CSS Layers: https://developer.mozilla.org/en-US/docs/Web/CSS/@layer
- * 
- * Порядок шарів (від найнижчого пріоритету до найвищого):
- * 1. normalize - базовий скидання стилів
- * 2. global - глобальні змінні та базові компоненти
- * 3. battery-page - стилі сторінки акумулятора
- * 4. rack-page - стилі сторінки стелажа
- * 5. debug - debug panel (найвищий пріоритет)
+ * CSS Layers for proper cascade control
  */
 
-@layer normalize, global, battery-page, rack-page, debug;
+@layer normalize, global, rack-page, battery-page, debug;
 
 @import 'normalize.css' layer(normalize);
 @import 'global.css' layer(global);
-@import 'batteryPage.css' layer(battery-page);
 @import 'rackPage.css' layer(rack-page);
+@import 'batteryPage.css' layer(battery-page);
 @import 'debagPanel.css' layer(debug);

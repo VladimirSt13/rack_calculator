@@ -46,6 +46,12 @@ export const renderSetTable = (racks, container, showPrices = true, mode = 'comp
     renderFullTable(racks, container, priceVisibilityClass);
   }
 
+  // Додаємо клас для компактної таблиці
+  const table = container.querySelector('.rack__set-table');
+  if (table && mode === 'compact') {
+    table.classList.add('rack__set-table--compact');
+  }
+
   container.dataset.state = 'ready';
 };
 
@@ -168,7 +174,7 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
       <tr class="rack__set-table__components-row" data-rack-id="${rack.id}">
         <td colspan="5" class="rack__set-table__components-cell">
           <div class="rack__set-table__components-wrapper${priceVisibilityClass}">
-            <div class="rack__set-table__components-label">Комплектація:</div>
+            <div class="rack__set-table__components-label">Комплектація</div>
             <table class="rack__set-table__components-subtable">
               <thead>
                 <tr>

@@ -115,11 +115,13 @@ export const initSetModal = ({
     }
   };
 
+  // Обробка відкриття модалки (через addListener)
   if (openSetModalBtn) {
     addListener(openSetModalBtn, 'click', handleOpenSetModal);
   }
 
-  // Обробка закриття модалки
+  // Обробка закриття модалки (через data-action в InteractiveElement)
+  // Дублюємо для надійності
   modalCloseBtns.forEach((btn) => {
     addListener(btn, 'click', handleCloseModal);
   });
@@ -127,7 +129,7 @@ export const initSetModal = ({
   // Закриття модалки по кліку на backdrop
   if (modal) {
     addListener(modal, 'click', (e) => {
-      if (e.target === modal) {
+      if (e.target === modal || e.target.classList.contains('modal__overlay')) {
         handleCloseModal();
       }
     });

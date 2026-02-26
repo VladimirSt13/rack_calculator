@@ -6,7 +6,7 @@
  */
 export const GLOBAL_SELECTORS = {
   // Навігація
-  siteNav: '[data-js="site-nav"]',
+  siteNav: '.header__nav',
   navLink: '[data-view]',
 
   // Головний контейнер
