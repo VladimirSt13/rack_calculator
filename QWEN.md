@@ -1,4 +1,4 @@
-# Rack Calculator — Контекст проєкту (Оновлено: лютий 2026)
+# Rack Calculator — Контекст проєкту (Оновлено: 27 лютого 2026)
 
 ## 📋 Огляд проєкту
 
@@ -14,10 +14,11 @@
 | **Фреймворк** | Vanilla JS (ES Modules) | - |
 | **Збірник** | Vite | 5.x |
 | **Тестування** | Vitest + Testing Library | 1.x |
-| **Лінтинг** | ESLint + Prettier | 8.x / 3.x |
+| **Лінтинг** | ESLint + Prettier | 9.x / 3.x |
 | **Стилі** | CSS (Custom Properties, shadcn/ui) | - |
 | **Мова** | Українська | - |
 | **Node.js** | - | >=18.0.0 |
+| **lint-staged** | Pre-commit хуки | 16.2.7 |
 
 ### Архітектура
 
@@ -44,21 +45,41 @@ rack_calculator/
 │   │   │   │   │   ├── calculator.js
 │   │   │   │   │   ├── initRackPage.js
 │   │   │   │   │   └── rackPageState.js
+│   │   │   │   ├── config/  # Конфігурація сторінки
 │   │   │   │   ├── features/# Фічі
 │   │   │   │   │   ├── form/
 │   │   │   │   │   ├── spans/
 │   │   │   │   │   ├── results/
-│   │   │   │   │   └── set/
+│   │   │   │   │   ├── rackSet/
+│   │   │   │   │   └── priceState.js
 │   │   │   │   ├── effects/ # Рендеринг
 │   │   │   │   │   ├── renderResults.js
 │   │   │   │   │   └── renderSetTable.js
 │   │   │   │   └── page.js
 │   │   │   └── battery/
+│   │   │       ├── core/
+│   │   │       ├── config/
+│   │   │       ├── features/
+│   │   │       ├── effects/
 │   │   │       └── page.js
 │   │   ├── ui/              # UI компоненти
 │   │   │   ├── router.js
 │   │   │   ├── createPageModule.js
-│   │   │   └── createPageModule.js
+│   │   │   ├── renderNavigation.js
+│   │   │   ├── initIcons.js
+│   │   │   ├── modal/
+│   │   │   └── icons/       # SVG іконки
+│   │   │       ├── index.js
+│   │   │       ├── icon-grid.js
+│   │   │       ├── icon-battery.js
+│   │   │       ├── icon-plus.js
+│   │   │       ├── icon-minus.js
+│   │   │       ├── icon-trash.js
+│   │   │       ├── icon-x.js
+│   │   │       ├── icon-chevron-up.js
+│   │   │       ├── icon-chevron-down.js
+│   │   │       ├── icon-file.js
+│   │   │       └── icon-shield.js
 │   │   └── utils/           # Утиліти
 │   │       ├── compose.js
 │   │       ├── curry.js
@@ -71,12 +92,26 @@ rack_calculator/
 │   ├── global.css           # shadcn/ui токени
 │   ├── rackPage.css
 │   ├── batteryPage.css
-│   └── debugPanel.css
+│   ├── debagPanel.css
+│   ├── components/          # UI компоненти
+│   │   ├── button.css
+│   │   ├── card.css
+│   │   ├── form.css
+│   │   ├── modal.css
+│   │   ├── navigation.css
+│   │   └── table.css
+│   └── layout/              # Layout компоненти
+│       ├── header.css
+│       ├── page.css
+│       └── sidebar.css
 ├── tests/
+│   └── setup.js
 ├── index.html
 ├── price.json
 ├── package.json
-└── vite.config.js
+├── vite.config.js
+├── vitest.config.js
+└── .env.example
 ```
 
 ---
@@ -89,10 +124,11 @@ rack_calculator/
 
 ```
 racks/
-├── form/      # Форма введення параметрів (context, state, initForm)
-├── spans/     # Динамічне управління прольотами (context, state, domUtils, renderer)
-├── results/   # Відображення результатів (context, state, initResults)
-└── set/       # Комплект стелажів (context, state, initSetModal, renderSetTable)
+├── form/       # Форма введення параметрів (context, state, initForm)
+├── spans/      # Динамічне управління прольотами (context, state, domUtils, renderer)
+├── results/    # Відображення результатів (context, state, initResults)
+├── rackSet/    # Комплект стелажів (context, state, initRackSet)
+└── priceState.js # Глобальний стан ціни
 ```
 
 ### 2. Immutable State Management
@@ -149,10 +185,29 @@ const formContext = createFeatureContext({
 ```javascript
 const page = createPageContext({
   features: { form, spans, results, rackSet },
+  collectInputData: () => ({
+    form: form.selectors.getForm(),
+    spans: spans.selectors.getData(),
+    price,
+  }),
   calculator: (data) => calculateRack(data),
-  renderResult: (featureName, result) => { /* рендер */ },
+  renderResult: (featureName, result) => {
+    // Завжди оновлюємо results.state
+    if (result) {
+      results.actions.setResult(result);
+    } else {
+      results.actions.clear();
+    }
+
+    // Рендеримо в DOM тільки для form/spans
+    if (['form', 'spans'].includes(featureName)) {
+      renderRackResults(result, effects);
+    }
+  },
   needsRecalculation: ({ feature }) => ['form', 'spans'].includes(feature),
-  recalculationDelay: 0, // debounce для розрахунку
+  onError: (error, context) => {
+    console.error('[RackPage] Calculation error:', error, context);
+  },
 });
 
 page.init(); // Запуск оркестрації
@@ -181,6 +236,10 @@ const router = createRouter({
   routes: { rack, battery },
   defaultRoute: 'rack',
   effects: createRouterEffects(SELECTORS),
+  navItems: [
+    { id: 'rack', label: 'Стелаж' },
+    { id: 'battery', label: 'Акумулятор' },
+  ],
 });
 
 // Page module
@@ -192,6 +251,41 @@ export const rackPage = createPageModule({
     onDeactivate: (deps) => { /* деактивація */ },
   },
 });
+```
+
+### 7. createPageModule
+
+Фабрика для створення модуля сторінки:
+
+```javascript
+import { createPageModule } from '../../ui/createPageModule.js';
+
+export const rackPage = createPageModule({
+  id: PAGES.RACK,
+  lifecycle: {
+    onInit: () => { /* ініціалізація один раз */ },
+    onActivate: (deps) => { /* активація при переході */ },
+    onDeactivate: () => { /* деактивація при переході */ },
+  },
+});
+```
+
+### 8. Path Aliases (Vite)
+
+```javascript
+// vite.config.js
+resolve: {
+  alias: {
+    '@': resolve(__dirname, 'js/app'),
+    '@utils': resolve(__dirname, 'js/utils'),
+    '@effects': resolve(__dirname, 'js/app/effects'),
+    '@state': resolve(__dirname, 'js/app/state'),
+    '@config': resolve(__dirname, 'js/app/config'),
+    '@pages': resolve(__dirname, 'js/app/pages'),
+    '@ui': resolve(__dirname, 'js/app/ui'),
+    '@core': resolve(__dirname, 'js/app/core'),
+  },
+}
 ```
 
 ---
@@ -233,6 +327,12 @@ npm run analyze
 
 # Очищення
 npm run clean
+
+# Pre-commit хуки (lint-staged)
+# Автоматично запускаються при git commit:
+# - eslint --fix
+# - prettier --write
+# - vitest related --run --passWithNoTests
 ```
 
 ---
@@ -242,7 +342,29 @@ npm run clean
 ### CSS Layers
 
 ```css
-@layer normalize, global, rack-page, battery-page, debug;
+@layer normalize, global, components, layout, rack-page, battery-page, debug;
+```
+
+### Структура styles/
+
+```
+styles/
+├── styles.css           # Головний файл (імпорт шарів)
+├── normalize.css        # Нормалізація браузерів
+├── global.css           # CSS токени (shadcn/ui)
+├── rackPage.css         # Сторінка стелажа
+├── batteryPage.css      # Сторінка акумулятора
+├── debagPanel.css       # Debug панель
+├── components/          # UI компоненти
+│   ├── card.css
+│   ├── form.css
+│   ├── button.css
+│   ├── table.css
+│   └── modal.css
+└── layout/              # Layout компоненти
+    ├── header.css
+    ├── page.css
+    └── sidebar.css
 ```
 
 ### Токени (global.css)
@@ -417,7 +539,94 @@ export default createFactory;
 </dialog>
 ```
 
-### Price.json Структура
+### Vite Config (vite.config.js)
+
+```javascript
+import { defineConfig, loadEnv } from 'vite';
+import { resolve } from 'path';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    root: '.',
+    publicDir: 'public',
+
+    // Server
+    server: {
+      port: 3000,
+      open: true,
+      host: true,
+      cors: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+
+    // Build
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: true,
+      minify: 'esbuild',
+      target: 'es2022',
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+        },
+        output: {
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+        },
+      },
+    },
+
+    // CSS
+    css: {
+      devSourcemap: true,
+    },
+
+    // Aliases
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'js/app'),
+        '@utils': resolve(__dirname, 'js/utils'),
+        '@effects': resolve(__dirname, 'js/app/effects'),
+        '@state': resolve(__dirname, 'js/app/state'),
+        '@config': resolve(__dirname, 'js/app/config'),
+        '@pages': resolve(__dirname, 'js/app/pages'),
+        '@ui': resolve(__dirname, 'js/app/ui'),
+        '@core': resolve(__dirname, 'js/app/core'),
+      },
+    },
+
+    // Define
+    define: {
+      'import.meta.env.DEBUG': JSON.stringify(env.DEBUG || 'true'),
+      'import.meta.env.DEBUG_LOGGING': JSON.stringify(env.DEBUG_LOGGING || 'true'),
+    },
+  };
+});
+```
+
+---
+
+## 📦 Змінні оточення (.env.example)
+
+```bash
+# Environment mode: 'development' | 'production' | 'test'
+NODE_ENV=development
+
+# Debug flags
+DEBUG=true
+DEBUG_LOGGING=true
+```
+
+## 📦 Price.json Структура
 
 ```json
 {
@@ -452,14 +661,85 @@ export default createFactory;
 ```
 tests/
 ├── setup.js           # Глобальні налаштування (jsdom)
-├── app/
-│   ├── core/          # Тести ядрових модулів
-│   │   ├── createState.test.js
-│   │   ├── FeatureContext.test.js
-│   │   └── PageContext.test.js
-│   ├── features/      # Тести фіч
-│   └── ui/            # Тести UI компонентів
-│       └── router.test.js
+└── app/
+    ├── core/          # Тести ядрових модулів
+    │   ├── createState.test.js
+    │   ├── FeatureContext.test.js
+    │   └── PageContext.test.js
+    ├── features/      # Тести фіч
+    └── ui/            # Тести UI компонентів
+        └── router.test.js
+```
+
+### Конфігурація (vitest.config.js)
+
+```javascript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    // ===== Basic =====
+    globals: true,
+    environment: 'jsdom',
+
+    // ===== Files =====
+    include: ['tests/**/*.test.js'],
+    exclude: ['node_modules', 'dist', 'coverage'],
+
+    // ===== Setup =====
+    setupFiles: ['./tests/setup.js'],
+
+    // ===== Coverage =====
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      include: ['js/app/**/*.js'],
+      exclude: ['js/app/config/*.js', '**/*.test.js', '**/node_modules/**', '**/dist/**'],
+      threshold: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
+      watermarks: {
+        lines: [70, 90],
+        functions: [70, 90],
+        branches: [70, 90],
+        statements: [70, 90],
+      },
+    },
+
+    // ===== Reporting =====
+    reporters: ['default'],
+    outputFile: {
+      junit: './tests/results/junit.xml',
+      json: './tests/results/json.json',
+    },
+
+    // ===== Performance =====
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        minThreads: 1,
+        maxThreads: 4,
+      },
+    },
+  },
+
+  // ===== Aliases =====
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'js/app'),
+      '@utils': resolve(__dirname, 'js/utils'),
+      '@effects': resolve(__dirname, 'js/app/effects'),
+      '@state': resolve(__dirname, 'js/app/state'),
+      '@config': resolve(__dirname, 'js/app/config'),
+      '@pages': resolve(__dirname, 'js/app/pages'),
+      '@ui': resolve(__dirname, 'js/app/ui'),
+      '@core': resolve(__dirname, 'js/app/core'),
+    },
+  },
+});
 ```
 
 ### Приклад тесту
@@ -520,7 +800,27 @@ coverage: {
 }
 ```
 
-### Запуск тестів
+### Pre-commit хуки (lint-staged)
+
+```json
+{
+  "lint-staged": {
+    "js/**/*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "vitest related --run --passWithNoTests"
+    ],
+    "styles/**/*.css": [
+      "prettier --write"
+    ]
+  }
+}
+```
+
+При commit:
+1. `eslint --fix` — виправлення помилок лінтера
+2. `prettier --write` — форматування коду
+3. `vitest related --run --passWithNoTests` — запуск тестів для змінених файлів
 
 ```bash
 # Один раз
@@ -614,19 +914,37 @@ const effects = createEffectRegistry(RACK_SELECTORS);
 
 // 3. Initialize features
 initForm({ formContext: form, supportsOptions, verticalSupportsOptions });
+
+const spansContainer = query(RACK_SELECTORS.spans.container)();
 renderAllSpans(spansContainer, spans.selectors.getSpans(), spanOptions);
 subscribeSpansDOM({ spansContainer, spansContext: spans, spanOptions });
+
 initResults({ resultsContext: results, addToSetBtn, addListener });
-initSetModal({ setContext: rackSet, resultsContext: results });
+initRackSet({ rackSetContext: rackSet, resultsContext: results, formContext: form, spansContext: spans });
 
 // 4. Interactive Elements (auto-handler)
+const pageContainer = query(RACK_SELECTORS.page)();
 const autoHandler = createAutoHandler(pageContainer, { form, spans, results, rackSet });
 
 // 5. Page Context (orchestrator)
 const page = createPageContext({
   features: { form, spans, results, rackSet },
-  calculator: calculateRack,
-  renderResult: (featureName, result) => { ... },
+  collectInputData: () => ({
+    form: form.selectors.getForm(),
+    spans: spans.selectors.getData(),
+    price,
+  }),
+  calculator: (data) => calculateRack(data),
+  renderResult: (featureName, result) => {
+    if (result) {
+      results.actions.setResult(result);
+    } else {
+      results.actions.clear();
+    }
+    if (['form', 'spans'].includes(featureName)) {
+      renderRackResults(result, effects);
+    }
+  },
 });
 
 page.init(); // Підписка на зміни фіч
@@ -842,16 +1160,27 @@ state.subscribe((newState) => {
 |------|-------------|------|
 | `js/main.js` | Точка входу | Ініціалізація роутера та сторінок |
 | `js/app/ui/router.js` | Hash-роутер | Роутинг з lifecycle hooks |
+| `js/app/ui/createPageModule.js` | Фабрика page module | Створення модуля сторінки |
+| `js/app/ui/renderNavigation.js` | Рендер навігації | Генерація HTML навігації |
+| `js/app/ui/initIcons.js` | Ініціалізація іконок | Заміна SVG на JS іконки |
 | `js/app/core/createState.js` | State management | Immutable state з middleware |
 | `js/app/core/FeatureContext.js` | Фабрика фіч | Інкапсуляція стану + дії |
 | `js/app/core/PageContext.js` | Оркестратор | Координація фіч |
+| `js/app/core/EffectRegistry.js` | DOM ефекти | Реєстр ефектів для сторінки |
+| `js/app/core/InteractiveElement.js` | Auto-обробник | Автоматична обробка подій |
 | `js/app/config/app.config.js` | Конфігурація | Константи додатку |
 | `js/app/config/selectors.js` | Селектори | CSS селектори для DOM |
+| `js/app/config/env.js` | Змінні оточення | Debug флаги |
 | `js/app/pages/racks/core/calculator.js` | Бізнес-логіка | Pure function розрахунку |
 | `js/app/pages/racks/page.js` | Rack сторінка | Ініціалізація фіч |
-| `js/app/ui/icons/` | **SVG іконки** | Бібліотека іконок для переиспользования |
-| `js/app/ui/initIcons.js` | Ініціалізація іконок | Заміна SVG в HTML на JS іконки |
+| `js/app/pages/battery/page.js` | Battery сторінка | Сторінка підбору акумулятора |
+| `js/app/pages/index.js` | Реєстр сторінок | Реєстрація всіх сторінок |
 | `price.json` | Прайс-лист | Ціни компонентів |
+| `index.html` | Головний HTML | Структура додатку |
+| `styles/styles.css` | Головний CSS | Імпорт всіх шарів |
+| `vite.config.js` | Vite конфігурація | Server, build, aliases |
+| `vitest.config.js` | Vitest конфігурація | Тести, coverage |
+| `.env.example` | Змінні оточення | Debug флаги, NODE_ENV |
 
 ---
 
@@ -871,8 +1200,7 @@ js/app/ui/icons/
 ├── icon-chevron-up.js    # Chevron Up (стрілка вгору)
 ├── icon-chevron-down.js  # Chevron Down (стрілка вниз)
 ├── icon-file.js          # File (файл)
-├── icon-shield.js        # Shield (щит)
-└── index.js              # Експорт всіх іконок
+└── icon-shield.js        # Shield (щит)
 ```
 
 ### Використання
@@ -897,13 +1225,8 @@ import {
   iconX,
   iconChevronUp,
   iconChevronDown,
-  iconChevronRight,
-  iconCheck,
-  iconAlertCircle,
   iconFile,
   iconShield,
-  iconSettings,
-  iconDownload,
 } from '../../ui/icons/index.js';
 ```
 
@@ -927,6 +1250,67 @@ import { initAllIcons } from './app/ui/initIcons.js';
 const initApp = async () => {
   initAllIcons(); // Заміна SVG на JS іконки
   // ... інша ініціалізація
+};
+```
+
+### Ініціалізація в main.js
+
+```javascript
+// Точка входу
+import { createRouter, createRouterEffects, registerRoutes } from './app/ui/router.js';
+import { registerAllPages } from './app/pages/index.js';
+import { APP_CONFIG, PAGES } from './app/config/app.config.js';
+import { GLOBAL_SELECTORS } from './app/config/selectors.js';
+import { initAllIcons } from './app/ui/initIcons.js';
+
+const initApp = async () => {
+  try {
+    // ===== 0. INIT ICONS =====
+    initAllIcons();
+
+    // ===== 1. REGISTER PAGES =====
+    const { routes: pageModules } = await registerAllPages();
+
+    // ===== 2. CREATE ROUTER =====
+    const navItems = [
+      { id: PAGES.RACK, label: 'Стелаж' },
+      { id: PAGES.BATTERY, label: 'Акумулятор' },
+    ].filter((item) => item.id in pageModules);
+
+    const { routes } = registerRoutes(pageModules, {}, navItems);
+    const effects = createRouterEffects(GLOBAL_SELECTORS);
+    const router = createRouter({
+      routes,
+      defaultRoute: APP_CONFIG.DEFAULT_PAGE,
+      effects,
+      navItems,
+    });
+
+    // ===== 3. ATTACH NAVIGATION + RENDER LINKS =====
+    const navContainer = document.querySelector(GLOBAL_SELECTORS.siteNav);
+    if (navContainer) {
+      navContainer.innerHTML = router.renderNavLinks(navItems, APP_CONFIG.DEFAULT_PAGE);
+      router.attachNavigation({
+        container: navContainer,
+        linkSelector: GLOBAL_SELECTORS.navLink,
+      });
+    }
+
+    // ===== 4. INITIAL NAVIGATION =====
+    const initialHash = window.location.hash.replace('#view-', '');
+    if (initialHash && router.hasRoute(initialHash)) {
+      await router.navigate(initialHash);
+    } else {
+      await router.navigate(APP_CONFIG.DEFAULT_PAGE);
+    }
+
+    // ===== 5. CLEANUP ON UNLOAD =====
+    window.addEventListener('beforeunload', () => {
+      router.destroy();
+    });
+  } catch (error) {
+    console.error('[App] Initialization failed:', error);
+  }
 };
 ```
 
@@ -969,7 +1353,7 @@ const initApp = async () => {
 ```bash
 # Створити нову фічу
 mkdir -p js/app/pages/racks/features/newfeature
-touch js/app/pages/racks/features/newfeature/{state.js,context.js}
+touch js/app/pages/racks/features/newfeature/{state.js,context.js,actions.js}
 
 # Запустити dev
 npm run dev
@@ -988,6 +1372,10 @@ npm run preview
 
 # Візуалізація бандлу
 npm run analyze
+
+# Вимоги до Node.js
+node --version  # >=18.0.0
+npm --version   # >=9.0.0
 ```
 
 ---
@@ -1000,6 +1388,18 @@ npm run analyze
 - **Indentation**: 2 spaces
 - **Quotes**: Single quotes `'`
 - **Semicolons**: Required
+- **Pre-commit hooks**: lint-staged (eslint, prettier, vitest)
+
+### Конвенції
+
+| Тип | Конвенція | Приклад |
+|-----|-----------|---------|
+| Файли | `kebab-case.js` | `create-state.js`, `page.js` |
+| Класи | `PascalCase` | `FeatureContext`, `PageContext` |
+| Функції | `camelCase` | `createRouter`, `calculateRack` |
+| Константи | `UPPER_SNAKE_CASE` | `APP_CONFIG`, `SELECTORS` |
+| Селектори | `data-js="name"` | `data-js="rackForm"` |
+| JSDoc | Обов'язковий | `/** @type {string} */` |
 
 ---
 

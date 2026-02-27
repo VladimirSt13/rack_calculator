@@ -62,6 +62,17 @@
     margin-bottom: var(--spacing-2);
   }
 
+  /* Hide dots on mobile — vertical layout makes them unnecessary */
+  @media (max-width: 768px) {
+    .form__dots {
+      display: none;
+    }
+
+    .form__label-text {
+      text-wrap: wrap;
+    }
+  }
+
   /* =============================================================================
      FORM INPUTS
      ============================================================================= */
@@ -150,5 +161,141 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-2);
+  }
+
+  /* =============================================================================
+     RESPONSIVE - FORM
+     ============================================================================= */
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .form__input,
+    .form__select {
+      width: 90px;
+    }
+
+    .form__label {
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  /* Tablet (≤768px) */
+  @media (max-width: 768px) {
+    .form {
+      gap: var(--spacing-4);
+    }
+
+    .form__field {
+      gap: var(--spacing-2);
+    }
+
+    .form__label {
+      font-size: var(--font-size-sm);
+    }
+
+    .form__input,
+    .form__select {
+      width: 100%;
+      flex-shrink: 1;
+      height: 2.25rem;
+    }
+
+    .form__input-group {
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
+    }
+
+    .form__input--sm {
+      width: 4rem;
+    }
+
+    .form__separator {
+      font-size: var(--font-size-xs);
+    }
+
+    .form__unit {
+      font-size: var(--font-size-xs);
+    }
+
+    .form__label-group {
+      margin-bottom: var(--spacing-2);
+    }
+  }
+
+  /* Mobile (≤480px) */
+  @media (max-width: 480px) {
+    .form {
+      gap: var(--spacing-4);
+    }
+
+    .form__field {
+      gap: var(--spacing-2);
+    }
+
+    .form__label {
+      font-size: var(--font-size-xs);
+      flex-wrap: wrap;
+    }
+
+    .form__label-text {
+      text-wrap: wrap;
+    }
+
+    .form__input,
+    .form__select {
+      height: 2.25rem;
+      font-size: var(--font-size-sm);
+      width: 100%;
+    }
+
+    .form__input-group {
+      gap: var(--spacing-1);
+      width: 100%;
+    }
+
+    .form__input--sm {
+      width: 3.5rem;
+      text-align: center;
+    }
+
+    .form__separator {
+      font-size: var(--font-size-xs);
+    }
+
+    .form__unit {
+      font-size: 0.6875rem;
+    }
+
+    .form__dynamic-list {
+      gap: var(--spacing-2);
+    }
+
+    /* Touch-friendly inputs */
+    .form__input,
+    .form__select {
+      min-height: 36px;
+    }
+  }
+
+  /* Small Mobile (≤375px) */
+  @media (max-width: 375px) {
+    .form__label {
+      font-size: 0.6875rem;
+    }
+
+    .form__input,
+    .form__select {
+      font-size: var(--font-size-xs);
+      height: 2rem;
+      min-height: 32px;
+    }
+
+    .form__input--sm {
+      width: 3rem;
+    }
+
+    .form__unit {
+      font-size: 0.625rem;
+    }
   }
 }

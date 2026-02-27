@@ -101,7 +101,108 @@
   }
 
   /* =============================================================================
-     SPAN ROWS (rackPage specific - moved from rackPage.css)
+     RESPONSIVE - PAGE LAYOUT
+     ============================================================================= */
+
+  /* Desktop (≥1024px) */
+  @media (min-width: 1024px) {
+    .page__content--two-cols {
+      gap: var(--spacing-8);
+    }
+
+    .sidebar {
+      top: var(--spacing-8);
+    }
+  }
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .page__content--two-cols {
+      grid-template-columns: 280px 1fr;
+      gap: var(--spacing-6);
+    }
+
+    .sidebar {
+      top: var(--spacing-5);
+    }
+  }
+
+  /* Tablet (≤768px) */
+  @media (max-width: 768px) {
+    .page__content--two-cols {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-5);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: var(--spacing-4);
+      z-index: var(--z-sticky);
+    }
+
+    .page__header {
+      margin-bottom: var(--spacing-6);
+      padding-bottom: var(--spacing-4);
+    }
+
+    .page__title {
+      font-size: var(--font-size-lg);
+    }
+
+    .page__description {
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  /* Mobile (≤480px) */
+  @media (max-width: 480px) {
+    .main {
+      padding: var(--spacing-5) 0;
+    }
+
+    .page__header {
+      margin-bottom: var(--spacing-4);
+      padding-bottom: var(--spacing-3);
+      text-align: center;
+    }
+
+    .page__title {
+      font-size: var(--font-size-base);
+      line-height: 1.3;
+    }
+
+    .page__description {
+      font-size: var(--font-size-xs);
+      margin-top: var(--spacing-1);
+    }
+
+    .sidebar {
+      position: static;
+      top: 0;
+    }
+
+    .content {
+      gap: var(--spacing-4);
+    }
+  }
+
+  /* Small Mobile (≤375px) */
+  @media (max-width: 375px) {
+    .main {
+      padding: var(--spacing-4) 0;
+    }
+
+    .page__title {
+      font-size: var(--font-size-sm);
+    }
+
+    .page__description {
+      font-size: 0.6875rem;
+    }
+  }
+
+  /* =============================================================================
+     SPAN ROWS (rackPage specific)
      ============================================================================= */
 
   .span-row {
@@ -128,6 +229,43 @@
 
   .span-row__remove {
     flex-shrink: 0;
+  }
+
+  /* Span rows responsive */
+  @media (max-width: 768px) {
+    .span-row {
+      padding: var(--spacing-2);
+      gap: var(--spacing-2);
+    }
+
+    .span-row__select {
+      min-width: 120px;
+    }
+
+    .span-row__input {
+      width: 4rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .span-row {
+      flex-direction: column;
+      align-items: stretch;
+      padding: var(--spacing-2);
+    }
+
+    .span-row__select {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .span-row__input {
+      width: 100%;
+    }
+
+    .span-row__remove {
+      align-self: flex-end;
+    }
   }
 
   /* =============================================================================

@@ -92,6 +92,13 @@
 
   /* --- Layout --- */
   --container-max: 1200px;
+  
+  /* --- Breakpoints --- */
+  --breakpoint-xs: 375px;    /* Small mobile */
+  --breakpoint-sm: 480px;    /* Mobile */
+  --breakpoint-md: 768px;    /* Tablet */
+  --breakpoint-lg: 1024px;   /* Desktop */
+  --breakpoint-xl: 1280px;   /* Large desktop */
 
   /* --- Transitions --- */
   --transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -101,6 +108,7 @@
   /* --- Z-index --- */
   --z-modal: 1050;
   --z-sticky: 100;
+  --z-header: 1000;
 }
 
 /* =============================================================================
@@ -276,33 +284,131 @@ a:hover {
 }
 
 /* =============================================================================
-   RESPONSIVE
+   RESPONSIVE (COMBINATIVE BREAKPOINTS)
+   ============================================================================= */
+
+/* 
+  Breakpoint strategy:
+  - Mobile First: Base styles for mobile
+  - sm: 480px - Small mobile (landscape phones)
+  - md: 768px - Tablet (portrait tablets)
+  - lg: 1024px - Desktop (landscape tablets, small laptops)
+  - xl: 1280px - Large desktop (desktops, large screens)
+*/
+
+/* =============================================================================
+   TABLET (≤1024px)
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  :root {
+    --font-size-3xl: clamp(1.5rem, 1.2rem + 0.8vw, 1.75rem);
+    --font-size-2xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.4rem);
+    --font-size-xl: clamp(1.125rem, 1rem + 0.5vw, 1.2rem);
+  }
+
+  .container {
+    padding: 0 var(--spacing-5);
+  }
+
+  .page__content--two-cols {
+    grid-template-columns: 280px 1fr;
+  }
+
+  .page__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .header__title {
+    font-size: var(--font-size-base);
+  }
+
+  .header__logo {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-base);
+  }
+}
+
+/* =============================================================================
+   TABLET (≤768px)
    ============================================================================= */
 
 @media (max-width: 768px) {
+  :root {
+    --font-size-base: clamp(0.875rem, 0.85rem + 0.25vw, 0.9375rem);
+    --font-size-lg: clamp(1rem, 0.95rem + 0.3vw, 1.0625rem);
+    --spacing-8: 1.5rem;
+    --spacing-10: 2rem;
+    --spacing-12: 2.5rem;
+  }
+
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+
+  /* Two columns → Single column */
   .page__content--two-cols {
     grid-template-columns: 1fr;
+    gap: var(--spacing-5);
   }
 
+  /* Sidebar becomes sticky on top */
   .sidebar {
-    position: static;
+    position: sticky;
+    top: var(--spacing-4);
+    z-index: var(--z-sticky);
   }
 
+  /* Page header */
+  .page__header {
+    margin-bottom: var(--spacing-6);
+    padding-bottom: var(--spacing-4);
+  }
+
+  .page__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .page__description {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Header - compact */
   .header__container {
-    flex-direction: column;
-    gap: var(--spacing-4);
-    text-align: center;
+    padding: var(--spacing-3) var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
   .header__brand {
-    justify-content: center;
+    gap: var(--spacing-2);
   }
 
+  .header__logo {
+    width: 26px;
+    height: 26px;
+    font-size: var(--font-size-sm);
+  }
+
+  .header__title {
+    font-size: var(--font-size-sm);
+  }
+
+  .header__subtitle {
+    font-size: 0.6875rem;
+  }
+
+  /* Navigation */
   .nav {
-    justify-content: center;
-    flex-wrap: wrap;
+    gap: var(--spacing-1);
   }
 
+  .nav__link {
+    padding: var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+
+  /* Form fields */
   .form__field--inline {
     flex-direction: column;
     align-items: stretch;
@@ -312,14 +418,468 @@ a:hover {
     flex-wrap: wrap;
   }
 
-  .form__input {
+  .form__input,
+  .form__select {
     width: 100%;
+    flex-shrink: 1;
+  }
+
+  .form__input-group {
+    flex-wrap: wrap;
+  }
+
+  /* Cards */
+  .card__header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .card__body {
+    padding: var(--spacing-4);
+  }
+
+  .card__footer {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  /* Result blocks */
+  .result-block__value {
+    font-size: var(--font-size-base);
+  }
+
+  .result-block__value--lg {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Pricing */
+  .pricing {
+    padding: var(--spacing-3);
+    margin-top: var(--spacing-4);
+  }
+
+  .pricing__label,
+  .pricing__value {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+  }
+
+  .btn--lg {
+    padding: var(--spacing-3) var(--spacing-5);
+  }
+
+  /* Span rows */
+  .span-row {
+    padding: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
+
+  .span-row__select {
+    min-width: 120px;
+  }
+
+  .span-row__input {
+    width: 4rem;
+  }
+}
+
+/* =============================================================================
+   MOBILE (≤480px)
+   ============================================================================= */
+
+@media (max-width: 480px) {
+  :root {
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.8125rem;
+    --font-size-base: 0.875rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --font-size-2xl: 1.25rem;
+    --font-size-3xl: 1.5rem;
+    
+    --spacing-4: 0.875rem;
+    --spacing-5: 1.125rem;
+    --spacing-6: 1.25rem;
+    --spacing-8: 1.25rem;
+  }
+
+  .container {
+    padding: 0 var(--spacing-3);
+  }
+
+  /* Header - mobile optimized */
+  .header__container {
+    padding: var(--spacing-2) var(--spacing-3);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .header__brand {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .header__logo {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .header__title {
+    font-size: 0.8125rem;
+  }
+
+  .header__subtitle {
+    display: none;
+  }
+
+  /* Navigation - full width */
+  .header__nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .nav__link {
+    padding: var(--spacing-2) var(--spacing-2);
+    font-size: 0.75rem;
+    min-width: 80px;
+    justify-content: center;
+  }
+
+  /* Page */
+  .page__header {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-3);
+    text-align: center;
+  }
+
+  .page__title {
+    font-size: var(--font-size-base);
+    line-height: 1.3;
+  }
+
+  .page__description {
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-1);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: static;
+    top: 0;
+  }
+
+  /* Form */
+  .form {
+    gap: var(--spacing-4);
+  }
+
+  .form__field {
+    gap: var(--spacing-2);
+  }
+
+  .form__label {
+    font-size: var(--font-size-xs);
+  }
+
+  .form__input,
+  .form__select {
+    height: 2.25rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .form__input-group {
+    gap: var(--spacing-1);
+  }
+
+  .form__input--sm {
+    width: 3.5rem;
+  }
+
+  .form__separator {
+    font-size: var(--font-size-xs);
+  }
+
+  .form__unit {
+    font-size: 0.6875rem;
+  }
+
+  .form__dynamic-list {
+    gap: var(--spacing-2);
+  }
+
+  /* Span rows */
+  .span-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2);
+  }
+
+  .span-row__select {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .span-row__input {
+    width: 100%;
+  }
+
+  .span-row__remove {
+    align-self: flex-end;
+  }
+
+  /* Cards */
+  .card__header {
+    padding: var(--spacing-3);
+  }
+
+  .card__header-content {
+    gap: var(--spacing-2);
+  }
+
+  .card__icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .card__title {
+    font-size: var(--font-size-base);
+  }
+
+  .card__body {
+    padding: var(--spacing-3);
+  }
+
+  .card__footer {
+    padding: var(--spacing-3);
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  /* Result blocks */
+  .result-block {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .result-block__label {
+    font-size: 0.6875rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .result-block__value {
+    font-size: var(--font-size-sm);
+  }
+
+  .result-block__value--lg {
+    font-size: var(--font-size-base);
+  }
+
+  /* Pricing */
+  .pricing {
+    padding: var(--spacing-3);
+    margin-top: var(--spacing-3);
+  }
+
+  .pricing h4 {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .pricing__row {
+    gap: var(--spacing-2);
+  }
+
+  .pricing__label {
+    font-size: 0.6875rem;
+  }
+
+  .pricing__value {
+    font-size: 0.8125rem;
+  }
+
+  .pricing__value--lg {
+    font-size: var(--font-size-base);
+  }
+
+  /* Buttons - touch friendly */
+  .btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    min-height: 44px; /* Touch target size */
+  }
+
+  .btn--sm {
+    min-height: 36px;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .btn--lg {
+    min-height: 48px;
+    padding: var(--spacing-3) var(--spacing-5);
+  }
+
+  .btn--icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .btn--block {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Table */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  /* Dynamic form label group */
+  .form__label-group {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  /* Footer text */
+  .footer__text {
+    font-size: var(--font-size-xs);
+    text-align: center;
+  }
+}
+
+/* =============================================================================
+   SMALL MOBILE (≤375px)
+   ============================================================================= */
+
+@media (max-width: 375px) {
+  :root {
+    --font-size-xs: 0.6875rem;
+    --font-size-sm: 0.75rem;
+    --font-size-base: 0.8125rem;
+    --font-size-lg: 0.9375rem;
+    
+    --spacing-3: 0.625rem;
+    --spacing-4: 0.75rem;
+    --spacing-5: 1rem;
+  }
+
+  .container {
+    padding: 0 var(--spacing-2);
+  }
+
+  .header__logo {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header__title {
+    font-size: 0.75rem;
+  }
+
+  .nav__link {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: 0.6875rem;
+    min-width: 70px;
+  }
+
+  .page__title {
+    font-size: var(--font-size-sm);
+  }
+
+  .page__description {
+    font-size: 0.6875rem;
+  }
+
+  .card__title {
+    font-size: var(--font-size-sm);
+  }
+
+  .form__input,
+  .form__select {
+    font-size: var(--font-size-xs);
+    height: 2rem;
+  }
+
+  .btn {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+}
+
+/* =============================================================================
+   DESKTOP (≥1024px) - Container max width
+   ============================================================================= */
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding-left: var(--spacing-10);
+    padding-right: var(--spacing-10);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
 /* =============================================================================
    ACCESSIBILITY
    ============================================================================= */
+
+/**
+ * Візуально приховує елемент, але залишає доступним для скрінрідерів
+ * Використовується для:
+ * - Доступності (заголовки, описи, лейбли)
+ * - SEO-оптимізації
+ * - Приховування контенту, який має бути доступний з клавіатури
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/**
+ * Показувати елемент при фокусі (для навігації клавіатурою)
+ */
+.visually-hidden:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: inherit;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

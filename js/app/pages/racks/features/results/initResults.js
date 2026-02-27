@@ -34,13 +34,9 @@ export const initResults = ({ resultsContext, addToSetBtn, addListener }) => {
     // Перемикання видимості цін через клас на wrapper
     const componentsTable = query(RACK_SELECTORS.results.componentsTable)();
     if (componentsTable) {
-      const wrapper = componentsTable.querySelector('.rack__components-table-wrapper');
+      const wrapper = componentsTable.querySelector('.table-wrapper');
       if (wrapper) {
-        if (showPrices) {
-          wrapper.classList.remove('rack__prices-hidden');
-        } else {
-          wrapper.classList.add('rack__prices-hidden');
-        }
+        wrapper.classList.toggle('rack__prices-hidden', !showPrices);
       }
     }
   };
@@ -69,6 +65,17 @@ export const initResults = ({ resultsContext, addToSetBtn, addListener }) => {
         addToSetBtn.setAttribute('aria-disabled', 'true');
         addToSetBtn.dataset.state = 'disabled';
         addToSetBtn.classList.add('btn--disabled');
+      }
+    }
+
+    // Перемикання видимості цін при зміні showPrices (після ререндеру таблиці)
+    if (newState.showPrices !== undefined && newState.tableHtml) {
+      const componentsTable = query(RACK_SELECTORS.results.componentsTable)();
+      if (componentsTable) {
+        const wrapper = componentsTable.querySelector('.table-wrapper');
+        if (wrapper) {
+          wrapper.classList.toggle('rack__prices-hidden', !newState.showPrices);
+        }
       }
     }
   });

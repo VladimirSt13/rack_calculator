@@ -424,11 +424,11 @@ const generateComponentsTable = (components, showPrices = true) => {
     const itemsArray = Array.isArray(items) ? items : [items];
     itemsArray.forEach((item) => {
       rows.push(`
-        <tr>
-          <td style="text-align: left; font-weight: var(--font-weight-medium);">${item.name}</td>
-          <td class="text-numeric">${item.amount}</td>
-          <td class="rack__price-cell text-numeric${showPrices ? '' : ' rack__price-cell--hidden'}" data-price="${item.price.toFixed(2)}">${item.price.toFixed(2)}</td>
-          <td class="rack__price-cell text-numeric${showPrices ? '' : ' rack__price-cell--hidden'}" data-total="${item.total.toFixed(2)}">${item.total.toFixed(2)}</td>
+        <tr class="table__row">
+          <td class="table__cell table__cell--name">${item.name}</td>
+          <td class="table__cell table__cell--qty">${item.amount}</td>
+          <td class="table__cell table__cell--price" data-price="${item.price.toFixed(2)}">${item.price.toFixed(2)} ₴</td>
+          <td class="table__cell table__cell--total" data-total="${item.total.toFixed(2)}">${item.total.toFixed(2)} ₴</td>
         </tr>
       `);
     });
@@ -439,27 +439,28 @@ const generateComponentsTable = (components, showPrices = true) => {
   }
 
   return `
-    <div class="table-container${priceVisibilityClass}">
+    <div class="table-wrapper${priceVisibilityClass}">
       <div class="rack__price-toggle">
         <label class="rack__price-toggle-label">
+          <span class="rack__price-toggle-text">${toggleLabelText}</span>
           <input
             type="checkbox"
             data-js="rack-togglePrices"
             ${checkboxCheckedAttr}
           />
-          <span class="rack__price-toggle-text">${toggleLabelText}</span>
+          <span class="rack__price-switch" aria-hidden="true"></span>
         </label>
       </div>
       <table class="table">
-        <thead>
-          <tr>
-            <th>Компонент</th>
-            <th>Кількість</th>
-            <th class="rack__price-header">Ціна за од.</th>
-            <th class="rack__price-header">Загальна вартість</th>
+        <thead class="table__header">
+          <tr class="table__row table__row--header">
+            <th class="table__cell table__cell--header table__cell--name">Компонент</th>
+            <th class="table__cell table__cell--header table__cell--qty">Кількість</th>
+            <th class="table__cell table__cell--header table__cell--price rack__price-header">Ціна за од.</th>
+            <th class="table__cell table__cell--header table__cell--total rack__price-header">Загальна вартість</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="table__body">
           ${rows.join('')}
         </tbody>
       </table>

@@ -1,7 +1,7 @@
 // js/app/pages/racks/effects/renderSetTable.js
 
 import { log } from '../../../config/env.js';
-import { iconChevronDown, iconChevronUp, iconTrash } from '../../../ui/icons/index.js';
+import { iconPlus, iconMinus, iconTrash } from '../../../ui/icons/index.js';
 
 /**
  * @typedef {import('../features/set/state.js').RackInSet} RackInSet
@@ -35,7 +35,7 @@ const renderQtyControls = (rackId, qty, disabled = false) => `
         data-rackid="${rackId}"
         aria-label="Збільшити"
       >
-        ${iconChevronUp({ size: 10 })}
+        ${iconPlus({ size: 14 })}
       </button>
       <button
         class="btn btn--qty-vertical btn--qty-down"
@@ -45,7 +45,7 @@ const renderQtyControls = (rackId, qty, disabled = false) => `
         ${disabled ? 'disabled' : ''}
         aria-label="Зменшити"
       >
-        ${iconChevronDown({ size: 10 })}
+        ${iconMinus({ size: 14 })}
       </button>
     </div>
   </div>
@@ -98,16 +98,16 @@ const renderCompactTable = (racks, container, priceVisibilityClass) => {
       const zeroBase = rack.rack?.zeroBase || 0;
 
       return `
-      <tr class="rack__set-table__row" data-rack-id="${rack.id}">
-        <td class="rack__set-table__cell text-numeric">${index + 1}</td>
-        <td class="rack__set-table__cell">${abbreviation}</td>
-        <td class="rack__set-table__cell text-numeric">
+      <tr class="table__row rack__set-table__row" data-rack-id="${rack.id}">
+        <td class="table__cell rack__set-table__cell table__cell--index">${index + 1}</td>
+        <td class="table__cell rack__set-table__cell table__cell--name">${abbreviation}</td>
+        <td class="table__cell rack__set-table__cell table__cell--qty">
           ${renderQtyControls(rack.id, rack.qty, rack.qty <= 1)}
         </td>
-        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass} text-numeric">
+        <td class="table__cell rack__set-table__cell table__cell--price rack__set-table__zero-base${priceVisibilityClass}">
           ${zeroBase.toFixed(2)} ₴
         </td>
-        <td class="rack__set-table__cell rack__set-table__actions">
+        <td class="table__cell rack__set-table__cell rack__set-table__actions">
           <button
             class="btn btn--icon btn--remove-rack"
             data-action="removeRack"
@@ -124,18 +124,18 @@ const renderCompactTable = (racks, container, priceVisibilityClass) => {
     .join('');
 
   container.innerHTML = `
-    <div class="rack__set-table-wrapper${priceVisibilityClass}">
+    <div class="table-wrapper rack__set-table-wrapper${priceVisibilityClass}">
       <table class="table rack__set-table">
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>Абревіатура</th>
-            <th>Кількість</th>
-            <th class="rack__price-header">Нульова ціна</th>
-            <th></th>
+        <thead class="table__header">
+          <tr class="table__row table__row--header">
+            <th class="table__cell table__cell--header table__cell--index">№</th>
+            <th class="table__cell table__cell--header table__cell--name">Абревіатура</th>
+            <th class="table__cell table__cell--header table__cell--qty">Кількість</th>
+            <th class="table__cell table__cell--header table__cell--price rack__price-header">Нульова ціна</th>
+            <th class="table__cell table__cell--header rack__set-table__actions"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="table__body">
           ${rows}
         </tbody>
       </table>
@@ -156,18 +156,18 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
       const componentsRows = renderComponentsSubtable(rack.rack?.components, rack.qty);
 
       return `
-      <tr class="rack__set-table__main-row" data-rack-id="${rack.id}">
-        <td class="rack__set-table__cell text-numeric">${index + 1}</td>
-        <td class="rack__set-table__cell rack__set-table__name">
+      <tr class="table__row rack__set-table__main-row" data-rack-id="${rack.id}">
+        <td class="table__cell rack__set-table__cell table__cell--index">${index + 1}</td>
+        <td class="table__cell rack__set-table__cell table__cell--name rack__set-table__name">
           <div class="rack__set-table__rack-name">${fullName}</div>
         </td>
-        <td class="rack__set-table__cell text-numeric">
+        <td class="table__cell rack__set-table__cell table__cell--qty">
           ${renderQtyControls(rack.id, rack.qty, rack.qty <= 1)}
         </td>
-        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass} text-numeric">
+        <td class="table__cell rack__set-table__cell table__cell--price rack__set-table__zero-base${priceVisibilityClass}">
           ${rack.rack?.zeroBase.toFixed(2) || '0.00'} ₴
         </td>
-        <td class="rack__set-table__cell rack__set-table__actions">
+        <td class="table__cell rack__set-table__cell rack__set-table__actions">
           <button
             class="btn btn--icon btn--remove-rack"
             data-action="removeRack"
@@ -182,20 +182,22 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
       <tr class="rack__set-table__components-row" data-rack-id="${rack.id}">
         <td colspan="5" class="rack__set-table__components-cell">
           <div class="rack__set-table__components-wrapper${priceVisibilityClass}">
-            <div class="rack__set-table__components-label">Комплектація</div>
-            <table class="table table--nested">
-              <thead>
-                <tr>
-                  <th>№</th>
-                  <th>Назва</th>
-                  <th>Кількість на 1 стеллаж</th>
-                  <th>Всього</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${componentsRows}
-              </tbody>
-            </table>
+            <div class="table__nested-wrapper">
+              <span class="table__nested-label">Комплектація</span>
+              <table class="table table--nested">
+                <thead class="table__header">
+                  <tr class="table__row table__row--header">
+                    <th class="table__cell table__cell--header table__cell--index">№</th>
+                    <th class="table__cell table__cell--header table__cell--name">Назва</th>
+                    <th class="table__cell table__cell--header table__cell--qty">Кількість на 1 стелаж</th>
+                    <th class="table__cell table__cell--header table__cell--total">Всього</th>
+                  </tr>
+                </thead>
+                <tbody class="table__body">
+                  ${componentsRows}
+                </tbody>
+              </table>
+            </div>
           </div>
         </td>
       </tr>
@@ -204,18 +206,18 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
     .join('');
 
   container.innerHTML = `
-    <div class="rack__set-table-wrapper${priceVisibilityClass}">
+    <div class="table-wrapper rack__set-table-wrapper${priceVisibilityClass}">
       <table class="table rack__set-table">
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>Назва стелажа</th>
-            <th>Кількість</th>
-            <th class="rack__price-header">Нульова ціна</th>
-            <th></th>
+        <thead class="table__header">
+          <tr class="table__row table__row--header">
+            <th class="table__cell table__cell--header table__cell--index">№</th>
+            <th class="table__cell table__cell--header table__cell--name">Назва стелажа</th>
+            <th class="table__cell table__cell--header table__cell--qty">Кількість</th>
+            <th class="table__cell table__cell--header table__cell--price rack__price-header">Нульова ціна</th>
+            <th class="table__cell table__cell--header rack__set-table__actions"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="table__body">
           ${mainRows}
         </tbody>
       </table>
@@ -231,7 +233,7 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
  */
 const renderComponentsSubtable = (components, qty) => {
   if (!components) {
-    return '<tr><td colspan="4">Немає даних</td></tr>';
+    return '<tr class="table__row"><td class="table__cell" colspan="4">Немає даних</td></tr>';
   }
 
   const rows = [];
@@ -243,18 +245,18 @@ const renderComponentsSubtable = (components, qty) => {
     for (const item of itemsArray) {
       itemIndex++;
       rows.push(`
-        <tr class="rack__set-table__component-row">
-          <td class="rack__set-table__cell text-numeric">${itemIndex}</td>
-          <td class="rack__set-table__cell">${item.name}</td>
-          <td class="rack__set-table__cell text-numeric">${item.amount}</td>
-          <td class="rack__set-table__cell text-numeric">${item.amount * qty}</td>
+        <tr class="table__row rack__set-table__component-row">
+          <td class="table__cell table__cell--index">${itemIndex}</td>
+          <td class="table__cell table__cell--name">${item.name}</td>
+          <td class="table__cell table__cell--qty">${item.amount}</td>
+          <td class="table__cell table__cell--center">${item.amount * qty}</td>
         </tr>
       `);
     }
   }
 
   if (rows.length === 0) {
-    return '<tr><td colspan="4">Немає компонентів</td></tr>';
+    return '<tr class="table__row"><td class="table__cell" colspan="4">Немає компонентів</td></tr>';
   }
 
   return rows.join('');

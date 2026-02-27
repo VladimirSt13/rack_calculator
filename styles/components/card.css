@@ -128,4 +128,119 @@
       background-color var(--transition-normal),
       border-color var(--transition-normal);
   }
+
+  /* =============================================================================
+     RESPONSIVE - CARD
+     ============================================================================= */
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .card__header {
+      padding: var(--spacing-4);
+    }
+
+    .card__body {
+      padding: var(--spacing-4);
+    }
+
+    .card__footer {
+      padding: var(--spacing-3) var(--spacing-4);
+    }
+
+    .card__icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .card__title {
+      font-size: var(--font-size-base);
+    }
+  }
+
+  /* Tablet (≤768px) */
+  @media (max-width: 768px) {
+    .card__header {
+      padding: var(--spacing-3) var(--spacing-4);
+    }
+
+    .card__header-content {
+      gap: var(--spacing-2);
+    }
+
+    .card__icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .card__title {
+      font-size: var(--font-size-base);
+    }
+
+    .card__body {
+      padding: var(--spacing-4);
+    }
+
+    .card__footer {
+      padding: var(--spacing-3) var(--spacing-4);
+      gap: var(--spacing-2);
+    }
+  }
+
+  /* Mobile (≤480px) */
+  @media (max-width: 480px) {
+    .card {
+      border-radius: var(--radius);
+    }
+
+    .card__header {
+      padding: var(--spacing-3);
+    }
+
+    .card__header-content {
+      gap: var(--spacing-2);
+    }
+
+    .card__icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .card__title {
+      font-size: var(--font-size-base);
+    }
+
+    .card__body {
+      padding: var(--spacing-3);
+    }
+
+    .card__footer {
+      padding: var(--spacing-3);
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+
+    .card__footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* Small Mobile (≤375px) */
+  @media (max-width: 375px) {
+    .card__header {
+      padding: var(--spacing-2);
+    }
+
+    .card__title {
+      font-size: var(--font-size-sm);
+    }
+
+    .card__body {
+      padding: var(--spacing-2);
+    }
+
+    .card__footer {
+      padding: var(--spacing-2);
+    }
+  }
 }

@@ -5,7 +5,90 @@
  * Most styles are in global.css
  */
 
-/* Card animations use fadeIn from global.css */
-.card {
-  animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+@layer battery-page;
+
+@layer battery-page {
+  /* Card animations use fadeIn from global.css */
+  .card {
+    animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* =============================================================================
+     BATTERY FORM SPECIFIC
+     ============================================================================= */
+
+  .battery-form__input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  /* =============================================================================
+     RESPONSIVE - BATTERY PAGE
+     ============================================================================= */
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .battery-form__input-group {
+      gap: var(--spacing-2);
+    }
+  }
+
+  /* Tablet (≤768px) */
+  @media (max-width: 768px) {
+    .battery-form__input-group {
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
+    }
+
+    .card__title {
+      font-size: var(--font-size-base);
+    }
+  }
+
+  /* Mobile (≤480px) */
+  @media (max-width: 480px) {
+    .battery-form__input-group {
+      width: 100%;
+      gap: var(--spacing-1);
+    }
+
+    .battery-form__input-group .form__input {
+      flex: 1;
+      min-width: 3rem;
+    }
+
+    .battery-form__input-group .form__unit {
+      font-size: 0.6875rem;
+      white-space: nowrap;
+    }
+
+    /* Calculate button - full width */
+    .battery-form__calculate-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Results table wrapper */
+    .battery-results__wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Small Mobile (≤375px) */
+  @media (max-width: 375px) {
+    .battery-form__input-group .form__input {
+      min-width: 2.5rem;
+      font-size: var(--font-size-xs);
+    }
+
+    .battery-form__input-group .form__unit {
+      font-size: 0.625rem;
+    }
+
+    .card__title {
+      font-size: var(--font-size-sm);
+    }
+  }
 }
