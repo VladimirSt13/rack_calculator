@@ -28,77 +28,8 @@
             </div>
           </div>
 
-          <nav class="header__nav" aria-label="Головна навігація">
-            <ul class="nav">
-              <li>
-                <a href="#view-rack" class="nav__link nav__link--active" data-view="rack">
-                  <svg class="nav__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect
-                      x="3"
-                      y="3"
-                      width="7"
-                      height="7"
-                      rx="1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <rect
-                      x="14"
-                      y="3"
-                      width="7"
-                      height="7"
-                      rx="1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <rect
-                      x="3"
-                      y="14"
-                      width="7"
-                      height="7"
-                      rx="1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <rect
-                      x="14"
-                      y="14"
-                      width="7"
-                      height="7"
-                      rx="1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                  </svg>
-                  Стелаж
-                </a>
-              </li>
-              <li>
-                <a href="#view-battery" class="nav__link" data-view="battery">
-                  <svg class="nav__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect
-                      x="2"
-                      y="7"
-                      width="20"
-                      height="14"
-                      rx="2"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <path
-                      d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <line x1="6" y1="11" x2="6" y2="17" stroke="currentColor" stroke-width="2" />
-                    <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" />
-                    <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" />
-                    <line x1="18" y1="11" x2="18" y2="17" stroke="currentColor" stroke-width="2" />
-                  </svg>
-                  Акумулятор
-                </a>
-              </li>
-            </ul>
+          <nav class="header__nav" aria-label="Головна навігація" data-js="site-nav">
+            <!-- Навігація рендериться через JS (router.js + renderNavigation.js) -->
           </nav>
         </div>
       </header>
@@ -241,16 +172,8 @@
                             data-action="addSpan"
                             data-feature="spans"
                             aria-label="Додати проліт"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path
-                                d="M12 5v14M5 12h14"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                              />
-                            </svg>
-                          </button>
+                            data-icon="plus"
+                          ></button>
                         </div>
                         <div
                           class="form__dynamic-list"
@@ -267,15 +190,17 @@
               <!-- Main: Results -->
               <div class="content">
                 <!-- Rack Result Card -->
-                <article class="card card--highlight">
+                <article class="card card--highlight" data-js="rack-resultsCard">
                   <div class="card__header">
                     <div class="card__header-content">
                       <svg
                         class="card__icon"
+                        data-icon="grid"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
                         fill="none"
+                        aria-hidden="true"
                       >
                         <rect
                           x="3"
@@ -366,34 +291,27 @@
                     <button
                       class="btn btn--primary"
                       data-js="rack-addToSetBtn"
-                      data-feature="set"
-                      data-action="addRack"
                       data-state="disabled"
                       disabled
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M12 5v14M5 12h14"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                        />
-                      </svg>
+                      <span data-icon="plus"></span>
                       Додати до комплекту
                     </button>
                   </div>
                 </article>
 
                 <!-- Rack Set Card -->
-                <article class="card card--dashed">
+                <article class="card card--dashed" data-js="rack-setCard" data-state="empty">
                   <div class="card__header">
                     <div class="card__header-content">
                       <svg
                         class="card__icon"
+                        data-icon="file"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
                         fill="none"
+                        aria-hidden="true"
                       >
                         <path
                           d="M20 7h-9M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"
@@ -421,23 +339,13 @@
                   </div>
                   <div class="card__footer">
                     <button
-                      class="btn btn--outline"
+                      class="btn btn--primary"
                       data-js="rack-openSetModalBtn"
-                      data-feature="set"
-                      data-action="openModal"
-                      data-modal="rackSet"
+                      data-feature="rackSet"
                       data-state="disabled"
                     >
                       Переглянути комплект
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M9 18l6-6-6-6"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
+                      <span data-icon="chevron-right"></span>
                     </button>
                   </div>
                 </article>
@@ -664,8 +572,8 @@
                           <tr>
                             <th>Стелаж</th>
                             <th>Габарити</th>
-                            <th>Навантаження</th>
-                            <th class="text-right">Ціна</th>
+                            <th class="text-numeric">Навантаження</th>
+                            <th class="text-numeric">Ціна</th>
                             <th></th>
                           </tr>
                         </thead>
@@ -683,85 +591,6 @@
           </section>
         </div>
       </main>
-
-      <!-- ===== MODAL: RACK SET ===== -->
-      <dialog
-        class="modal"
-        data-js="modal-rackSet"
-        data-modal="rackSet"
-        aria-labelledby="modal-title"
-      >
-        <div class="modal__overlay"></div>
-        <div class="modal__content">
-          <div class="modal__header">
-            <div>
-              <h3 id="modal-title" class="modal__title">Деталі комплекту</h3>
-              <p class="modal__description">Перегляньте та відредагуйте ваш комплект стелажів</p>
-            </div>
-            <button
-              class="modal__close"
-              type="button"
-              data-js="modal-close"
-              data-modal="rackSet"
-              data-feature="set"
-              data-action="closeModal"
-              aria-label="Закрити модальне вікно"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M18 6L6 18M6 6l12 12"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="modal__body">
-            <div
-              class="table-container"
-              data-js="modal-rackSetTable"
-              data-feature="set"
-              data-render-target="list"
-            ></div>
-            <output
-              class="result-total result-total--lg"
-              data-js="modal-rackSetSummary"
-              data-feature="set"
-              data-render-target="total"
-            ></output>
-          </div>
-          <div class="modal__footer">
-            <button
-              class="btn btn--outline"
-              data-js="modal-close"
-              data-modal="rackSet"
-              data-feature="set"
-              data-action="closeModal"
-            >
-              Закрити
-            </button>
-            <button
-              class="btn btn--primary"
-              data-js="modal-export"
-              data-feature="set"
-              data-action="exportSet"
-              data-state="disabled"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Експортувати
-            </button>
-          </div>
-        </div>
-      </dialog>
 
       <!-- ===== FOOTER ===== -->
       <footer class="footer">

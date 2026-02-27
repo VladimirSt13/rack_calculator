@@ -1,4 +1,4 @@
-// js/app/pages/racks/features/set/context.js
+// js/app/pages/racks/features/rackSet/context.js
 
 import { log } from '../../../../config/env.js';
 import { createFeatureContext } from '../../../../core/FeatureContext.js';
@@ -129,20 +129,6 @@ export const createRackSetContext = () =>
       clear: () => {
         state.updateField('racks', []);
       },
-
-      /**
-       * Відкрити модалку перегляду комплекту
-       */
-      openModal: () => {
-        state.updateField('isModalOpen', true);
-      },
-
-      /**
-       * Закрити модалку
-       */
-      closeModal: () => {
-        state.updateField('isModalOpen', false);
-      },
     }),
 
     createSelectors: (state) => ({
@@ -176,12 +162,6 @@ export const createRackSetContext = () =>
        * @returns {boolean}
        */
       isEmpty: () => state.get().racks.length === 0,
-
-      /**
-       * Перевірити чи відкрита модалка
-       * @returns {boolean}
-       */
-      isModalOpen: () => state.get().isModalOpen,
 
       /**
        * Отримати стелаж за ID

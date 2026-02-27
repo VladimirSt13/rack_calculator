@@ -1,6 +1,7 @@
 // eslint.config.js
 import js from '@eslint/js';
 import globals from 'globals';
+import prettier from 'eslint-config-prettier';
 
 export default [
   // Base JS recommendations
@@ -113,4 +114,5 @@ export default [
     // Ігнорування
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.min.js', 'public/**'],
   },
+  prettier,
 ];

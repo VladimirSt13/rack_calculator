@@ -65,18 +65,6 @@ export const RACK_SELECTORS = {
 };
 
 /**
- * ===== RACK SET MODAL SELECTORS =====
- * Модалка комплекту стелажів
- */
-export const RACK_SET_MODAL_SELECTORS = {
-  root: '[data-js="modal-rackSet"]',
-  table: '[data-js="modal-rackSetTable"]',
-  summary: '[data-js="modal-rackSetSummary"]',
-  closeBtn: '[data-js="modal-close"]',
-  exportBtn: '[data-js="modal-export"]',
-};
-
-/**
  * ===== BATTERY PAGE SELECTORS =====
  * Сторінка "Підбір під акумулятор"
  */
@@ -111,7 +99,6 @@ export const BATTERY_SELECTORS = {
 export const SELECTORS = {
   global: GLOBAL_SELECTORS,
   rack: RACK_SELECTORS,
-  rackModal: RACK_SET_MODAL_SELECTORS,
   battery: BATTERY_SELECTORS,
 };
 

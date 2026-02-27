@@ -1,38 +1,103 @@
 /* styles/rackPage.css */
 
 /**
- * Rack Page - Minimal additions
- * Most styles are in global.css
+ * Rack Page Specific Styles
+ *
+ * Contains only page-specific styles not covered by global components.
+ * Most styles (cards, forms, buttons, tables) are in styles/components/.
  */
 
-/* Span row animations */
-.span-row {
-  animation: slideIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
+@layer rack-page;
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+@layer rack-page {
+  /* =============================================================================
+     RACK SET TABLE (Specific styles)
+     ============================================================================= */
 
-/* Card animations */
-.card {
-  animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+  /* Quantity controls vertical (specific to rack set) */
+  .rack__set-table__actions {
+    width: 50px;
+    text-align: center;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  /* Quantity controls vertical */
+  .rack__set-table__qty {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    height: 100%;
+  }
+
+  .rack__set-table__qty-value {
+    min-width: 1.5rem;
+    text-align: center;
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--font-size-sm);
+  }
+
+  .rack__set-table__qty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* Vertical quantity buttons (rack set table specific) */
+  .btn--qty-vertical {
+    width: 1.5rem;
+    height: 1rem;
+    min-width: 1.5rem;
+    min-height: 1rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: hsl(var(--secondary));
+    border: none;
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .btn--qty-vertical:last-child {
+    border-bottom: none;
+  }
+
+  .btn--qty-vertical:hover {
+    background-color: hsl(var(--accent));
+  }
+
+  .btn--qty-vertical:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn--qty-vertical:disabled:hover {
+    background-color: hsl(var(--secondary));
+  }
+
+  .btn--qty-vertical svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* =============================================================================
+     ANIMATIONS
+     ============================================================================= */
+
+  /* slideIn для span rows */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

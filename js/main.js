@@ -4,6 +4,7 @@ import { createRouter, createRouterEffects, registerRoutes } from './app/ui/rout
 import { registerAllPages } from './app/pages/index.js';
 import { APP_CONFIG, PAGES } from './app/config/app.config.js';
 import { GLOBAL_SELECTORS } from './app/config/selectors.js';
+import { initAllIcons } from './app/ui/initIcons.js';
 
 /**
  * Точка входу додатку
@@ -11,6 +12,9 @@ import { GLOBAL_SELECTORS } from './app/config/selectors.js';
  */
 const initApp = async () => {
   try {
+    // ===== 0. INIT ICONS =====
+    initAllIcons();
+
     // ===== 1. REGISTER PAGES =====
     const { routes: pageModules } = await registerAllPages();
 

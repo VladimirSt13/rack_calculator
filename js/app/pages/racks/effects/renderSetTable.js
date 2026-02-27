@@ -1,7 +1,7 @@
 // js/app/pages/racks/effects/renderSetTable.js
 
-import { query } from '../../../effects/dom.js';
-import { RACK_SELECTORS } from '../../../config/selectors.js';
+import { log } from '../../../config/env.js';
+import { iconChevronDown, iconChevronUp, iconTrash } from '../../../ui/icons/index.js';
 
 /**
  * @typedef {import('../features/set/state.js').RackInSet} RackInSet
@@ -13,31 +13,64 @@ import { RACK_SELECTORS } from '../../../config/selectors.js';
  * @returns {string}
  */
 const getRackAbbreviation = (fullName) => {
-  // Знаходимо абревіатуру в дужках або після останнього пробілу
   const match = fullName.match(/\b(L\d+A\d+\S*-\d+\/\S+)\b/);
   return match ? match[1] : fullName.slice(0, 20) + '...';
 };
 
 /**
+ * Рендер кнопок керування кількістю (вертикальні, як у number input)
+ * @param {number} rackId - ID стелажа
+ * @param {number} qty - поточна кількість
+ * @param {boolean} disabled - чи вимкнена кнопка мінус
+ * @returns {string} HTML кнопок
+ */
+const renderQtyControls = (rackId, qty, disabled = false) => `
+  <div class="rack__set-table__qty">
+    <span class="rack__set-table__qty-value">${qty}</span>
+    <div class="rack__set-table__qty-buttons">
+      <button
+        class="btn btn--qty-vertical btn--qty-up"
+        data-action="increaseQty"
+        data-feature="rackSet"
+        data-rackid="${rackId}"
+        aria-label="Збільшити"
+      >
+        ${iconChevronUp({ size: 10 })}
+      </button>
+      <button
+        class="btn btn--qty-vertical btn--qty-down"
+        data-action="decreaseQty"
+        data-feature="rackSet"
+        data-rackid="${rackId}"
+        ${disabled ? 'disabled' : ''}
+        aria-label="Зменшити"
+      >
+        ${iconChevronDown({ size: 10 })}
+      </button>
+    </div>
+  </div>
+`;
+
+/**
  * Рендер таблиці комплекту стелажів
  * @param {RackInSet[]} racks - масив стелажів у комплекті
  * @param {HTMLElement|null} container - контейнер для рендеру
- * @param {boolean} showPrices - чи показувати ціни (не використовується для комплекту)
+ * @param {boolean} showPrices - чи показувати ціни
  * @param {'compact'|'full'} mode - режим відображення
  */
 export const renderSetTable = (racks, container, showPrices = true, mode = 'compact') => {
+  log('[renderSetTable]', 'Racks:', racks);
   if (!container) {
-    console.warn('[renderSetTable] Container not found');
     return;
   }
 
-  if (!racks || racks.length === 0) {
-    container.innerHTML = '<p class="empty-state">Комплект порожній</p>';
-    container.dataset.state = 'empty';
+  const isEmpty = !racks || racks.length === 0;
+
+  if (isEmpty) {
+    container.innerHTML = '';
     return;
   }
 
-  // Для таблиці комплекту завжди показуємо ціни
   const priceVisibilityClass = '';
 
   if (mode === 'compact') {
@@ -46,13 +79,10 @@ export const renderSetTable = (racks, container, showPrices = true, mode = 'comp
     renderFullTable(racks, container, priceVisibilityClass);
   }
 
-  // Додаємо клас для компактної таблиці
   const table = container.querySelector('.rack__set-table');
   if (table && mode === 'compact') {
     table.classList.add('rack__set-table--compact');
   }
-
-  container.dataset.state = 'ready';
 };
 
 /**
@@ -62,50 +92,47 @@ export const renderSetTable = (racks, container, showPrices = true, mode = 'comp
  * @param {string} priceVisibilityClass
  */
 const renderCompactTable = (racks, container, priceVisibilityClass) => {
-  const rows = racks.map((rack, index) => {
-    const abbreviation = getRackAbbreviation(rack.rack?.name || 'Стелаж');
-    const zeroBase = rack.rack?.zeroBase || 0;
+  const rows = racks
+    .map((rack, index) => {
+      const abbreviation = getRackAbbreviation(rack.rack?.name || 'Стелаж');
+      const zeroBase = rack.rack?.zeroBase || 0;
 
-    return `
+      return `
       <tr class="rack__set-table__row" data-rack-id="${rack.id}">
-        <td class="rack__set-table__cell">${index + 1}</td>
+        <td class="rack__set-table__cell text-numeric">${index + 1}</td>
         <td class="rack__set-table__cell">${abbreviation}</td>
-        <td class="rack__set-table__cell rack__set-table__qty">
-          <button 
-            class="btn btn--small btn--qty" 
-            data-action="decreaseQty" 
-            data-feature="set"
-            data-rack-id="${rack.id}"
-            ${rack.qty <= 1 ? 'disabled' : ''}
-          >
-            −
-          </button>
-          <span class="rack__set-table__qty-value">${rack.qty}</span>
-          <button 
-            class="btn btn--small btn--qty" 
-            data-action="increaseQty" 
-            data-feature="set"
-            data-rack-id="${rack.id}"
-          >
-            +
-          </button>
+        <td class="rack__set-table__cell text-numeric">
+          ${renderQtyControls(rack.id, rack.qty, rack.qty <= 1)}
         </td>
-        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass}">
+        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass} text-numeric">
           ${zeroBase.toFixed(2)} ₴
+        </td>
+        <td class="rack__set-table__cell rack__set-table__actions">
+          <button
+            class="btn btn--icon btn--remove-rack"
+            data-action="removeRack"
+            data-feature="rackSet"
+            data-rackid="${rack.id}"
+            aria-label="Видалити стелаж"
+          >
+            ${iconTrash({ size: 14 })}
+          </button>
         </td>
       </tr>
     `;
-  }).join('');
+    })
+    .join('');
 
   container.innerHTML = `
     <div class="rack__set-table-wrapper${priceVisibilityClass}">
-      <table class="rack__set-table">
+      <table class="table rack__set-table">
         <thead>
           <tr>
             <th>№</th>
             <th>Абревіатура</th>
             <th>Кількість</th>
             <th class="rack__price-header">Нульова ціна</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -123,51 +150,32 @@ const renderCompactTable = (racks, container, priceVisibilityClass) => {
  * @param {string} priceVisibilityClass
  */
 const renderFullTable = (racks, container, priceVisibilityClass) => {
-  // Головні рядки зі стелажами
-  const mainRows = racks.map((rack, index) => {
-    const fullName = rack.rack?.name || 'Стелаж';
+  const mainRows = racks
+    .map((rack, index) => {
+      const fullName = rack.rack?.name || 'Стелаж';
+      const componentsRows = renderComponentsSubtable(rack.rack?.components, rack.qty);
 
-    // Підтаблиця з компонентами
-    const componentsRows = renderComponentsSubtable(rack.rack?.components);
-
-    return `
+      return `
       <tr class="rack__set-table__main-row" data-rack-id="${rack.id}">
-        <td class="rack__set-table__cell">${index + 1}</td>
+        <td class="rack__set-table__cell text-numeric">${index + 1}</td>
         <td class="rack__set-table__cell rack__set-table__name">
           <div class="rack__set-table__rack-name">${fullName}</div>
         </td>
-        <td class="rack__set-table__cell rack__set-table__qty">
-          <button 
-            class="btn btn--small btn--qty" 
-            data-action="decreaseQty" 
-            data-feature="set"
-            data-rack-id="${rack.id}"
-            ${rack.qty <= 1 ? 'disabled' : ''}
-          >
-            −
-          </button>
-          <span class="rack__set-table__qty-value">${rack.qty}</span>
-          <button 
-            class="btn btn--small btn--qty" 
-            data-action="increaseQty" 
-            data-feature="set"
-            data-rack-id="${rack.id}"
-          >
-            +
-          </button>
+        <td class="rack__set-table__cell text-numeric">
+          ${renderQtyControls(rack.id, rack.qty, rack.qty <= 1)}
         </td>
-        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass}">
+        <td class="rack__set-table__cell rack__price-cell rack__set-table__zero-base${priceVisibilityClass} text-numeric">
           ${rack.rack?.zeroBase.toFixed(2) || '0.00'} ₴
         </td>
         <td class="rack__set-table__cell rack__set-table__actions">
-          <button 
-            class="btn btn--icon btn--remove" 
-            data-action="removeRack" 
-            data-feature="set"
-            data-rack-id="${rack.id}"
+          <button
+            class="btn btn--icon btn--remove-rack"
+            data-action="removeRack"
+            data-feature="rackSet"
+            data-rackid="${rack.id}"
             aria-label="Видалити стелаж"
           >
-            ✕
+            ${iconTrash({ size: 14 })}
           </button>
         </td>
       </tr>
@@ -175,12 +183,13 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
         <td colspan="5" class="rack__set-table__components-cell">
           <div class="rack__set-table__components-wrapper${priceVisibilityClass}">
             <div class="rack__set-table__components-label">Комплектація</div>
-            <table class="rack__set-table__components-subtable">
+            <table class="table table--nested">
               <thead>
                 <tr>
                   <th>№</th>
                   <th>Назва</th>
-                  <th>Кількість</th>
+                  <th>Кількість на 1 стеллаж</th>
+                  <th>Всього</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,11 +200,12 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
         </td>
       </tr>
     `;
-  }).join('');
+    })
+    .join('');
 
   container.innerHTML = `
     <div class="rack__set-table-wrapper${priceVisibilityClass}">
-      <table class="rack__set-table">
+      <table class="table rack__set-table">
         <thead>
           <tr>
             <th>№</th>
@@ -216,11 +226,12 @@ const renderFullTable = (racks, container, priceVisibilityClass) => {
 /**
  * Рендер підтаблиці з компонентами стелажа
  * @param {Object.<string, any>|any[]} components - компоненти стелажа
+ * @param {number} qty - кількість стелажів
  * @returns {string}
  */
-const renderComponentsSubtable = (components) => {
+const renderComponentsSubtable = (components, qty) => {
   if (!components) {
-    return '<tr><td colspan="3">Немає даних</td></tr>';
+    return '<tr><td colspan="4">Немає даних</td></tr>';
   }
 
   const rows = [];
@@ -228,21 +239,22 @@ const renderComponentsSubtable = (components) => {
 
   for (const [type, items] of Object.entries(components)) {
     const itemsArray = Array.isArray(items) ? items : [items];
-    
+
     for (const item of itemsArray) {
       itemIndex++;
       rows.push(`
         <tr class="rack__set-table__component-row">
-          <td class="rack__set-table__cell">${itemIndex}</td>
+          <td class="rack__set-table__cell text-numeric">${itemIndex}</td>
           <td class="rack__set-table__cell">${item.name}</td>
-          <td class="rack__set-table__cell">${item.amount}</td>
+          <td class="rack__set-table__cell text-numeric">${item.amount}</td>
+          <td class="rack__set-table__cell text-numeric">${item.amount * qty}</td>
         </tr>
       `);
     }
   }
 
   if (rows.length === 0) {
-    return '<tr><td colspan="3">Немає компонентів</td></tr>';
+    return '<tr><td colspan="4">Немає компонентів</td></tr>';
   }
 
   return rows.join('');
@@ -262,8 +274,7 @@ export const renderSetSummary = (total, itemCount, container, showPrices = true)
   }
 
   if (itemCount === 0) {
-    container.textContent = '';
-    container.dataset.state = 'empty';
+    container.innerHTML = '';
     return;
   }
 
@@ -274,8 +285,6 @@ export const renderSetSummary = (total, itemCount, container, showPrices = true)
     <span class="result-total__value">${totalText}</span>
     <span class="result-total__items">(${itemCount} шт.)</span>
   `;
-
-  container.dataset.state = 'ready';
 };
 
 export default { renderSetTable, renderSetSummary };

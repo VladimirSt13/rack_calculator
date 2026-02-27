@@ -1,6 +1,7 @@
 // js/app/ui/router.js
 
 import { pipe } from '../utils/compose.js';
+import { renderNavigation } from './renderNavigation.js';
 
 /**
  * @typedef {Object} Route
@@ -169,7 +170,7 @@ export const createRouter = (config) => {
 
     const links = Array.from(container.querySelectorAll(linkSelector));
     if (links.length === 0 && context.navItems?.length > 0) {
-      container.innerHTML = renderNavLinks(context.navItems, context.currentRoute);
+      container.innerHTML = renderNavigation(context.navItems, context.currentRoute);
     }
 
     const handleClick = async (e, link) => {
@@ -204,33 +205,13 @@ export const createRouter = (config) => {
     };
   };
 
-  const renderNavLinks = (navItems, activeId) => `
-      <ul class="nav">
-        ${navItems
-          .map(
-            (item) => `
-          <li>
-            <a
-              href="#view-${item.id}"
-              class="nav__link ${item.id === activeId ? 'nav__link--active' : ''}"
-              data-view="${item.id}"
-            >
-              ${item.label}
-            </a>
-          </li>
-        `,
-          )
-          .join('')}
-      </ul>
-    `;
-
   return Object.freeze({
     navigate,
     getCurrentRoute: () => context.currentRoute,
     hasRoute: (id) => hasRoute(context, id),
     getRoutes: () => Object.keys(context.routes),
     attachNavigation,
-    renderNavLinks, // ✅ FIX: експортуємо для зовнішнього використання
+    renderNavLinks: renderNavigation, // ✅ FIX: експортуємо для зовнішнього використання
     destroy: () => {
       navigationCleanup?.();
       window.removeEventListener('popstate', handlePopState);

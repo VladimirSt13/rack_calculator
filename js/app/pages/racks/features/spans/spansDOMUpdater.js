@@ -30,8 +30,7 @@ export const subscribeSpansDOM = ({
   spanOptions,
   rackPage,
   pageState,
-}) => {
-  return spansContext.subscribe((newState) => {
+}) => spansContext.subscribe((newState) => {
     if (!spansContainer) {
       return;
     }
@@ -74,6 +73,5 @@ export const subscribeSpansDOM = ({
 
     log('[RackPage]', 'Spans DOM updated granularly');
   });
-};
 
 export default subscribeSpansDOM;

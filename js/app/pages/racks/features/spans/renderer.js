@@ -2,6 +2,7 @@
 // js/app/pages/racks/features/spans/renderer.js
 
 import { log } from '../../../../config/env.js';
+import { iconX } from '../../../../ui/icons/index.js';
 
 /**
  * @typedef {import('./state.js').SpanItem} SpanItem
@@ -58,9 +59,7 @@ export const renderSpanRow = (id, span, spanOptions) => {
         data-feature="spans"
         aria-label="Видалити проліт"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        ${iconX({ size: 14 })}
       </button>
     </div>
   `;

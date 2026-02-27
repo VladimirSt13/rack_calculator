@@ -188,6 +188,7 @@ export const createAutoHandler = (container, features) => {
   container.__autoHandlerRegistered = true;
 
   window.__FEATURES__ = features;
+  log('[InteractiveElement] window.__FEATURES__ set to:', Object.keys(features));
 
   const handler = (e) => {
     const target = e.target;
@@ -200,13 +201,30 @@ export const createAutoHandler = (container, features) => {
     const feature = actionEl.dataset?.feature;
     const action = actionEl.dataset?.action;
 
+    log('[InteractiveElement] Event detected:', {
+      type: e.type,
+      feature,
+      action,
+      target: actionEl.tagName,
+      inModal: actionEl.closest('.modal') ? 'yes' : 'no',
+    });
+
     if (!feature || !action) {
       return;
     }
 
-    const featureContext = features[feature];
+    const featureContext = window.__FEATURES__?.[feature];
     if (!featureContext?.actions?.[action]) {
-      console.warn(`[InteractiveElement] Action not found: ${feature}.${action}`);
+      console.warn(`[InteractiveElement] Action not found: ${feature}.${action}`, {
+        feature,
+        action,
+        availableFeatures: Object.keys(window.__FEATURES__ || {}),
+        featureContext: featureContext ? {
+          hasState: !!featureContext.state,
+          hasActions: !!featureContext.actions,
+          actionKeys: featureContext.actions ? Object.keys(featureContext.actions) : [],
+        } : 'undefined',
+      });
       return;
     }
 
@@ -225,8 +243,17 @@ export const createAutoHandler = (container, features) => {
       }
 
       const field = actionEl.dataset?.field;
-      const idAttr = actionEl.dataset?.id || actionEl.dataset?.rackId;
+      const idAttr = actionEl.dataset?.id || actionEl.dataset?.rackid;
       const id = idAttr ? (isNaN(Number(idAttr)) ? idAttr : Number(idAttr)) : undefined;
+
+      log('[InteractiveElement] Action triggered:', {
+        feature,
+        action,
+        id,
+        field,
+        value,
+        dataset: actionEl.dataset,
+      });
 
       // Call action with correct parameters
       if (action === 'updateSpan' && field && id !== undefined) {

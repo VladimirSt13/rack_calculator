@@ -14,12 +14,12 @@ import { query } from '../../effects/dom.js';
 import { createRackFormContext } from './features/form/context.js';
 import { createSpansContext } from './features/spans/context.js';
 import { createRackResultsContext } from './features/results/context.js';
-import { createRackSetContext } from './features/set/context.js';
+import { createRackSetContext } from './features/rackSet/context.js';
 
 // Feature initializers
 import { initForm } from './features/form/initForm.js';
 import { initResults } from './features/results/initResults.js';
-import { initSetModal } from './features/set/initSetModal.js';
+import { initRackSet } from './features/rackSet/initRackSet.js';
 import { subscribeSpansDOM } from './features/spans/spansDOMUpdater.js';
 
 // Calculator
@@ -92,7 +92,7 @@ export const rackPage = createPageModule({
 
       // ===== 4. INITIALIZE SPANS =====
       const spansContainer = query(RACK_SELECTORS.spans.container)();
-      
+
       if (spansContainer) {
         renderAllSpans(spansContainer, spans.selectors.getSpans(), spanOptions);
       }
@@ -113,9 +113,9 @@ export const rackPage = createPageModule({
         addListener,
       });
 
-      // ===== 6. INITIALIZE SET MODAL =====
-      const { unsubscribe: rackSetUnsubscribe } = initSetModal({
-        setContext: rackSet,
+      // ===== 6. INITIALIZE RACK SET =====
+      const { unsubscribe: rackSetUnsubscribe } = initRackSet({
+        rackSetContext: rackSet,
         resultsContext: results,
         formContext: form,
         spansContext: spans,

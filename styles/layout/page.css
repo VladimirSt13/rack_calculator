@@ -1,0 +1,148 @@
+/* styles/layout/page.css */
+
+/**
+ * Page Layout Styles
+ */
+
+@layer layout;
+
+@layer layout {
+  /* =============================================================================
+     APP CONTAINER
+     ============================================================================= */
+
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--secondary)) 100%);
+  }
+
+  .container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 var(--spacing-6);
+  }
+
+  /* =============================================================================
+     MAIN CONTENT
+     ============================================================================= */
+
+  .main {
+    flex: 1;
+    padding: var(--spacing-8) 0;
+  }
+
+  .page {
+    display: block;
+    animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .page[hidden] {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page__header {
+    margin-bottom: var(--spacing-8);
+    padding-bottom: var(--spacing-6);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .page__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-2);
+    letter-spacing: -0.025em;
+  }
+
+  .page__description {
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+  }
+
+  .page__content {
+    display: grid;
+    gap: var(--spacing-6);
+  }
+
+  .page__content--two-cols {
+    grid-template-columns: 320px 1fr;
+    align-items: start;
+  }
+
+  /* =============================================================================
+     SIDEBAR & CONTENT
+     ============================================================================= */
+
+  .sidebar {
+    position: sticky;
+    top: var(--spacing-6);
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+    min-width: 0;
+  }
+
+  /* =============================================================================
+     SPAN ROWS (rackPage specific - moved from rackPage.css)
+     ============================================================================= */
+
+  .span-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    background-color: hsl(var(--secondary) / 0.5);
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--border));
+    transition: all var(--transition-fast);
+    animation: slideIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .span-row__select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .span-row__input {
+    width: 5rem;
+    flex-shrink: 0;
+  }
+
+  .span-row__remove {
+    flex-shrink: 0;
+  }
+
+  /* =============================================================================
+     ANIMATIONS
+     ============================================================================= */
+
+  /* slideIn для span rows */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

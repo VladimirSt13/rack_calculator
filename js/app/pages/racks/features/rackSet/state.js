@@ -1,4 +1,5 @@
-// js/app/pages/racks/features/set/state.js
+// @ts-check
+// js/app/pages/racks/features/rackSet/state.js
 
 /**
  * @typedef {Object} RackInSet
@@ -11,7 +12,6 @@
 /**
  * @typedef {Object} SetState
  * @property {RackInSet[]} racks - масив стелажів у комплекті
- * @property {boolean} isModalOpen - чи відкрита модалка перегляду комплекту
  */
 
 /**
@@ -20,7 +20,6 @@
  */
 export const initialSetState = {
   racks: [],
-  isModalOpen: false,
 };
 
 export default initialSetState;

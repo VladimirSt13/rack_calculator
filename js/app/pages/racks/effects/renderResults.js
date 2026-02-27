@@ -23,7 +23,7 @@ export const renderRackResults = (result, effects) => {
 
   // Показ результатів
   const addToSetBtn = document.querySelector('[data-js="rack-addToSetBtn"]');
-  
+
   effects.batch([
     effects.setText('results', 'name', result.name),
     effects.setHTML('results', 'componentsTable', result.tableHtml),

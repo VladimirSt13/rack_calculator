@@ -1,0 +1,133 @@
+/* styles/components/table.css */
+
+/**
+ * Table Components (shadcn/ui style)
+ * https://ui.shadcn.com/docs/components/table
+ */
+
+@layer components;
+
+@layer components {
+  /* =============================================================================
+     TABLE CONTAINER
+     ============================================================================= */
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+  }
+
+  /* =============================================================================
+     BASE TABLE STYLES
+     ============================================================================= */
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .table thead th {
+    height: 2.5rem;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+    background-color: hsl(var(--secondary));
+    border-bottom: 1px solid hsl(var(--border));
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .table tbody td {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+    font-size: var(--font-size-sm);
+  }
+
+  .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .table tbody tr:hover {
+    background-color: hsl(var(--secondary) / 0.5);
+  }
+
+  /* =============================================================================
+     TABLE MODIFIERS
+     ============================================================================= */
+
+  /* Compact padding */
+  .table--compact tbody td {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  /* Bordered cells */
+  .table--bordered tbody td {
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* =============================================================================
+     TEXT ALIGNMENT UTILITIES
+     ============================================================================= */
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .text-left {
+    text-align: left;
+  }
+
+  .text-numeric {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.025em;
+  }
+
+  /* =============================================================================
+     RACK SET TABLE (Specific styles for rack set component)
+     ============================================================================= */
+
+  /* Quantity controls vertical (specific to rack set) */
+  .rack__set-table__actions {
+    width: 50px;
+    text-align: center;
+  }
+
+  /* Quantity controls vertical */
+  .rack__set-table__qty {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    height: 100%;
+  }
+
+  .rack__set-table__qty-value {
+    min-width: 1.5rem;
+    text-align: center;
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--font-size-sm);
+  }
+
+  .rack__set-table__qty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+}

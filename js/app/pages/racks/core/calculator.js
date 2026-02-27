@@ -424,11 +424,11 @@ const generateComponentsTable = (components, showPrices = true) => {
     const itemsArray = Array.isArray(items) ? items : [items];
     itemsArray.forEach((item) => {
       rows.push(`
-        <tr class="rack__components-table__row">
-          <td>${item.name}</td>
-          <td>${item.amount}</td>
-          <td class="rack__price-cell" data-price="${item.price.toFixed(2)}">${item.price.toFixed(2)}</td>
-          <td class="rack__price-cell" data-total="${item.total.toFixed(2)}">${item.total.toFixed(2)}</td>
+        <tr>
+          <td style="text-align: left; font-weight: var(--font-weight-medium);">${item.name}</td>
+          <td class="text-numeric">${item.amount}</td>
+          <td class="rack__price-cell text-numeric${showPrices ? '' : ' rack__price-cell--hidden'}" data-price="${item.price.toFixed(2)}">${item.price.toFixed(2)}</td>
+          <td class="rack__price-cell text-numeric${showPrices ? '' : ' rack__price-cell--hidden'}" data-total="${item.total.toFixed(2)}">${item.total.toFixed(2)}</td>
         </tr>
       `);
     });
@@ -439,7 +439,7 @@ const generateComponentsTable = (components, showPrices = true) => {
   }
 
   return `
-    <div class="rack__components-table-wrapper${priceVisibilityClass}">
+    <div class="table-container${priceVisibilityClass}">
       <div class="rack__price-toggle">
         <label class="rack__price-toggle-label">
           <input
@@ -450,16 +450,16 @@ const generateComponentsTable = (components, showPrices = true) => {
           <span class="rack__price-toggle-text">${toggleLabelText}</span>
         </label>
       </div>
-      <table class="rack__components-table__table">
+      <table class="table">
         <thead>
-          <tr class="rack__components-table__header">
+          <tr>
             <th>Компонент</th>
             <th>Кількість</th>
             <th class="rack__price-header">Ціна за од.</th>
             <th class="rack__price-header">Загальна вартість</th>
           </tr>
         </thead>
-        <tbody class="rack__components-table__body">
+        <tbody>
           ${rows.join('')}
         </tbody>
       </table>
