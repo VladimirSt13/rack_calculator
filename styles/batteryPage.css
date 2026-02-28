@@ -14,6 +14,84 @@
   }
 
   /* =============================================================================
+     BATTERY RESULTS TABLE
+     ============================================================================= */
+
+  .battery-results__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .battery-results__table thead {
+    background-color: hsl(var(--primary));
+    border-bottom: 2px solid hsl(var(--border));
+  }
+
+  .battery-results__table thead th {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    font-weight: 600;
+    color: hsl(var(--primary-foreground));
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.05em;
+  }
+
+  .battery-results__table tbody tr {
+    border-bottom: 1px solid hsl(var(--border));
+    transition: all var(--transition-fast);
+  }
+
+  /* Зебра - рядки через один */
+  .battery-results__table tbody tr:nth-child(odd) {
+    background-color: hsl(var(--background));
+  }
+
+  .battery-results__table tbody tr:nth-child(even) {
+    background-color: hsl(var(--secondary) / 0.5);
+  }
+
+  /* Hover ефект - виразний */
+  .battery-results__table tbody tr:hover {
+    background-color: hsl(var(--primary) / 0.1);
+    box-shadow: inset 2px 0 0 0 hsl(var(--primary));
+    cursor: pointer;
+    transform: translateX(2px);
+  }
+
+  /* Підсвітка коміток при hover */
+  .battery-results__table tbody td.is-hovered {
+    background-color: hsl(var(--primary) / 0.15);
+  }
+
+  .battery-results__table tbody td {
+    padding: var(--spacing-3) var(--spacing-4);
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+  }
+
+  .battery-results__table .text-numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .battery-results__table .text-muted {
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  /* Порожній стан */
+  .battery-results__empty {
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-base);
+  }
+
+  /* =============================================================================
      BATTERY FORM SPECIFIC
      ============================================================================= */
 
@@ -44,6 +122,15 @@
     .card__title {
       font-size: var(--font-size-base);
     }
+
+    .battery-results__table {
+      font-size: var(--font-size-xs);
+    }
+
+    .battery-results__table thead th,
+    .battery-results__table tbody td {
+      padding: var(--spacing-2) var(--spacing-3);
+    }
   }
 
   /* Mobile (≤480px) */
@@ -73,6 +160,11 @@
     .battery-results__wrapper {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .battery-results__table {
+      display: block;
+      overflow-x: auto;
     }
   }
 

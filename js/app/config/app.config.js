@@ -1,4 +1,3 @@
-// @ts-check
 // js/app/config/app.config.js
 
 // Імпортуємо селектори з централізованого файлу
@@ -28,7 +27,7 @@ export const PAGES = Object.freeze({
 // ===== APP CONFIG =====
 /** @type {AppConfig} */
 export const APP_CONFIG = Object.freeze({
-  DEFAULT_PAGE: PAGES.RACK,
+  DEFAULT_PAGE: PAGES.BATTERY,
   APP_ID: 'app',
   NAV_CONTAINER: "[data-js='site-nav']",
   LINK_SELECTOR: '[data-view]',

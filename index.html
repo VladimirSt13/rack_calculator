@@ -566,24 +566,15 @@
                     </div>
                   </div>
                   <div class="card__body">
-                    <div class="table-container">
-                      <table class="table" data-js="battery-resultsTable" data-feature="results">
-                        <thead>
-                          <tr>
-                            <th>Стелаж</th>
-                            <th>Габарити</th>
-                            <th class="text-numeric">Навантаження</th>
-                            <th class="text-numeric">Ціна</th>
-                            <th></th>
-                          </tr>
-                        </thead>
-                        <tbody
-                          data-js="battery-resultsBody"
-                          data-feature="results"
-                          data-render-target="tableBody"
-                        ></tbody>
-                      </table>
-                    </div>
+                    <output
+                      class="battery-results"
+                      data-js="battery-resultsOutput"
+                      data-feature="results"
+                      data-render-target="output"
+                      role="region"
+                      aria-live="polite"
+                      aria-label="Результати підбору стелажа"
+                    ></output>
                   </div>
                 </article>
               </div>

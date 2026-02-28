@@ -8,6 +8,7 @@
  * @property {(feature: string, name: string, value: string | number) => () => boolean} setValue - встановити value форми
  * @property {(feature: string, name: string, state: string) => () => boolean} setState - встановити data-state
  * @property {(feature: string, name: string, attr: string, value: string) => () => boolean} setAttr - встановити атрибут
+ * @property {(feature: string, name: string, attr: string) => () => boolean} removeAttr - видалити атрибут
  * @property {(feature: string, name: string, className: string) => () => boolean} addClass - додати клас
  * @property {(feature: string, name: string, className: string) => () => boolean} removeClass - видалити клас
  * @property {(feature: string, name: string, hidden?: boolean) => () => boolean} setHidden - встановити hidden
@@ -133,6 +134,22 @@ export const createEffectRegistry = (selectors = {}) => {
       return false;
     }
     el.setAttribute(attr, value);
+    return true;
+  };
+
+  /**
+   * Remove arbitrary attribute
+   * @param {string} feature
+   * @param {string} name
+   * @param {string} attr
+   * @returns {() => boolean}
+   */
+  const removeAttr = (feature, name, attr) => () => {
+    const el = get(feature, name);
+    if (!el) {
+      return false;
+    }
+    el.removeAttribute(attr);
     return true;
   };
 
@@ -267,6 +284,7 @@ export const createEffectRegistry = (selectors = {}) => {
     setValue,
     setState,
     setAttr,
+    removeAttr,
     addClass,
     removeClass,
     setHidden,

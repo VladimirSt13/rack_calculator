@@ -86,6 +86,7 @@ export const BATTERY_SELECTORS = {
 
   // ===== RESULTS FEATURE =====
   results: {
+    output: '[data-js="battery-resultsOutput"]',
     table: '[data-js="battery-resultsTable"]',
     tableBody: '[data-js="battery-resultsBody"]',
   },
