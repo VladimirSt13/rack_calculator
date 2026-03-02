@@ -1,0 +1,21 @@
+{
+  "name": "@rack-calculator/shared",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "main": "rackCalculator.ts",
+  "exports": {
+    ".": "./rackCalculator.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --ext js,ts",
+    "format": "prettier --write \"**/*.{js,ts,json}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.9.3"
+  }
+}

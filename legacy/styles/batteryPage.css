@@ -1,0 +1,315 @@
+/* styles/batteryPage.css */
+
+/**
+ * Battery Page - Minimal additions
+ * Most styles are in global.css
+ */
+
+@layer battery-page;
+
+@layer battery-page {
+  /* Card animations use fadeIn from global.css */
+  .card {
+    animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* =============================================================================
+     BATTERY RESULTS TABLE
+     ============================================================================= */
+
+  .battery-results__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .battery-results__table thead {
+    /* background-color: hsl(var(--primary)); */
+    border-bottom: 2px solid hsl(var(--border));
+  }
+
+  .battery-results__table thead th {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    font-weight: 600;
+    /* color: hsl(var(--primary-foreground)); */
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.05em;
+  }
+
+  .battery-results__table tbody tr {
+    border-bottom: 1px solid hsl(var(--border));
+    transition: all var(--transition-fast);
+  }
+
+  /* Зебра - рядки через один */
+  .battery-results__table tbody tr:nth-child(odd) {
+    background-color: hsl(var(--background));
+  }
+
+  .battery-results__table tbody tr:nth-child(even) {
+    background-color: hsl(var(--secondary) / 0.5);
+  }
+
+  /* Hover ефект - виразний */
+  .battery-results__table tbody tr:hover {
+    background-color: hsl(var(--primary) / 0.1);
+    box-shadow: inset 2px 0 0 0 hsl(var(--primary));
+    cursor: pointer;
+    transform: translateX(2px);
+  }
+
+  /* Підсвітка коміток при hover */
+  .battery-results__table tbody td.is-hovered {
+    background-color: hsl(var(--primary) / 0.15);
+  }
+
+  .battery-results__table tbody td {
+    padding: var(--spacing-3) var(--spacing-4);
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+  }
+
+  .battery-results__table .text-numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .battery-results__table .text-muted {
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  /* Порожній стан */
+  .battery-results__empty {
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-base);
+  }
+
+  /* =============================================================================
+     BATTERY RESULTS PARAMS (блок параметрів стелажа)
+     ============================================================================= */
+
+  .battery-results__params {
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    background-color: hsl(var(--secondary) / 0.5);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
+
+  .battery-results__params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-3);
+  }
+
+  .battery-results__param {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  .battery-results__param-label {
+    font-size: var(--font-size-xs);
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .battery-results__param-value {
+    font-size: var(--font-size-base);
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .battery-results__param--highlight .battery-results__param-value {
+    color: hsl(var(--primary));
+    font-size: var(--font-size-lg);
+  }
+
+  /* =============================================================================
+     BATTERY FORM SPECIFIC
+     ============================================================================= */
+
+  .battery-form__input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  /* =============================================================================
+     BATTERY SET TABLE (комплект стелажів)
+     ============================================================================= */
+
+  .battery__set-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .battery__set-table thead {
+    background-color: hsl(var(--primary));
+    border-bottom: 2px solid hsl(var(--border));
+  }
+
+  .battery__set-table thead th {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    font-weight: 600;
+    color: hsl(var(--primary-foreground));
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.05em;
+  }
+
+  .battery__set-table tbody tr {
+    border-bottom: 1px solid hsl(var(--border));
+    transition: all var(--transition-fast);
+  }
+
+  .battery__set-table tbody tr:hover {
+    background-color: hsl(var(--secondary) / 0.5);
+  }
+
+  .battery__set-table tbody td {
+    padding: var(--spacing-3) var(--spacing-4);
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+  }
+
+  /* Quantity controls */
+  .battery__set-table__qty {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .battery__set-table__qty-value {
+    min-width: 2rem;
+    text-align: center;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .battery__set-table__qty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .btn--qty-vertical {
+    padding: 2px 6px;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .battery__set-table__actions {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .btn--remove-variant {
+    color: hsl(var(--destructive));
+  }
+
+  .btn--remove-variant:hover {
+    opacity: 0.8;
+  }
+
+  /* Compact mode */
+  .battery__set-table--compact .battery__set-table__cell {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  /* =============================================================================
+     RESPONSIVE - BATTERY PAGE
+     ============================================================================= */
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .battery-form__input-group {
+      gap: var(--spacing-2);
+    }
+  }
+
+  /* Tablet (≤768px) */
+  @media (max-width: 768px) {
+    .battery-form__input-group {
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
+    }
+
+    .card__title {
+      font-size: var(--font-size-base);
+    }
+
+    .battery-results__table {
+      font-size: var(--font-size-xs);
+    }
+
+    .battery-results__table thead th,
+    .battery-results__table tbody td {
+      padding: var(--spacing-2) var(--spacing-3);
+    }
+  }
+
+  /* Mobile (≤480px) */
+  @media (max-width: 480px) {
+    .battery-form__input-group {
+      width: 100%;
+      gap: var(--spacing-1);
+    }
+
+    .battery-form__input-group .form__input {
+      flex: 1;
+      min-width: 3rem;
+    }
+
+    .battery-form__input-group .form__unit {
+      font-size: 0.6875rem;
+      white-space: nowrap;
+    }
+
+    /* Calculate button - full width */
+    .battery-form__calculate-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Results table wrapper */
+    .battery-results__wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .battery-results__table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+
+  /* Small Mobile (≤375px) */
+  @media (max-width: 375px) {
+    .battery-form__input-group .form__input {
+      min-width: 2.5rem;
+      font-size: var(--font-size-xs);
+    }
+
+    .battery-form__input-group .form__unit {
+      font-size: 0.625rem;
+    }
+
+    .card__title {
+      font-size: var(--font-size-sm);
+    }
+  }
+}
