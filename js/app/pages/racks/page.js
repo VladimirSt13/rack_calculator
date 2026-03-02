@@ -10,7 +10,7 @@ import { createRackCalculatorContext } from "./calculator/context/calculatorCont
 import { initRackSetControls } from "./set/events/initRackSetControls.js";
 import { createRackSetContext } from "./set/context/setContext.js";
 
-import { createDevPanel } from "../../ui/debagPanel.js";
+// import { createDevPanel } from "../../ui/debagPanel.js";
 import { initRackSetModal } from "./set/ui/rackSetModal.js";
 const ctx = createRackPageContext();
 
@@ -46,7 +46,7 @@ export const rackPage = createPageModule({
     });
     initRackSetModal(ctx.rackSet);
 
-    createDevPanel({ rackPage: ctx, rackCalculator: ctx.calculator, rackSet: ctx.rackSet });
+    // createDevPanel({ rackPage: ctx, rackCalculator: ctx.calculator, rackSet: ctx.rackSet });
   },
 
   deactivate: () => {
