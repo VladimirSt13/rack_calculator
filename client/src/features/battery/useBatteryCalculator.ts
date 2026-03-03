@@ -1,8 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { generateRackVariants } from '../../shared/core/rackBuilder';
 import { calculateBatteryRack } from '../../shared/core/batteryCalculator';
 import { useBatteryFormStore } from './formStore';
 import { useBatteryResultsStore } from './resultsStore';
+import { CalculationLifecycleStatus } from '../../shared/layout';
 
 interface UseBatteryCalculatorProps {
   priceData?: any;
@@ -10,14 +11,22 @@ interface UseBatteryCalculatorProps {
 
 /**
  * Hook для розрахунку варіантів стелажів для battery
+ * 
+ * Live recalculation states:
+ * - idle: початковий стан
+ * - editing: користувач змінив параметри
+ * - calculating: триває розрахунок
+ * - ready: розрахунок завершено
  */
 export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) => {
   const formState = useBatteryFormStore();
   const resultsStore = useBatteryResultsStore();
+  const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
   const calculate = useCallback(() => {
     if (!priceData?.data) {
       resultsStore.setError('Немає даних прайсу');
+      setCalculationState('idle');
       return;
     }
 
@@ -26,10 +35,12 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
     // Validation
     if (!length || !width || !height || !weight || !count) {
       resultsStore.setError('Заповніть всі обов\'язкові поля');
+      setCalculationState('idle');
       return;
     }
 
     resultsStore.setLoading(true);
+    setCalculationState('calculating');
 
     const element = {
       length: Number(length),
@@ -86,9 +97,11 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       const allVariants = resultsWithCalculation.flatMap((r: any) => r.variantsWithPrice);
 
       resultsStore.setVariants(allVariants);
+      setCalculationState('ready');
     } catch (error) {
       console.error('[BatteryCalculator] Error:', error);
       resultsStore.setError('Помилка розрахунку');
+      setCalculationState('idle');
     }
   }, [formState, priceData, resultsStore]);
 
@@ -97,6 +110,8 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
     isLoading: resultsStore.isLoading,
     error: resultsStore.error,
     variants: resultsStore.variants,
+    calculationState,
+    setCalculationState,
   };
 };
 

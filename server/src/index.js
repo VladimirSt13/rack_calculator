@@ -16,17 +16,24 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 
 // ===== MIDDLEWARE =====
 
-// Security headers
-app.use(helmet());
-
-// CORS
+// CORS - ПЕРШИМ! (до helmet)
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ],
   credentials: true,
+}));
+
+// Security headers (виключаємо CORS заголовки)
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
 }));
 
 // Rate limiting
@@ -71,7 +78,7 @@ app.use((err, req, res, next) => {
 // ===== START SERVER =====
 app.listen(PORT, () => {
   console.log(`[Server] Running on http://localhost:${PORT}`);
-  console.log(`[CORS] Origin: ${CORS_ORIGIN}`);
+  console.log(`[CORS] Origins: localhost:3000, localhost:5173`);
   console.log(`[Env] ${process.env.NODE_ENV}`);
 });
 

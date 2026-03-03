@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRackSpansStore } from '../spansStore';
 import { Trash2 } from 'lucide-react';
+import { Button } from '../../../shared/components';
 
 interface SpanListProps {
   spanOptions: string[];
@@ -14,27 +15,23 @@ const SpanList: React.FC<SpanListProps> = ({ spanOptions }) => {
 
   if (spans.length === 0) {
     return (
-      <div className="p-4 text-center text-muted-foreground">
+      <div className="p-4 text-center text-sm text-muted-foreground">
         Немає доданих прольотів
       </div>
     );
   }
 
   return (
-    <div className="spans-list flex flex-col gap-2">
-      {spans.map((span, index) => (
+    <div className="flex flex-col gap-2">
+      {spans.map((span) => (
         <div
           key={span.id}
-          className="span-row grid grid-cols-[auto_1fr_auto_auto] gap-2 items-center p-3 border rounded-md bg-card"
+          className="grid grid-cols-[1fr_auto_auto] gap-2 items-center p-2.5 border rounded-md bg-card"
         >
-          <span className="text-sm font-medium text-muted-foreground">
-            #{index + 1}
-          </span>
-
           <select
-            className="span-select flex-1 p-2 rounded-md border border-input bg-background text-sm"
             value={span.item}
             onChange={(e) => updateSpan(span.id, { item: e.target.value })}
+            className="min-w-[120px] flex-1 h-8 px-2 text-sm border border-gray-300 rounded-md bg-card hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all cursor-pointer shadow-sm"
           >
             <option value="">Виберіть проліт...</option>
             {spanOptions.map((opt) => (
@@ -45,21 +42,23 @@ const SpanList: React.FC<SpanListProps> = ({ spanOptions }) => {
           </select>
 
           <input
-            className="span-quantity w-20 p-2 text-center rounded-md border border-input bg-background text-sm"
             type="number"
             min={1}
             value={span.quantity}
             onChange={(e) => updateSpan(span.id, { quantity: Number(e.target.value) })}
+            className="w-[72px] h-8 px-2 text-center text-sm font-mono border border-gray-300 rounded-md bg-card hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm md:ml-auto"
           />
 
-          <button
-            className="span-remove inline-flex items-center justify-center p-2 rounded-md border-none bg-transparent text-destructive cursor-pointer transition-fast hover:bg-destructive/10"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
             type="button"
             onClick={() => removeSpan(span.id)}
             aria-label="Видалити проліт"
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       ))}
     </div>

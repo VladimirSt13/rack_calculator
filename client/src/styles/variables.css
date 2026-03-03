@@ -1,102 +1,239 @@
 /* styles/variables.css */
 
 /**
- * shadcn/ui Design System Tokens
+ * Professional Ergonomic SaaS Dashboard Design System
+ * Fintech / Analytics Tool Aesthetics
+ *
+ * Design goals:
+ * - Clean, modern, minimal interface
+ * - Optimized for long working sessions
+ * - High readability and low cognitive load
+ * - Form-heavy workflow with calculation results
  */
 
-:root {
-  /* --- Typography --- */
+/* Light Theme (Default) */
+html {
+  /* --- Color System (HSL) - Light Theme (Default) --- */
+  /* Neutral soft background instead of pure white */
+  --background: 220 20% 97%;        /* #F6F7F9 - soft gray background */
+  --foreground: 217 19% 11%;        /* #111827 - primary text */
+
+  /* Surfaces - hierarchy via surfaces, not borders */
+  --surface: 0 0% 100%;             /* #FFFFFF - primary surface */
+  --surface-secondary: 214 20% 94%; /* #F1F3F5 - secondary surface */
+
+  /* Cards and panels */
+  --card: 0 0% 100%;
+  --card-foreground: 217 19% 11%;
+
+  /* Borders - minimal, soft */
+  --border: 210 10% 88%;            /* #E2E6EA - soft borders */
+  --input: 210 10% 88%;
+  --ring: 217 91% 60%;
+
+  /* Primary color - professional blue */
+  --primary: 217 91% 60%;           /* #3B82F6 */
+  --primary-hover: 217 91% 50%;     /* #2563EB */
+  --primary-active: 217 91% 40%;    /* #1D4ED8 */
+  --primary-soft: 217 100% 96%;     /* #EFF6FF - soft background */
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary */
+  --secondary: 214 20% 94%;
+  --secondary-foreground: 217 19% 26%;
+
+  /* Accent - indigo */
+  --accent: 243 75% 67%;            /* #6366F1 */
+  --accent-soft: 243 100% 97%;      /* #EEF2FF */
+  --accent-foreground: 0 0% 100%;
+
+  /* Muted */
+  --muted: 214 20% 94%;
+  --muted-foreground: 215 14% 65%;  /* #9CA3AF */
+
+  /* Status colors */
+  /* Success */
+  --success: 142 71% 34%;           /* #16A34A */
+  --success-soft: 142 95% 97%;      /* #F0FDF4 */
+  --success-foreground: 142 71% 34%;
+
+  /* Warning */
+  --warning: 38 92% 44%;            /* #D97706 */
+  --warning-soft: 38 100% 98%;      /* #FFFBEB */
+  --warning-foreground: 38 92% 44%;
+
+  /* Error / Destructive */
+  --destructive: 0 84% 44%;         /* #DC2626 */
+  --destructive-soft: 0 93% 97%;    /* #FEF2F2 */
+  --destructive-foreground: 0 84% 44%;
+
+  /* Typography */
+  --text-primary: 217 19% 11%;      /* #111827 */
+  --text-secondary: 215 14% 34%;    /* #4B5563 */
+  --text-muted: 215 14% 65%;        /* #9CA3AF */
+
+  /* Font sizes with clamp for responsiveness */
   --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
   --font-size-sm: clamp(0.8125rem, 0.75rem + 0.3125vw, 0.9375rem);
   --font-size-base: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
   --font-size-lg: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
   --font-size-xl: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
 
-  --font-family-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'SF Mono', Monaco, Consolas, monospace;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  --line-height-tight: 1.25;
   --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
 
-  /* --- Colors (HSL) --- */
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
-
+  /* --- Rounded corners (10-12px) --- */
+  --radius-sm: 0.375rem;    /* 6px */
+  --radius-md: 0.5rem;      /* 8px */
+  --radius-lg: 0.625rem;    /* 10px */
+  --radius-xl: 0.75rem;     /* 12px */
+  --radius-2xl: 1rem;       /* 16px */
   --radius: 0.5rem;
 
-  /* --- Shadows --- */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  /* --- Soft shadows only (no heavy elevation) --- */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.03);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.03);
 
-  /* --- Spacing --- */
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-5: 1.25rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
+  /* --- Spacing (4px grid) --- */
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+
+  /* --- Component sizes --- */
+  /* Input height 40-44px */
+  --input-height-sm: 36px;
+  --input-height-md: 40px;
+  --input-height-lg: 44px;
 
   /* --- Transitions --- */
   --transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* --- Layout --- */
-  --container-max: 1200px;
+  --container-max: 1600px;
+  --sidebar-width: 280px;
+  --header-height: 64px;
+
+  /* --- Focus ring --- */
+  --focus-ring: 0 0 0 3px hsl(217 91% 60% / 0.15);
 }
 
-/* Dark mode support (optional) */
+/* Dark mode support - automatic (prefers-color-scheme) */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: 222.2 84% 4.9%;
+  html:not(.light) {
+    --background: 222 47% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --surface: 217 33% 12%;
+    --surface-secondary: 215 28% 14%;
+
+    --card: 217 33% 12%;
     --card-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 217 91% 60%;
+    --primary-hover: 217 91% 50%;
+    --primary-active: 217 91% 40%;
+    --primary-soft: 217 100% 96%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 28% 14%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 243 75% 67%;
+    --accent-soft: 243 100% 97%;
+    --accent-foreground: 0 0% 100%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 215 20% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 34%;
+    --success-soft: 142 95% 97%;
+    --success-foreground: 142 71% 34%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --warning: 38 92% 44%;
+    --warning-soft: 38 100% 98%;
+    --warning-foreground: 38 92% 44%;
+
+    --destructive: 0 84% 44%;
+    --destructive-soft: 0 93% 97%;
+    --destructive-foreground: 0 84% 44%;
+
+    --text-primary: 210 40% 98%;
+    --text-secondary: 215 20% 65%;
+    --text-muted: 215 20% 55%;
+
+    --ring: 217 91% 60%;
   }
+}
+
+/* Dark mode support - manual toggle (.dark class on html element)
+   Must be last to override prefers-color-scheme */
+html.dark {
+  --background: 222 47% 8%;
+  --foreground: 210 40% 98%;
+
+  --surface: 217 33% 12%;
+  --surface-secondary: 215 28% 14%;
+
+  --card: 217 33% 12%;
+  --card-foreground: 210 40% 98%;
+
+  --border: 215 20% 20%;
+  --input: 215 20% 20%;
+
+  --primary: 217 91% 60%;
+  --primary-hover: 217 91% 50%;
+  --primary-active: 217 91% 40%;
+  --primary-soft: 217 100% 96%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 215 28% 14%;
+  --secondary-foreground: 210 40% 98%;
+
+  --accent: 243 75% 67%;
+  --accent-soft: 243 100% 97%;
+  --accent-foreground: 0 0% 100%;
+
+  --muted: 215 20% 18%;
+  --muted-foreground: 215 20% 65%;
+
+  --success: 142 71% 34%;
+  --success-soft: 142 95% 97%;
+  --success-foreground: 142 71% 34%;
+
+  --warning: 38 92% 44%;
+  --warning-soft: 38 100% 98%;
+  --warning-foreground: 38 92% 44%;
+
+  --destructive: 0 84% 44%;
+  --destructive-soft: 0 93% 97%;
+  --destructive-foreground: 0 84% 44%;
+
+  --text-primary: 210 40% 98%;
+  --text-secondary: 215 20% 65%;
+  --text-muted: 215 20% 55%;
+
+  --ring: 217 91% 60%;
 }

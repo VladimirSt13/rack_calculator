@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   calculateRackComponents,
   calculateTotalCost,
@@ -8,6 +8,7 @@ import {
 import { useRackFormStore } from './formStore';
 import { useRackSpansStore } from './spansStore';
 import { useRackResultsStore } from './resultsStore';
+import { CalculationLifecycleStatus } from '../../shared/layout';
 
 interface UseRackCalculatorProps {
   priceData?: any;
@@ -15,15 +16,23 @@ interface UseRackCalculatorProps {
 
 /**
  * Hook для розрахунку стелажа
+ * 
+ * Live recalculation states:
+ * - idle: початковий стан
+ * - editing: користувач змінив параметри
+ * - calculating: триває розрахунок
+ * - ready: розрахунок завершено
  */
 export const useRackCalculator = ({ priceData }: UseRackCalculatorProps) => {
   const formState = useRackFormStore();
   const spansState = useRackSpansStore();
   const resultsStore = useRackResultsStore();
+  const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
   const calculate = useCallback(() => {
     if (!priceData?.data) {
       resultsStore.setError('Немає даних прайсу');
+      setCalculationState('idle');
       return;
     }
 
@@ -32,20 +41,24 @@ export const useRackCalculator = ({ priceData }: UseRackCalculatorProps) => {
     // Validation
     if (!form.supports || !form.rows || !form.floors || !form.beamsPerRow) {
       resultsStore.setError('Заповніть всі обов\'язкові поля');
+      setCalculationState('idle');
       return;
     }
 
     if (spansState.spans.length === 0 || !spansState.spans.some((s: any) => s.item && s.quantity > 0)) {
       resultsStore.setError('Додайте хоча б один проліт');
+      setCalculationState('idle');
       return;
     }
 
     if (form.floors > 1 && !form.verticalSupports) {
       resultsStore.setError('Оберіть вертикальну опору');
+      setCalculationState('idle');
       return;
     }
 
     resultsStore.setLoading(true);
+    setCalculationState('calculating');
 
     // Prepare data for calculator
     const validSpans = spansState.spans.filter((s: any) => s.item && s.quantity > 0);
@@ -84,17 +97,21 @@ export const useRackCalculator = ({ priceData }: UseRackCalculatorProps) => {
       };
 
       resultsStore.setResult(result);
+      setCalculationState('ready');
     } catch (error) {
       console.error('[RackCalculator] Error:', error);
       resultsStore.setError('Помилка розрахунку');
+      setCalculationState('idle');
     }
-  }, [formState, spansState, priceData, resultsStore]);
+  }, [formState, spansState.spans, priceData, resultsStore]);
 
   return {
     calculate,
     isLoading: resultsStore.isLoading,
     error: resultsStore.error,
     result: resultsStore.result,
+    calculationState,
+    setCalculationState,
   };
 };
 

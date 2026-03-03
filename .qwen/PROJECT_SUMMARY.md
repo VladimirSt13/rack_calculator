@@ -1,121 +1,257 @@
-The user wants me to create a comprehensive project summary in markdown format based on the conversation history. Let me analyze what has been done in this session:
-
-1. The project is a rack calculator (калькулятор стелажів) - a web application for calculating storage rack configurations
-2. Key changes made in this session:
-   - Removed `window.__FEATURES__` global object usage, replaced with closures
-   - Added max spans limit (8) with button disabling
-   - Updated DOM operations to use `dom.js` utility functions
-   - Restructured the page layout (Форма/Параметри + Стелаж + Комплект)
-   - Updated CSS for responsive layout
-
-Let me create a comprehensive summary following the specified format.# Project Summary
+# Project Summary
 
 ## Overall Goal
-Покращення UI калькулятора стелажів та реалізація функції додавання стелажів до комплекту з подальшим переглядом та управлінням набором стелажів.
+Рефакторинг UI калькулятора стелажів (Rack Calculator v2.0) — міграція на React + TypeScript з професійною дизайн-системою для SaaS дашбордів.
 
 ## Key Knowledge
 
 ### Architecture & Conventions
-- **Framework**: Vanilla JS з архітектурою на основі FeatureContext, createState, EffectRegistry
-- **DOM Operations**: Використовувати `js/app/effects/dom.js` (query, toggleClass, setText, setHTML) замість прямих `document.querySelector`
-- **No Global State**: Уникати `window.__FEATURES__` — використовувати замикання в `page.js`
-- **Feature Contexts**: form, spans, results, rackSet — кожен має власний state, actions, selectors
+- **Framework**: React 18 + TypeScript + Vite
+- **State Management**: Zustand 4 (form, spans, results, set stores)
+- **Styling**: Tailwind CSS + CSS Variables
+- **Components**: shadcn/ui pattern (Card, Button, Table, Tabs, etc.)
 
-### Technical Specifications
-- **Max Spans**: 8 прольотів максимум (константа `MAX_SPANS` в `spans/context.js`)
-- **Form Width**: 300px (фіксована), controls: 80px
-- **Breakpoint**: 768px (mobile-first адаптив)
-- **Price Format**: `price.spans` (не `price.beams`) для балок/прольотів
+### Design System (Professional SaaS Dashboard)
+
+#### Color Palette
+| Token | HEX | Usage |
+|-------|-----|-------|
+| `background` | `#F6F7F9` | soft gray background |
+| `foreground` | `#111827` | primary text |
+| `card` | `#FFFFFF` | surfaces |
+| `primary` | `#3B82F6` | professional blue |
+| `primary-hover` | `#2563EB` | |
+| `primary-soft` | `#EFF6FF` | soft background |
+| `secondary` | `#F1F3F5` | secondary surfaces |
+| `muted` | `#F1F3F5` | muted elements |
+| `muted-foreground` | `#9CA3AF` | secondary text |
+| `border/input` | `#E2E6EA` | soft borders |
+| `success` | `#16A34A` | success states |
+| `warning` | `#D97706` | warning states |
+| `destructive` | `#DC2626` | error states |
+
+#### Typography
+- **Font**: Inter (sans), JetBrains Mono (numbers)
+- **Sizes**: xs (0.75rem), sm (0.875rem), base (1rem), lg (1.125rem), xl (1.25rem)
+
+#### Spacing & Layout
+- **Grid**: 4px base
+- **Input Height**: 40px (md), 44px (lg)
+- **Border Radius**: 6–12px (sm to xl)
+- **Container Max**: 1600px
 
 ### File Structure
 ```
-js/app/pages/racks/
-├── page.js                    # Ініціалізація сторінки, обробники
-├── core/
-│   └── calculator.js          # Розрахунок вартості, validateRequired()
-├── features/
-│   ├── form/                  # Параметри стелажа
-│   ├── spans/                 # Прольоти (addSpan, removeSpan, updateSpan)
-│   ├── results/               # Відображення результатів
-│   └── set/                   # Комплект стелажів (addRack)
-└── effects/
-    └── renderResults.js       # Рендер результатів
+rack_calculator/
+├── client/src/
+│   ├── app/              # App, providers
+│   ├── pages/            # RackPage, BatteryPage
+│   ├── features/
+│   │   ├── rack/         # rack calculator
+│   │   └── battery/      # battery selector
+│   ├── shared/
+│   │   ├── components/   # UI components
+│   │   ├── layout/       # CalculatorPage, FieldRow, etc.
+│   │   └── core/         # business logic
+│   ├── hooks/            # React hooks
+│   └── styles/           # CSS, variables
+├── server/src/           # Express API
+├── shared/               # Shared business logic
+└── legacy/               # Vanilla JS (deprecated)
 ```
 
-### Build & Testing
-```bash
-npm run dev      # Vite dev server
-npm run build    # Production build
-npm run test     # Vitest
+### Layout Architecture
+
+#### CalculatorPage (Universal)
+```tsx
+<CalculatorPage
+  title="Розрахунок стелажа"
+  description="Налаштуйте параметри"
+  mode="analysis" | "builder"
+  input={<Form />}
+  results={<Results />}
+/>
+```
+
+#### Structure
+```
+┌────────────────────────────────────────────┐
+│ PageHeader (title + description + actions) │
+├────────────────────────────────────────────┤
+│ ┌────────────┬────────────────────────────┐│
+│ │ InputPanel │ ResultsPanel               ││
+│ │ (420px)    │ (flexible)                 ││
+│ │ - sticky   │ - CalculationStatus        ││
+│ │            │ - SummaryMetrics           ││
+│ │            │ - Tabs (variants/structure)││
+│ └────────────┴────────────────────────────┘│
+└────────────────────────────────────────────┘
+```
+
+### Components
+
+#### Layout
+- `CalculatorPage` — universal calculator layout
+- `InputPanel` — sticky input panel (420px)
+- `ResultsPanel` — results with status/metrics/tabs
+- `CalculationStatus` — lifecycle status (idle/editing/calculating/ready)
+- `PageHeader` — title + description + actions
+
+#### Form Components
+- `FieldRow` — ergonomic field row (grid: 140px 1fr auto)
+- `FieldRowInput` — monospace numeric input
+- `FieldRowSelect` — custom select
+- `FieldRowValue` — display value
+- `FieldRowGroup` — dense field grouping
+- `SectionHeader` — uppercase section header with separator
+- `FormSection` — section container
+- `FormSectionsGroup` — group with gap-6
+
+#### UI Components
+- Card, Button, Table, Tabs, Dialog, etc. (shadcn pattern)
+
+### Calculation Lifecycle
+
+```
+idle → editing → calculating → ready
+ │                    │
+ └────── error ───────┘
+```
+
+**States:**
+- `idle` — waiting for input
+- `editing` — user changed values (debounce 500ms)
+- `calculating` — calculation in progress
+- `ready` — results displayed
+
+### Battery Page Results Structure
+
+```
+┌─────────────────────────────────────────┐
+│ ✓ Розрахунок виконано                   │
+│   Знайдено 3 варіантів                  │
+├─────────────────────────────────────────┤
+│ ┌──────────────┬──────────────────────┐ │
+│ │ Знайдено     │ Вартість             │ │
+│ │ варіантів    │ 100 – 250 ₴          │ │
+│ │ 3            │                      │ │
+│ └──────────────┴──────────────────────┘ │
+├─────────────────────────────────────────┤
+│ [Варіанти] [Структура] [Навантаження]   │
+│ [Вартість]                              │
+├─────────────────────────────────────────┤
+│ Table / Content                         │
+└─────────────────────────────────────────┘
+```
+
+### Rack Page Results Structure
+
+```
+┌─────────────────────────────────────────┐
+│ ✓ Розрахунок виконано                   │
+│   Стелаж: С-400x500-3x2-2               │
+├─────────────────────────────────────────┤
+│ ┌──────────────┬──────────────────────┐ │
+│ │ Загальна     │ Нульова база         │ │
+│ │ 150 ₴        │ 216 ₴                │ │
+│ └──────────────┴──────────────────────┘ │
+├─────────────────────────────────────────┤
+│ [Специфікація] [Компоненти] [Вартість]  │
+├─────────────────────────────────────────┤
+│ Content                                 │
+└─────────────────────────────────────────┘
 ```
 
 ## Recent Actions
 
-### 1. [DONE] Refactoring: Прибрано window.__FEATURES__
-- **page.js**: Додано кастомний обробник `handleAddToSet` з замиканням на `results` та `rackSet`
-- **set/context.js**: `addRack` тепер приймає `{ rack }` в payload (без fallback на window)
-- **Cleanup**: Видалення слухача при деактивації
+### 1. [DONE] CalculatorPage Layout
+- Universal layout for Rack/Battery pages
+- Grid: `grid-cols-[420px_minmax(0,1fr)]`
+- Responsive: stacked on mobile
+- Sticky input panel on desktop
 
-### 2. [DONE] Обмеження кількості прольотів
-- **spans/context.js**: Додано `MAX_SPANS = 8`, перевірка в `addSpan()`, селектори `isMaxSpansReached()`, `getMaxSpans()`
-- **page.js**: Підписка на зміни spans оновлює стан кнопки (disabled, aria-disabled, btn--disabled)
-- **global.css**: Додано `.btn--disabled` стиль
+### 2. [DONE] ResultsPanel Hierarchy
+- CalculationStatus card (top)
+- SummaryMetrics grid (middle)
+- Results content with tabs (bottom)
+- Always render empty states
 
-### 3. [DONE] DOM Utilities Integration
-- **page.js**: Замінено `document.querySelector` на `query()` з `dom.js`
-- **toggleClass**: Використано для перемикання класу кнопки
-- **Імпорти**: `import { query, toggleClass } from '../../effects/dom.js'`
+### 3. [DONE] Tabbed Views
+- Battery: variants, structure, load, pricing
+- Rack: specification, components, pricing
+- Compact tabs (h-9, text-xs)
+- Icons + labels
 
-### 4. [DONE] Layout Restructuring
-```
-Десктоп:
-┌──────────────┬─────────────────────┐
-│ Параметри    │  Стелаж             │
-│ (форма)      │  Назва + Компоненти │
-│              │  + Вартість         │
-├──────────────┴─────────────────────┤
-│  Комплект стелажів (на всю ширину) │
-└────────────────────────────────────┘
+### 4. [DONE] Live Recalculation UX
+- Non-blocking inputs
+- Auto-recalculate on change (debounce 500ms)
+- States: idle → editing → calculating → ready
+- CalculationStatus indicator
 
-Мобільний:
-┌──────────────────┐
-│  Параметри       │
-├──────────────────┤
-│  Стелаж          │
-├──────────────────┤
-│  Комплект        │
-└──────────────────┘
-```
+### 5. [DONE] Professional Design System
+- Neutral soft background (#F6F7F9)
+- Hierarchy via surfaces, not borders
+- Minimal color usage
+- Accent only for interaction/status
+- Fintech/analytics aesthetics
 
-### 5. [DONE] HTML/CSS Updates
-- **index.html**: Нова структура з `rack__top-row` (grid: 300px 1fr), `rack__set-full`
-- **rackPage.css**: Додано `.rack__section-title`, `.rack__subsection-title`, responsive media queries
-- **Єдиний article**: Зона "Стелаж" тепер одна картка з назвою, компонентами та вартістю
+### 6. [DONE] Engineering Data Table
+- Numeric columns: right aligned
+- Monospace numeric cells
+- Compact row height (h-11)
+- Hover highlight only
+- No zebra stripes
+
+### 7. [DONE] FieldRow Component
+- Grid: `[140px_1fr_auto]`
+- Monospace numeric inputs (9ch width)
+- Compact height (h-8)
+- Minimal styling
+
+### 8. [DONE] SectionHeader Component
+- Uppercase label
+- Subtle separator
+- Compact spacing
+- FormSection container
+
+### 9. [DONE] CalculatorUIContext
+- UI state: mode, calculationState, activeSection
+- Non-business logic state
+- Provider pattern
+
+### 10. [DONE] Color System
+- All colors as HEX in Tailwind config
+- Proper contrast (dark text on light bg)
+- Status colors (success, warning, error)
+- Soft variants for backgrounds
 
 ## Current Plan
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | Покращити стилі форми (ширина інпутів, крапки, адаптив) | [DONE] |
-| 2 | Заблокувати селект вертикальних опор при 1 поверсі | [DONE] |
-| 3 | Додати вивід трьох варіантів вартості | [DONE] |
-| 4 | Винести рендер результатів в окрему функцію | [DONE] |
-| 5 | Реалізувати додавання стелажа до комплекту | [DONE] |
-| 6 | Обійти використання window.__FEATURES__ | [DONE] |
-| 7 | Використати dom.js методи | [DONE] |
-| 8 | Обмежити кількість прольотів (макс. 8) | [DONE] |
-| 9 | Оновити layout (Форма + Стелаж + Комплект) | [DONE] |
-| 10 | Додати перемикання видимості цін | [TODO] |
-| 11 | Реалізувати модалку перегляду комплекту | [TODO] |
-| 12 | Додати експорт комплекту (CSV/PDF) | [TODO] |
+| 1 | Universal CalculatorPage layout | [DONE] |
+| 2 | ResultsPanel with status/metrics/tabs | [DONE] |
+| 3 | Live recalculation UX | [DONE] |
+| 4 | Professional design system | [DONE] |
+| 5 | Engineering table ergonomics | [DONE] |
+| 6 | FieldRow component | [DONE] |
+| 7 | SectionHeader component | [DONE] |
+| 8 | CalculatorUIContext | [DONE] |
+| 9 | Color system (HEX) | [DONE] |
+| 10 | Numeric input width (9ch) | [DONE] |
+| 11 | RackSet modal view | [TODO] |
+| 12 | Export to CSV/PDF | [TODO] |
+| 13 | Price visibility toggle | [TODO] |
 
 ## Open Questions
 
-1. **Ціни в таблиці**: Користувач запитував про приховування/показ цін — потрібна кнопка перемикання з іконкою ока
-2. **Комплект стелажів**: Потрібна реалізація модалки для детального перегляду
-3. **Валідація**: Перевірити роботу `validateRequired()` для всіх полів форми
+1. **RackSet Modal**: Потрібна модалка для детального перегляду комплекту
+2. **Export**: CSV/PDF експорт результатів
+3. **Price Toggle**: Кнопка показу/приховування цін
 
 ---
 
 ## Summary Metadata
-**Update time**: 2026-02-25T09:47:40.645Z 
+**Update time**: 2026-03-03
+**Version**: 2.0.0 (React + TypeScript)
+**Status**: Active Development
