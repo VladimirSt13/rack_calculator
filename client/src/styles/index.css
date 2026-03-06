@@ -185,6 +185,9 @@ select {
 
 /* ============================================
    BUTTONS
+   Note: Button component uses Tailwind classes
+   for hover effects. These styles provide only
+   base styling without overriding hover states.
    ============================================ */
 
 button {
@@ -192,74 +195,17 @@ button {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  height: var(--input-height-md);
-  padding: 0 var(--spacing-4);
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   line-height: 1;
-  color: hsl(var(--foreground));
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all var(--transition-normal);
   -webkit-appearance: none;
   appearance: none;
-}
-
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Primary button */
-button.primary,
-button[type="submit"] {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-button.primary:hover:not(:disabled),
-button[type="submit"]:hover:not(:disabled) {
-  background-color: hsl(var(--primary-hover));
-}
-
-/* Outline button */
-button.outline,
-button[type="button"] {
-  background-color: hsl(var(--card));
-  border-color: hsl(var(--border));
-}
-
-button.outline:hover:not(:disabled) {
-  background-color: hsl(var(--surface-secondary));
-  border-color: hsl(var(--primary));
-}
-
-/* Ghost button */
-button.ghost {
-  color: hsl(var(--text-secondary));
-}
-
-button.ghost:hover:not(:disabled) {
-  background-color: hsl(var(--surface-secondary));
-  color: hsl(var(--foreground));
-}
-
-/* Icon button */
-button.icon {
-  width: var(--input-height-md);
-  padding: 0;
 }
 
 /* ============================================
@@ -334,6 +280,8 @@ tbody tr:hover {
 
 /* ============================================
    UTILITY CLASSES
+   Note: Most utility classes are provided by Tailwind.
+   Only keep custom utilities not covered by Tailwind.
    ============================================ */
 
 /* Monospace numbers - for engineering calculator */
@@ -341,56 +289,6 @@ tbody tr:hover {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-family-mono);
 }
-
-/* Text colors - match Tailwind config */
-.text-primary { color: hsl(var(--text-primary)) !important; }
-.text-secondary { color: hsl(var(--text-secondary)) !important; }
-.text-muted { color: hsl(var(--text-muted)) !important; }
-.text-foreground { color: hsl(var(--foreground)) !important; }
-.text-primary-foreground { color: hsl(var(--primary-foreground)) !important; }
-.text-card-foreground { color: hsl(var(--card-foreground)) !important; }
-.text-secondary-foreground { color: hsl(var(--secondary-foreground)) !important; }
-.text-muted-foreground { color: hsl(var(--muted-foreground)) !important; }
-.text-accent-foreground { color: hsl(var(--accent-foreground)) !important; }
-.text-destructive-foreground { color: hsl(var(--destructive-foreground)) !important; }
-.text-success-foreground { color: hsl(var(--success-foreground)) !important; }
-.text-warning-foreground { color: hsl(var(--warning-foreground)) !important; }
-
-/* Status colors */
-.text-success { color: hsl(var(--success)) !important; }
-.text-warning { color: hsl(var(--warning)) !important; }
-.text-error { color: hsl(var(--destructive)) !important; }
-
-/* Background colors */
-.bg-primary { background-color: hsl(var(--primary)) !important; }
-.bg-primary-hover { background-color: hsl(var(--primary-hover)) !important; }
-.bg-primary-soft { background-color: hsl(var(--primary-soft)) !important; }
-.bg-primary-foreground { background-color: hsl(var(--primary-foreground)) !important; }
-.bg-success-soft { background-color: hsl(var(--success-soft)) !important; }
-.bg-warning-soft { background-color: hsl(var(--warning-soft)) !important; }
-.bg-error-soft { background-color: hsl(var(--destructive-soft)) !important; }
-.bg-background { background-color: hsl(var(--background)) !important; }
-.bg-card { background-color: hsl(var(--card)) !important; }
-.bg-surface { background-color: hsl(var(--surface)) !important; }
-.bg-surface-secondary { background-color: hsl(var(--surface-secondary)) !important; }
-.bg-muted { background-color: hsl(var(--muted)) !important; }
-.bg-secondary { background-color: hsl(var(--secondary)) !important; }
-.bg-destructive { background-color: hsl(var(--destructive)) !important; }
-
-/* Border colors */
-.border-primary { border-color: hsl(var(--primary)) !important; }
-.border-border { border-color: hsl(var(--border)) !important; }
-.border-input { border-color: hsl(var(--input)) !important; }
-.border-ring { border-color: hsl(var(--ring)) !important; }
-
-/* Border width utilities */
-.border { border-width: 1px !important; border-style: solid !important; }
-.border-0 { border-width: 0 !important; }
-.border-2 { border-width: 2px !important; }
-.border-b { border-bottom-width: 1px !important; border-bottom-style: solid !important; }
-.border-t { border-top-width: 1px !important; border-top-style: solid !important; }
-.border-l { border-left-width: 1px !important; border-left-style: solid !important; }
-.border-r { border-right-width: 1px !important; border-right-style: solid !important; }
 
 /* Focus visible */
 :focus-visible {

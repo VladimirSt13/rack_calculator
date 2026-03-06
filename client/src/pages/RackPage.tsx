@@ -19,7 +19,7 @@ import { useRackSpansStore } from '../features/rack/spansStore';
  */
 const RackPage: React.FC = () => {
   const { data: priceData, isLoading: priceLoading } = usePrice();
-  const { calculate, isLoading, error, setCalculationState } = useRackCalculator({ priceData });
+  const { calculate, isLoading, error, calculationState, setCalculationState } = useRackCalculator({ priceData });
   const formState = useRackFormStore();
   const spansState = useRackSpansStore();
   
@@ -102,6 +102,7 @@ const RackPage: React.FC = () => {
       input={inputContent}
       results={resultsContent}
       setPanel={setPanelContent}
+      status={calculationState}
     />
   );
 };

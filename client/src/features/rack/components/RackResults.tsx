@@ -12,10 +12,12 @@ import {
   TableRow,
   TableHead,
   TableCell,
-  Button,
-  Skeleton,
+  TextButton,
+  EmptyState,
+  ResultsSkeleton,
+  PriceDisplay,
 } from '../../../shared/components';
-import { Plus, CheckCircle2, CircleDashed } from 'lucide-react';
+import { Plus, CheckCircle2 } from 'lucide-react';
 
 /**
  * Rack Results - відображення результатів розрахунку
@@ -32,7 +34,7 @@ const RackResults: React.FC<RackResultsProps> = memo(({ isLoading = false }) => 
   const showSkeleton = isLoading || (!hasResult && isLoading);
 
   if (showSkeleton) {
-    return <ResultsSkeleton />;
+    return <ResultsSkeleton rows={3} />;
   }
 
   if (!hasResult) {
@@ -54,65 +56,6 @@ const RackResults: React.FC<RackResultsProps> = memo(({ isLoading = false }) => 
 });
 
 RackResults.displayName = 'RackResults';
-
-/**
- * ResultsSkeleton - скелетон для завантаження
- */
-const ResultsSkeleton: React.FC = () => {
-  return (
-    <div className='space-y-4'>
-      <Card>
-        <CardHeader>
-          <Skeleton className='h-6 w-32' />
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-2 gap-4'>
-            <Skeleton className='h-16 w-full' />
-            <Skeleton className='h-16 w-full' />
-            <Skeleton className='h-16 w-full' />
-            <Skeleton className='h-16 w-full' />
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <Skeleton className='h-6 w-24' />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className='h-8 w-full' />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <Skeleton className='h-6 w-32' />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className='h-10 w-full' />
-          <Skeleton className='h-10 w-full' />
-          <Skeleton className='h-10 w-full' />
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-/**
- * EmptyState - стан відсутності даних
- */
-const EmptyState: React.FC = () => {
-  return (
-    <Card>
-      <CardContent className='flex items-center justify-center py-16'>
-        <div className='text-center space-y-3'>
-          <CircleDashed className='w-12 h-12 text-muted-foreground mx-auto' />
-          <p className='text-sm text-muted-foreground max-w-xs'>
-            Заповніть форму та натисніть "Розрахувати" для отримання результатів
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 /**
  * ПreambleCard - короткі вхідні дані
@@ -161,7 +104,7 @@ const PreambleCard: React.FC<PreambleCardProps> = memo(({ result }) => {
           </div>
           <div className='space-y-1'>
             <p className='text-xs text-muted-foreground'>Вартість</p>
-            <p className='text-lg font-semibold tabular-nums text-primary'>{result.total.toFixed(0)} ₴</p>
+            <PriceDisplay value={result.total} size='lg' className='font-semibold text-primary' />
           </div>
         </div>
       </CardContent>
@@ -229,10 +172,10 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
                     <span className='text-sm font-mono tabular-nums'>{item.amount}</span>
                   </TableCell>
                   <TableCell className='text-right'>
-                    <span className='text-sm font-mono tabular-nums'>{item.price.toFixed(2)}</span>
+                    <PriceDisplay value={item.price} />
                   </TableCell>
                   <TableCell className='text-right'>
-                    <span className='text-sm font-mono tabular-nums font-medium'>{item.total.toFixed(2)}</span>
+                    <PriceDisplay value={item.total} className='font-medium' />
                   </TableCell>
                 </TableRow>
               ))}
@@ -244,22 +187,22 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
         <div className='space-y-2 pt-4 border-t'>
           <div className='flex justify-between items-center py-2'>
             <span className='text-sm text-muted-foreground'>Без ізоляторів</span>
-            <span className='text-sm font-medium tabular-nums'>{result.totalWithoutIsolators.toFixed(2)} ₴</span>
+            <PriceDisplay value={result.totalWithoutIsolators} className='font-medium' />
           </div>
           <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md'>
             <span className='text-base font-semibold'>Загальна вартість</span>
-            <span className='text-lg font-bold tabular-nums text-primary'>{result.total.toFixed(2)} ₴</span>
+            <PriceDisplay value={result.total} size='xl' className='font-bold text-primary' />
           </div>
         </div>
 
-        <Button
+        <TextButton
           variant='outline'
           className='w-full'
           onClick={() => onAddToSet(result, 1)}
+          leftIcon={Plus}
         >
-          <Plus className='w-4 h-4 mr-2' />
           Додати до комплекту
-        </Button>
+        </TextButton>
       </CardContent>
     </Card>
   );

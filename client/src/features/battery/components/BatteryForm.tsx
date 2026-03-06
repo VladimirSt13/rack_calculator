@@ -36,13 +36,13 @@ const BatteryForm: React.FC = () => {
   } = useBatteryFormStore();
 
   const rowsOptions = [
-    { value: 1, label: '1' },
-    { value: 2, label: '2' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
   ];
   const floorsOptions = [
-    { value: 1, label: '1' },
-    { value: 2, label: '2' },
-    { value: 3, label: '3' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
   ];
   const supportTypeOptions = [
     { value: 'straight', label: 'Пряма' },
@@ -51,9 +51,9 @@ const BatteryForm: React.FC = () => {
 
   return (
     <CardContent>
-      <FormSectionsGroup>
+      <FormSectionsGroup className='max-w-full overflow-hidden'>
         {/* Dimensions Section */}
-        <FormSection title='Розміри акумулятора'>
+        <FormSection title='Розміри акумулятора, мм'>
           <LengthWithGapField
             label='Довжина'
             id='battery-length'
@@ -61,7 +61,6 @@ const BatteryForm: React.FC = () => {
             onChange={setLength}
             gapValue={gap}
             onGapChange={setGap}
-            unit='мм'
             placeholder='0'
             required
           />
@@ -71,10 +70,9 @@ const BatteryForm: React.FC = () => {
             id='battery-width'
             value={width}
             onChange={setWidth}
-            unit='мм'
             placeholder='0'
             required
-            inputWidth='9ch'
+            inputWidth='8ch'
           />
 
           <NumberField
@@ -82,10 +80,9 @@ const BatteryForm: React.FC = () => {
             id='battery-height'
             value={height}
             onChange={setHeight}
-            unit='мм'
             placeholder='0'
             required
-            inputWidth='9ch'
+            inputWidth='8ch'
           />
 
           <NumberField
@@ -93,25 +90,23 @@ const BatteryForm: React.FC = () => {
             id='battery-weight'
             value={weight}
             onChange={setWeight}
-            unit='кг'
             placeholder='0'
             required
-            inputWidth='9ch'
+            inputWidth='8ch'
           />
         </FormSection>
 
         {/* Quantity Section */}
-        <FormSection title='Кількість'>
+        <FormSection title='Кількість, шт'>
           <NumberField
             label='Кількість'
             id='battery-count'
             value={count}
             onChange={setCount}
-            unit='шт'
             min={1}
             placeholder='0'
             required
-            inputWidth='9ch'
+            inputWidth='8ch'
           />
         </FormSection>
 
@@ -120,21 +115,21 @@ const BatteryForm: React.FC = () => {
           <FormSelectField
             label='Кількість рядів'
             id='battery-rows'
-            value={rows}
+            value={String(rows)}
             onChange={(val) => setRows(Number(val))}
             options={rowsOptions}
             required
-            className='w-[9ch]'
+            className='w-[8ch]'
           />
 
           <FormSelectField
             label='Кількість поверхів'
             id='battery-floors'
-            value={floors}
+            value={String(floors)}
             onChange={(val) => setFloors(Number(val))}
             options={floorsOptions}
             required
-            className='w-[9ch]'
+            className='w-[8ch]'
           />
 
           <FormSelectField
@@ -144,7 +139,7 @@ const BatteryForm: React.FC = () => {
             onChange={(val) => setSupportType(String(val))}
             options={supportTypeOptions}
             required
-            className='w-[140px]'
+            className='w-[15ch]'
           />
         </FormSection>
       </FormSectionsGroup>

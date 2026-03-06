@@ -25,7 +25,10 @@ const inputBaseStyles = cn(
   'hover:border-muted-foreground/50',
   'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
   'transition-colors',
-  'disabled:opacity-50 disabled:cursor-not-allowed'
+  'disabled:opacity-50 disabled:cursor-not-allowed',
+  // Keep spinners visible but ensure they don't affect width calculation
+  '[&::-webkit-inner-spin-button]:ml-1',
+  'appearance-auto'
 );
 
 const inputErrorStyles = 'border-destructive focus:border-destructive focus:ring-destructive/10';
@@ -78,7 +81,7 @@ export const NumberField: React.FC<NumberFieldProps> = memo(({
           id={id}
           type='number'
           min={min}
-          max={max}
+          max={max ?? 999}
           placeholder={placeholder}
           value={value}
           onChange={handleChange}
@@ -124,7 +127,6 @@ export interface SelectFieldProps {
   value: string | number;
   onChange: (value: string | number) => void;
   options: Array<{ value: string | number; label: string }>;
-  placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   className?: string;
@@ -138,7 +140,6 @@ export const SelectField: React.FC<SelectFieldProps> = memo(({
   value,
   onChange,
   options,
-  placeholder,
   required,
   disabled = false,
   className,
@@ -172,7 +173,6 @@ export const SelectField: React.FC<SelectFieldProps> = memo(({
           className,
         )}
       >
-        {placeholder && <option value=''>{placeholder}</option>}
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
@@ -198,8 +198,7 @@ SelectField.displayName = 'SelectField';
 /**
  * LengthWithGapField - поле для довжини з допуском (Δ)
  *
- * Повторюваний патерн:
- * [Label] [Input] + [Δ Input] [Unit]
+ * Δ розташована абсолютно над інпутом для компенсації
  */
 export interface LengthWithGapFieldProps {
   label: string;
@@ -208,7 +207,6 @@ export interface LengthWithGapFieldProps {
   onChange: (value: number) => void;
   gapValue: number | string;
   onGapChange: (value: number) => void;
-  unit: string;
   placeholder?: string;
   required?: boolean;
   error?: string;
@@ -222,7 +220,6 @@ export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(({
   onChange,
   gapValue,
   onGapChange,
-  unit,
   placeholder,
   required,
   error,
@@ -233,20 +230,20 @@ export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(({
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const num = Number(e.target.value);
     if (!isNaN(num)) {
-      onChange(num);
+      onChange(Math.min(num, 999));
     }
   }, [onChange]);
 
   const handleGapChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const num = Number(e.target.value);
     if (!isNaN(num)) {
-      onGapChange(num);
+      onGapChange(Math.min(num, 99));
     }
   }, [onGapChange]);
 
   return (
     <FieldRow label={label} htmlFor={id} required={required}>
-      <div className='flex items-baseline gap-2'>
+      <div className='flex items-baseline gap-2 flex-nowrap py-1'>
         <input
           id={id}
           type='number'
@@ -263,11 +260,14 @@ export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(({
             'transition-colors',
             error && 'border-destructive focus:border-destructive focus:ring-destructive/10',
           )}
-          style={{ width: '9ch' }}
+          style={{ width: '8ch' }}
+          max={999}
         />
-        <span className='text-muted-foreground text-sm pb-1' aria-hidden='true'>+</span>
-        <div className='flex items-center gap-1'>
-          <span className='text-xs font-bold text-muted-foreground leading-none' aria-hidden='true'>Δ</span>
+        <span className='text-muted-foreground text-sm pb-1 flex-shrink-0' aria-hidden='true'>+</span>
+        <div className='relative flex-shrink-0'>
+          <span className='absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-muted-foreground leading-none pointer-events-none z-10' aria-hidden='true'>
+            Δ
+          </span>
           <input
             id={gapId}
             type='number'
@@ -277,17 +277,17 @@ export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(({
             aria-invalid={!!gapError}
             aria-describedby={gapError ? `${gapId}-error` : undefined}
             className={cn(
-              'h-10 px-3 text-center text-sm font-mono',
+              'h-10 px-3 text-center text-sm font-mono pt-4',
               'border border-input rounded-md bg-background',
               'hover:border-muted-foreground/50',
               'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
               'transition-colors',
               gapError && 'border-destructive focus:border-destructive focus:ring-destructive/10',
             )}
-            style={{ width: '9ch' }}
+            style={{ width: '7ch' }}
+            max={99}
           />
         </div>
-        <span className='text-xs text-muted-foreground whitespace-nowrap pb-1' aria-hidden='true'>{unit}</span>
       </div>
       {(error || gapError) && (
         <div className='space-y-1 mt-1'>

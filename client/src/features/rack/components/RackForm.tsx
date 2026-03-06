@@ -9,7 +9,7 @@ import {
   FieldRowSelect,
   FormSection,
   FormSectionsGroup,
-  Button,
+  IconButton,
 } from '../../../shared/components';
 import SpanList from './SpanList';
 import { Plus } from 'lucide-react';
@@ -85,7 +85,6 @@ const RackForm: React.FC = () => {
               disabled={isVerticalSupportsDisabled}
               placeholder='Виберіть...'
             >
-              <option value=''>Виберіть...</option>
               {verticalSupportsOptions.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
@@ -101,7 +100,6 @@ const RackForm: React.FC = () => {
               onChange={(e) => setSupports(e.target.value)}
               placeholder='Виберіть...'
             >
-              <option value=''>Виберіть...</option>
               {supportsOptions.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
@@ -138,16 +136,12 @@ const RackForm: React.FC = () => {
         {/* Spans Section */}
         <FormSection title='Прольоти'>
           <div className='flex items-center gap-2 mb-2'>
-            <Button
-              type='button'
-              variant='outline'
-              size='icon'
+            <IconButton
+              icon={Plus}
+              variant='icon-outline'
               onClick={addSpan}
-              className='w-8 h-8'
               aria-label='Додати проліт'
-            >
-              <Plus className='w-4 h-4' />
-            </Button>
+            />
             <span className='text-sm text-muted-foreground'>Додати проліт</span>
           </div>
           <SpanList spanOptions={spanOptions} />

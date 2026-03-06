@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRackSpansStore } from '../spansStore';
-import { Trash2 } from 'lucide-react';
-import { Button } from '../../../shared/components';
+import { Minus } from 'lucide-react';
+import { IconButton } from '../../../shared/components';
 
 interface SpanListProps {
   spanOptions: string[];
@@ -49,16 +49,12 @@ const SpanList: React.FC<SpanListProps> = ({ spanOptions }) => {
             className="w-[72px] h-8 px-2 text-center text-sm font-mono border border-gray-300 rounded-md bg-card hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm md:ml-auto"
           />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            type="button"
+          <IconButton
+            icon={Minus}
+            variant='icon'
             onClick={() => removeSpan(span.id)}
             aria-label="Видалити проліт"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          />
         </div>
       ))}
     </div>

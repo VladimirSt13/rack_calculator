@@ -39,8 +39,6 @@ export {
   ResultsPanel,
   ResultsWrapper,
   SetPanel,
-  CalculationStatus,
-  ResultsSummary,
   ResultsContent,
   CALCULATOR_WIDTHS,
 } from './CalculatorPage';
@@ -52,8 +50,6 @@ export type {
   ResultsPanelProps,
   ResultsWrapperProps,
   SetPanelProps,
-  CalculationStatusProps,
-  ResultsSummaryProps,
   ResultsContentProps,
 } from './CalculatorPage';
 

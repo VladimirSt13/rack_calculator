@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRackSetStore } from '../setStore';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input } from '../../../shared/components';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '../../../shared/components';
 import { Trash2, Eye } from 'lucide-react';
 
 /**
@@ -60,20 +60,19 @@ const RackSetCard: React.FC = () => {
                       className="w-16 text-center"
                     />
                   </TableCell>
-                  <TableCell>{rack.total.toFixed(2)} ₴</TableCell>
-                  <TableCell className="font-medium">
-                    {(rack.total * rack.quantity).toFixed(2)} ₴
+                  <TableCell>
+                    <PriceDisplay value={rack.total} />
+                  </TableCell>
+                  <TableCell className='font-medium'>
+                    <PriceDisplay value={rack.total * rack.quantity} />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    <IconButton
+                      icon={Trash2}
+                      variant='icon'
                       onClick={() => removeRack(rack.setId)}
                       aria-label="Видалити"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -85,23 +84,22 @@ const RackSetCard: React.FC = () => {
         <div className="mt-4 pt-4 border-t-2 space-y-2">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Загальна вартість:</span>
-            <span className="text-lg font-semibold">{total.toFixed(2)} ₴</span>
+            <PriceDisplay value={total} size='lg' className='font-semibold' />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Без ізоляторів:</span>
-            <span className="font-medium">{totalWithoutIsolators.toFixed(2)} ₴</span>
+            <PriceDisplay value={totalWithoutIsolators} className='font-medium' />
           </div>
           <div className="flex justify-between text-2xl font-bold">
             <span>Нульова:</span>
-            <span>{zeroBase.toFixed(2)} ₴</span>
+            <PriceDisplay value={zeroBase} size='2xl' className='font-bold' />
           </div>
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
-          <Eye className="w-4 h-4 mr-2" />
+        <TextButton variant="outline" className="w-full" leftIcon={Eye}>
           Переглянути комплект
-        </Button>
+        </TextButton>
       </CardFooter>
     </Card>
   );

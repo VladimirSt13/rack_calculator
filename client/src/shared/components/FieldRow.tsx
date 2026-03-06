@@ -30,7 +30,6 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   labelWidth = '140px',
   required,
   className,
-  ...props
 }) => {
   return (
     <div
@@ -44,7 +43,6 @@ export const FieldRow: React.FC<FieldRowProps> = ({
       style={{
         gridTemplateColumns: `${labelWidth} 1fr auto`,
       }}
-      {...props}
     >
       {/* Label (fixed width) */}
       <label

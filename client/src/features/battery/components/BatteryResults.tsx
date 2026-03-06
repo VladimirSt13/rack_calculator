@@ -8,11 +8,13 @@ import {
   TableRow,
   TableHead,
   TableCell,
-  Button,
   Separator,
-  Skeleton,
+  IconButton,
+  EmptyState,
+  ResultsSkeleton,
+  PriceDisplay,
 } from '../../../shared/components';
-import { Plus, CheckCircle2, CircleDashed } from 'lucide-react';
+import { Plus, CheckCircle2 } from 'lucide-react';
 
 /**
  * Battery Results - відображення результатів підбору
@@ -29,7 +31,7 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
   const showSkeleton = isLoading;
 
   if (showSkeleton) {
-    return <ResultsSkeleton />;
+    return <ResultsSkeleton rows={3} />;
   }
 
   if (!hasVariants) {
@@ -51,47 +53,6 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
 });
 
 BatteryResults.displayName = 'BatteryResults';
-
-/**
- * ResultsSkeleton - скелетон для завантаження
- */
-const ResultsSkeleton: React.FC = () => {
-  return (
-    <div className='space-y-6'>
-      <div className='space-y-2'>
-        <Skeleton className='h-4 w-32' />
-        <Skeleton className='h-6 w-full' />
-      </div>
-      <Separator />
-      <div className='space-y-2'>
-        <Skeleton className='h-4 w-48' />
-        <Skeleton className='h-8 w-full' />
-      </div>
-      <Separator />
-      <div className='space-y-4'>
-        <Skeleton className='h-10 w-full' />
-        <Skeleton className='h-10 w-full' />
-        <Skeleton className='h-10 w-full' />
-      </div>
-    </div>
-  );
-};
-
-/**
- * EmptyState - стан відсутності даних
- */
-const EmptyState: React.FC = () => {
-  return (
-    <div className='flex items-center justify-center py-16'>
-      <div className='text-center space-y-3'>
-        <CircleDashed className='w-12 h-12 text-muted-foreground mx-auto' />
-        <p className='text-sm text-muted-foreground max-w-xs'>
-          Заповніть форму та натисніть "Підібрати" для отримання результатів
-        </p>
-      </div>
-    </div>
-  );
-};
 
 /**
  * Пreamble - короткі вхідні дані
@@ -138,11 +99,11 @@ const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
         </div>
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Мін. вартість</p>
-          <p className='text-lg font-semibold tabular-nums text-primary'>{minTotal.toFixed(0)} ₴</p>
+          <PriceDisplay value={minTotal} size='lg' className='font-semibold text-primary' />
         </div>
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Макс. вартість</p>
-          <p className='text-lg font-semibold tabular-nums text-primary'>{maxTotal.toFixed(0)} ₴</p>
+          <PriceDisplay value={maxTotal} size='lg' className='font-semibold text-primary' />
         </div>
       </div>
     </div>
@@ -275,20 +236,15 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                   </span>
                 </TableCell>
                 <TableCell className='text-right'>
-                  <span className='text-sm font-mono tabular-nums font-medium'>
-                    {variant.total.toFixed(2)} ₴
-                  </span>
+                  <PriceDisplay value={variant.total} className='font-medium' />
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  <IconButton
+                    icon={Plus}
+                    variant='icon'
                     onClick={() => onAdd(variant, 1)}
                     aria-label={`Додати ${variant.name}`}
-                  >
-                    <Plus className='w-4 h-4' aria-hidden='true' />
-                  </Button>
+                  />
                 </TableCell>
               </TableRow>
             ))}

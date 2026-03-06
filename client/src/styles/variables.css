@@ -37,6 +37,7 @@ html {
   --primary-active: 221 83% 43%; /* #1E40AF - blue-800 */
   --primary-soft: 221 100% 96%; /* #EFF6FF - blue-50 */
   --primary-foreground: 0 0% 100%;
+  --primary-light: 221 90% 70%; /* lighter blue for dark mode hover */
 
   /* Secondary */
   --secondary: 220 14% 96%;
@@ -156,6 +157,7 @@ html.dark {
   --primary-active: 221 83% 43%;
   --primary-soft: 221 100% 20%;
   --primary-foreground: 0 0% 100%;
+  --primary-light: 221 90% 70%; /* lighter blue for dark mode hover */
 
   --secondary: 215 27% 18%;
   --secondary-foreground: 210 40% 98%;

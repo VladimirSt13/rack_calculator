@@ -26,7 +26,7 @@ const CalculationControls: React.FC<CalculationControlsProps> = ({
     <div className={cn('space-y-2', className)}>
       <Button
         variant="default"
-        className="w-full btn-lg"
+        className="w-full"
         onClick={onSubmit}
         disabled={isLoading}
       >

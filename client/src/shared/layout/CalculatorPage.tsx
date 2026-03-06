@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { PageHeader } from './PageHeader';
 
@@ -49,6 +50,8 @@ export interface CalculatorPageProps {
   inputWidth?: string;
   /** Режим роботи: analysis (аналіз) | builder (конструктор) */
   mode?: CalculatorMode;
+  /** Статус розрахунку в життєвому циклі */
+  status?: CalculationLifecycleStatus;
 }
 
 export const CalculatorPage: React.FC<CalculatorPageProps> = ({
@@ -60,6 +63,7 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
   setPanel,
   inputWidth = CALCULATOR_WIDTHS.input,
   mode = 'analysis',
+  status,
 }) => {
   return (
     <div className='min-h-screen bg-background'>
@@ -81,7 +85,7 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
 
           {/* Results + Set Panel: flexible, stacked vertically */}
           <ResultsWrapper>
-            <ResultsPanel mode={mode}>{results}</ResultsPanel>
+            <ResultsPanel mode={mode} status={status}>{results}</ResultsPanel>
             {setPanel && <SetPanel>{setPanel}</SetPanel>}
           </ResultsWrapper>
         </div>
@@ -160,12 +164,6 @@ export interface ResultsPanelProps {
   children: React.ReactNode;
   /** Статус розрахунку в життєвому циклі */
   status?: CalculationLifecycleStatus;
-  /** Повідомлення статусу */
-  statusMessage?: string;
-  /** Заголовок секції підсумків */
-  summaryTitle?: string;
-  /** Контент підсумків */
-  summary?: React.ReactNode;
   /** Режим роботи */
   mode?: CalculatorMode;
 }
@@ -173,27 +171,42 @@ export interface ResultsPanelProps {
 export const ResultsPanel: React.FC<ResultsPanelProps> = ({
   children,
   status = 'idle',
-  statusMessage,
-  summaryTitle,
-  summary,
   mode = 'analysis',
 }) => {
+  // Toast-сповіщення при зміні статусу
+  const prevStatusRef = useRef<CalculationLifecycleStatus>('idle');
+
+  useEffect(() => {
+    const prevStatus = prevStatusRef.current;
+    prevStatusRef.current = status;
+
+    // Не показуємо toast при першому рендері або якщо статус не змінився
+    if (prevStatus === status) return;
+
+    // Показуємо toast тільки для важливих змін
+    if (status === 'calculating') {
+      toast.loading('Розрахунок...', { id: 'calculation' });
+    } else if (status === 'ready') {
+      toast.success('Розрахунок виконано', { id: 'calculation' });
+    } else if (status === 'editing' && prevStatus === 'ready') {
+      toast.dismiss('calculation');
+    }
+
+    // Cleanup toast при розмонтуванні
+    return () => {
+      if (status === 'calculating') {
+        toast.dismiss('calculation');
+      }
+    };
+  }, [status]);
+
   return (
-    /* Flexible width, no max-width constraints */
     <div
       className='space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm'
       role='region'
       aria-label='Результати розрахунку'
     >
-      {/* 1. Calculation Status (always first) */}
-      <CalculationStatus status={status} message={statusMessage} />
-
-      {/* 2. Summary Section (always second, may be empty) */}
-      <ResultsSummary title={summaryTitle} mode={mode}>
-        {summary}
-      </ResultsSummary>
-
-      {/* 3. Results Content (mode affects composition) */}
+      {/* Results Content (mode affects composition) */}
       <ResultsContent mode={mode}>{children}</ResultsContent>
     </div>
   );
@@ -203,87 +216,6 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
  * Статус розрахунку в життєвому циклі
  */
 export type CalculationLifecycleStatus = 'idle' | 'editing' | 'calculating' | 'ready';
-
-/**
- * CalculationStatus - відображення статусу розрахунку
- * Життєвий цикл: idle → editing → calculating → ready
- */
-export interface CalculationStatusProps {
-  status: CalculationLifecycleStatus;
-  message?: string;
-}
-
-export const CalculationStatus: React.FC<CalculationStatusProps> = ({ status, message }) => {
-  const statusConfig: Record<
-    CalculationLifecycleStatus,
-    {
-      icon: string | null;
-      text: string;
-      className: string;
-      pulse?: boolean;
-    }
-  > = {
-    idle: {
-      icon: null,
-      text: message || 'Введіть дані для розрахунку',
-      className: 'text-muted-foreground',
-    },
-    editing: {
-      icon: '✎',
-      text: message || 'Дані змінено',
-      className: 'text-warning',
-    },
-    calculating: {
-      icon: '⏳',
-      text: message || 'Розрахунок...',
-      className: 'text-primary',
-      pulse: true,
-    },
-    ready: {
-      icon: '✓',
-      text: message || 'Розрахунок виконано',
-      className: 'text-success',
-    },
-  };
-
-  const config = statusConfig[status];
-
-  return (
-    <div
-      className={cn('flex items-center gap-2 text-sm font-medium', config.className)}
-      role='status'
-      aria-live='polite'
-    >
-      {config.icon && (
-        <span className={cn('flex-shrink-0 w-5 h-5 flex items-center justify-center', config.pulse && 'animate-pulse')}>
-          {config.icon}
-        </span>
-      )}
-      <span>{config.text}</span>
-    </div>
-  );
-};
-
-/**
- * ResultsSummary - секція підсумків
- */
-export interface ResultsSummaryProps {
-  title?: string;
-  children?: React.ReactNode;
-  /** Режим роботи */
-  mode?: CalculatorMode;
-}
-
-export const ResultsSummary: React.FC<ResultsSummaryProps> = ({ title, children, mode = 'analysis' }) => {
-  return (
-    <section className={cn('space-y-2', mode === 'builder' && 'border-b pb-4')}>
-      {title && <h2 className='text-lg font-semibold'>{title}</h2>}
-      <div className='min-h-[1rem]'>
-        {children || <div className='text-sm text-muted-foreground italic'>Підсумки з'являться після розрахунку</div>}
-      </div>
-    </section>
-  );
-};
 
 /**
  * ResultsContent - контейнер контенту результатів

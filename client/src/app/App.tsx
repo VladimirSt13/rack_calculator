@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeToggle } from '../shared/components';
+import { ThemeToggle, Toaster } from '../shared/components';
 import RackPage from '../pages/RackPage';
 import BatteryPage from '../pages/BatteryPage';
 
@@ -80,6 +80,7 @@ const App: React.FC = () => {
               </Routes>
             </div>
           </main>
+          <Toaster />
         </div>
       </BrowserRouter>
     </QueryClientProvider>

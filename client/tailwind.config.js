@@ -22,6 +22,7 @@ export default {
         'primary-active': 'hsl(var(--primary-active))',
         'primary-soft': 'hsl(var(--primary-soft))',
         'primary-foreground': 'hsl(var(--primary-foreground))',
+        'primary-light': 'hsl(var(--primary-light))',
 
         // Secondary
         secondary: 'hsl(var(--secondary))',

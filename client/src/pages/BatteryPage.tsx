@@ -9,7 +9,7 @@ import { useBatteryFormStore } from '../features/battery/formStore';
 
 /**
  * Battery Page - сторінка підбору стелажа для акумулятора
- * 
+ *
  * Live recalculation UX:
  * - editing → calculating → ready
  * - Non-blocking inputs
@@ -17,9 +17,9 @@ import { useBatteryFormStore } from '../features/battery/formStore';
  */
 const BatteryPage: React.FC = () => {
   const { data: priceData, isLoading: priceLoading } = usePrice();
-  const { calculate, isLoading, error, setCalculationState } = useBatteryCalculator({ priceData });
+  const { calculate, isLoading, error, calculationState, setCalculationState } = useBatteryCalculator({ priceData });
   const formState = useBatteryFormStore();
-  
+
   // Track form changes for live recalculation
   const formValuesRef = useRef(JSON.stringify(formState));
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,7 +27,7 @@ const BatteryPage: React.FC = () => {
   // Auto-recalculate when form values change
   useEffect(() => {
     const currentFormValues = JSON.stringify(formState);
-    
+
     // Skip if form values haven't changed
     if (currentFormValues === formValuesRef.current) {
       return;
@@ -46,7 +46,7 @@ const BatteryPage: React.FC = () => {
       // Only recalculate if we have valid form data
       if (formState.length && formState.width && formState.height && formState.weight && formState.count) {
         setCalculationState('calculating');
-        calculate();
+        calculate(formState);
         // State will be set to 'ready' in calculate() after completion
       }
       formValuesRef.current = currentFormValues;
@@ -77,7 +77,7 @@ const BatteryPage: React.FC = () => {
             error={error}
             submitText="Підібрати"
             loadingText="Розрахунок..."
-            onSubmit={calculate}
+            onSubmit={() => calculate(useBatteryFormStore.getState())}
           />
         </div>
       )}
@@ -92,6 +92,7 @@ const BatteryPage: React.FC = () => {
       description="Вкажіть розміри та вагу акумулятора для пошуку"
       input={inputContent}
       results={resultsContent}
+      status={calculationState}
     />
   );
 };

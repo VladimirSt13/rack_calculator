@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { generateRackVariants } from '../../shared/core/rackBuilder';
 import { calculateBatteryRack } from '../../shared/core/batteryCalculator';
-import { useBatteryFormStore } from './formStore';
 import { useBatteryResultsStore } from './resultsStore';
 import { CalculationLifecycleStatus } from '../../shared/layout';
+import type { BatteryFormState } from './formStore';
 
 interface UseBatteryCalculatorProps {
   priceData?: any;
@@ -11,7 +11,7 @@ interface UseBatteryCalculatorProps {
 
 /**
  * Hook для розрахунку варіантів стелажів для battery
- * 
+ *
  * Live recalculation states:
  * - idle: початковий стан
  * - editing: користувач змінив параметри
@@ -19,11 +19,10 @@ interface UseBatteryCalculatorProps {
  * - ready: розрахунок завершено
  */
 export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) => {
-  const formState = useBatteryFormStore();
   const resultsStore = useBatteryResultsStore();
   const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
-  const calculate = useCallback(() => {
+  const calculate = useCallback((formState: BatteryFormState) => {
     if (!priceData?.data) {
       resultsStore.setError('Немає даних прайсу');
       setCalculationState('idle');
@@ -103,7 +102,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       resultsStore.setError('Помилка розрахунку');
       setCalculationState('idle');
     }
-  }, [formState, priceData, resultsStore]);
+  }, [priceData, resultsStore]);
 
   return {
     calculate,
