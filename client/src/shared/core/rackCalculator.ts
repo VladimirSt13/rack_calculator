@@ -179,9 +179,7 @@ export const calculateVerticalSupports = (config: RackConfig, price: PriceData):
   }
 
   // Кількість прольотів + 1 = кількість стійок в ряду
-  const totalSpans = spans
-    ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
-    : (spansArray?.length || 0);
+  const totalSpans = spans ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0) : spansArray?.length || 0;
   const standsPerRow = totalSpans + 1;
   const totalStands = standsPerRow * 2 * rows; // 2 сторони × ряди
 
@@ -204,9 +202,7 @@ export const calculateBraces = (config: RackConfig, price: PriceData): Component
     return null;
   }
 
-  const totalSpans = spans
-    ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
-    : (spansArray?.length || 0);
+  const totalSpans = spans ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0) : spansArray?.length || 0;
 
   // Формула розкосів: (прольоти - 1) × 2 + 2
   const bracesPerSide = totalSpans > 1 ? (totalSpans - 1) * 2 + 2 : 2;
@@ -228,18 +224,16 @@ export const calculateBraces = (config: RackConfig, price: PriceData): Component
  * Розрахунок ізоляторів
  */
 export const calculateIsolators = (config: RackConfig, price: PriceData): ComponentItem | null => {
-  const { floors, spans, spansArray, rows } = config;
+  const { floors, spans, spansArray } = config;
   if (floors > 1) {
     return null;
   }
 
-  const totalSpans = spans
-    ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
-    : (spansArray?.length || 0);
+  const totalSpans = spans ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0) : spansArray?.length || 0;
 
   // Кількість опор × 2 ізолятори на опору
-  const edgeSupports = 2 * rows;
-  const intermediateSupports = Math.max(0, totalSpans - 1) * rows;
+  const edgeSupports = 2;
+  const intermediateSupports = Math.max(0, totalSpans - 1);
   const totalSupports = edgeSupports + intermediateSupports;
   const totalIsolators = totalSupports * 2;
 
@@ -290,30 +284,22 @@ export const calculateTotalWithoutIsolators = (components: RackComponents): numb
 export const generateRackName = (config: RackConfig): string => {
   const { floors, rows, spans, supports } = config;
 
-  const totalLength = spans?.reduce(
-    (sum, s) => sum + (parseInt(s.item) || 0) * (s.quantity || 0),
-    0,
-  ) || 0;
+  const totalLength = spans?.reduce((sum, s) => sum + (parseInt(s.item) || 0) * (s.quantity || 0), 0) || 0;
 
   const hasC = supports?.includes('C') || false;
   const cleanSupports = supports?.replace('C', '') || '';
   const abbreviation = `L${floors}A${rows}${hasC ? 'C' : ''}-${totalLength}/${cleanSupports}`;
 
-  const floorsWords = [
-    '',
-    'одноповерховий',
-    'двоповерховий',
-    'трьохповерховий',
-    'чотириповерховий',
-    "п'ятиповерховий",
-  ];
+  const floorsWords = ['', 'одноповерховий', 'двоповерховий', 'трьохповерховий', 'чотириповерховий', "п'ятиповерховий"];
   const rowsWords = ['', 'однорядний', 'двохрядний', 'трьохрядний', 'чотирьохрядний'];
 
   const description = [
     `Стелаж ${floorsWords[floors] || `${floors}-поверховий`}`,
     rowsWords[rows] || `${rows}-рядний`,
     hasC ? 'ступінчатий' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return `${description} ${abbreviation}`;
 };

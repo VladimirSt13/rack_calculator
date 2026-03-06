@@ -32,10 +32,28 @@ body {
   background-color: hsl(var(--background));
 }
 
-/* Dark mode override - higher specificity */
+/* Dark mode - apply to html element, inherit to body */
+html.dark {
+  color-scheme: dark;
+}
+
 html.dark body {
-  background-color: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Pulse animation for calculating status */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Typography */
@@ -318,6 +336,12 @@ tbody tr:hover {
    UTILITY CLASSES
    ============================================ */
 
+/* Monospace numbers - for engineering calculator */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-family-mono);
+}
+
 /* Text colors - match Tailwind config */
 .text-primary { color: hsl(var(--text-primary)) !important; }
 .text-secondary { color: hsl(var(--text-secondary)) !important; }
@@ -371,6 +395,11 @@ tbody tr:hover {
 /* Focus visible */
 :focus-visible {
   outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Focus visible ring offset for dark mode */
+html.dark :focus-visible {
   outline-offset: 2px;
 }
 

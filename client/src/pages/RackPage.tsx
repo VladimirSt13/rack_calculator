@@ -88,10 +88,11 @@ const RackPage: React.FC = () => {
   );
 
   const resultsContent = (
-    <>
-      <RackResults isLoading={isLoading} />
-      <RackSetCard />
-    </>
+    <RackResults isLoading={isLoading} />
+  );
+
+  const setPanelContent = (
+    <RackSetCard />
   );
 
   return (
@@ -100,6 +101,7 @@ const RackPage: React.FC = () => {
       description="Налаштуйте параметри та отримайте специфікацію"
       input={inputContent}
       results={resultsContent}
+      setPanel={setPanelContent}
     />
   );
 };

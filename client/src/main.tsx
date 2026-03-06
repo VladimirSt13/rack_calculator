@@ -7,13 +7,12 @@ import './styles/index.css';
 (function initTheme() {
   const savedTheme = localStorage.getItem('rack-calculator-theme');
   const root = document.documentElement;
-  
-  if (savedTheme) {
-    if (savedTheme === 'dark') {
-      root.classList.add('dark');
-    }
-  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+
+  if (savedTheme === 'dark') {
     root.classList.add('dark');
+  } else {
+    // За замовчуванням світла тема
+    root.classList.remove('dark');
   }
 })();
 

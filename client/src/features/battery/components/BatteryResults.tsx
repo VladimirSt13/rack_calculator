@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { memo } from 'react';
 import { useBatteryResultsStore } from '../resultsStore';
 import { useBatterySetStore } from '../setStore';
 import {
@@ -10,10 +10,6 @@ import {
   TableCell,
   Button,
   Separator,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
   Skeleton,
 } from '../../../shared/components';
 import { Plus, CheckCircle2, CircleDashed } from 'lucide-react';
@@ -28,7 +24,6 @@ interface BatteryResultsProps {
 const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false }) => {
   const { variants } = useBatteryResultsStore();
   const { addRack } = useBatterySetStore();
-  const [activeTab, setActiveTab] = useState<string>('variants');
 
   const hasVariants = variants && variants.length > 0;
   const showSkeleton = isLoading;
@@ -37,16 +32,20 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
     return <ResultsSkeleton />;
   }
 
+  if (!hasVariants) {
+    return <EmptyState />;
+  }
+
   return (
-    <div className="space-y-6">
-      <CalculationStatus hasVariants={hasVariants} variants={variants} />
-      <SummaryMetrics variants={variants} />
-      <ResultsTabs
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        variants={variants}
-        onAdd={addRack}
-      />
+    <div className='space-y-6'>
+      {/* Пreamble - короткі вхідні дані */}
+      <Preamble variants={variants} />
+
+      {/* Акумулятор - параметри елемента */}
+      <BatteryElement variants={variants} />
+
+      {/* Таблиця варіантів прольотів */}
+      <SpansTable variants={variants} onAdd={addRack} />
     </div>
   );
 });
@@ -54,282 +53,241 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
 BatteryResults.displayName = 'BatteryResults';
 
 /**
- * ResultsSkeleton - скелетон для завантаження результатів
+ * ResultsSkeleton - скелетон для завантаження
  */
 const ResultsSkeleton: React.FC = () => {
   return (
-    <div className="space-y-6">
-      {/* Status Skeleton */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3 py-1">
-          <Skeleton className="w-6 h-6 rounded-full" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-48" />
-          </div>
-        </div>
-        <Separator />
+    <div className='space-y-6'>
+      <div className='space-y-2'>
+        <Skeleton className='h-4 w-32' />
+        <Skeleton className='h-6 w-full' />
       </div>
-
-      {/* Metrics Skeleton */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-px bg-border rounded-md overflow-hidden">
-          <div className="bg-card p-4 space-y-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <div className="bg-card p-4 space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-6 w-24" />
-          </div>
-        </div>
-        <Separator />
+      <Separator />
+      <div className='space-y-2'>
+        <Skeleton className='h-4 w-48' />
+        <Skeleton className='h-8 w-full' />
       </div>
-
-      {/* Tabs Skeleton */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-4 gap-1">
-          <Skeleton className="h-9" />
-          <Skeleton className="h-9" />
-          <Skeleton className="h-9" />
-          <Skeleton className="h-9" />
-        </div>
-        <Separator />
-        <div className="min-h-[200px] space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
+      <Separator />
+      <div className='space-y-4'>
+        <Skeleton className='h-10 w-full' />
+        <Skeleton className='h-10 w-full' />
+        <Skeleton className='h-10 w-full' />
       </div>
     </div>
   );
 };
 
 /**
- * CalculationStatus - статус розрахунку
+ * EmptyState - стан відсутності даних
  */
-interface CalculationStatusProps {
-  hasVariants: boolean;
-  variants?: any[] | null;
-}
-
-const CalculationStatus: React.FC<CalculationStatusProps> = memo(({ hasVariants, variants }) => {
+const EmptyState: React.FC = () => {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-3 py-1" role="status" aria-live="polite">
-        <div className="flex items-center justify-center w-6 h-6" aria-hidden="true">
-          {hasVariants ? (
-            <CheckCircle2 className="w-5 h-5 text-success" />
-          ) : (
-            <CircleDashed className="w-5 h-5 text-muted-foreground" />
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium leading-none">
-            {hasVariants ? 'Розрахунок виконано' : 'Очікування розрахунку'}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {hasVariants
-              ? `Знайдено ${variants?.length || 0} варіантів`
-              : 'Заповніть форму та натисніть "Підібрати"'}
-          </p>
-        </div>
+    <div className='flex items-center justify-center py-16'>
+      <div className='text-center space-y-3'>
+        <CircleDashed className='w-12 h-12 text-muted-foreground mx-auto' />
+        <p className='text-sm text-muted-foreground max-w-xs'>
+          Заповніть форму та натисніть "Підібрати" для отримання результатів
+        </p>
       </div>
-      <Separator />
     </div>
   );
-});
-
-CalculationStatus.displayName = 'CalculationStatus';
+};
 
 /**
- * ResultsTabs - компонент табів з результатами
+ * Пreamble - короткі вхідні дані
  */
-interface ResultsTabsProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  variants?: any[] | null;
-  onAdd: (variant: any, quantity: number) => void;
-}
-
-const ResultsTabs: React.FC<ResultsTabsProps> = memo(({ activeTab, onTabChange, variants, onAdd }) => {
-  return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid grid-cols-4 h-9" role="tablist" aria-label="Результати підбору">
-        <TabsTrigger value="variants" className="text-xs gap-1" role="tab">
-          <span className="hidden sm:inline">Варіанти</span>
-          <span className="sm:hidden">Вар.</span>
-        </TabsTrigger>
-        <TabsTrigger value="structure" className="text-xs gap-1" role="tab">
-          <span className="hidden sm:inline">Структура</span>
-          <span className="sm:hidden">Струк.</span>
-        </TabsTrigger>
-        <TabsTrigger value="load" className="text-xs gap-1" role="tab">
-          <span className="hidden sm:inline">Навантаження</span>
-          <span className="sm:hidden">Навант.</span>
-        </TabsTrigger>
-        <TabsTrigger value="pricing" className="text-xs gap-1" role="tab">
-          <span className="hidden sm:inline">Вартість</span>
-          <span className="sm:hidden">Варт.</span>
-        </TabsTrigger>
-      </TabsList>
-
-      <Separator />
-
-      <div className="min-h-[200px]">
-        <TabsContent value="variants" className="mt-0" role="tabpanel">
-          <ResultsTable variants={variants} onAdd={onAdd} />
-        </TabsContent>
-
-        <TabsContent value="structure" className="mt-0" role="tabpanel">
-          <StructureView variants={variants} />
-        </TabsContent>
-
-        <TabsContent value="load" className="mt-0" role="tabpanel">
-          <LoadAnalysisView variants={variants} />
-        </TabsContent>
-
-        <TabsContent value="pricing" className="mt-0" role="tabpanel">
-          <PricingView variants={variants} />
-        </TabsContent>
-      </div>
-    </Tabs>
-  );
-});
-
-ResultsTabs.displayName = 'ResultsTabs';
-
-/**
- * SummaryMetrics - сітка метрик
- */
-interface SummaryMetricsProps {
-  variants?: Array<{
-    name: string;
+interface PreambleProps {
+  variants: Array<{
     width: number;
     height: number;
+    length: number;
+    floors: number;
+    rows: number;
     beams: number;
     total: number;
-  }> | null;
+    count?: number;
+  }>;
 }
 
-const SummaryMetrics: React.FC<SummaryMetricsProps> = memo(({ variants }) => {
-  const hasVariants = variants && variants.length > 0;
+const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
+  // Унікальні параметри стелажа
+  const firstVariant = variants[0];
+  
+  // Кількість варіантів
+  const variantsCount = variants.length;
+  
+  // Мінімальна та максимальна вартість
+  const minTotal = Math.min(...variants.map(v => v.total));
+  const maxTotal = Math.max(...variants.map(v => v.total));
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-px bg-border rounded-md overflow-hidden" role="region" aria-label="Метрики">
-        <MetricCell
-          label="Знайдено варіантів"
-          value={hasVariants ? variants.length.toString() : '—'}
-        />
-        <MetricCell
-          label="Вартість"
-          value={
-            hasVariants
-              ? `${Math.min(...variants.map(v => v.total)).toFixed(0)} – ${Math.max(...variants.map(v => v.total)).toFixed(0)} ₴`
-              : '—'
-          }
-        />
+    <div className='space-y-3'>
+      <div className='flex items-center gap-3'>
+        <CheckCircle2 className='w-5 h-5 text-success' />
+        <p className='text-sm font-medium'>Розрахунок виконано</p>
       </div>
       <Separator />
+      <div className='grid grid-cols-2 gap-4'>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Варіантів</p>
+          <p className='text-lg font-semibold tabular-nums'>{variantsCount}</p>
+        </div>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Стелажів</p>
+          <p className='text-lg font-semibold tabular-nums'>{firstVariant?.rows} рядн., {firstVariant?.floors} пов.</p>
+        </div>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Мін. вартість</p>
+          <p className='text-lg font-semibold tabular-nums text-primary'>{minTotal.toFixed(0)} ₴</p>
+        </div>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Макс. вартість</p>
+          <p className='text-lg font-semibold tabular-nums text-primary'>{maxTotal.toFixed(0)} ₴</p>
+        </div>
+      </div>
     </div>
   );
 });
 
-SummaryMetrics.displayName = 'SummaryMetrics';
+Preamble.displayName = 'Preamble';
 
 /**
- * MetricCell - комірка метрики
+ * BatteryElement - параметри елемента, кількість, початкові параметри стелажа
  */
-interface MetricCellProps {
-  label: string;
-  value: string;
-}
+const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
+  const firstVariant = variants[0];
+  
+  if (!firstVariant) return null;
 
-const MetricCell: React.FC<MetricCellProps> = memo(({ label, value }) => {
   return (
-    <div className="bg-card p-4 space-y-1.5">
-      <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-lg font-semibold tabular-nums" aria-label={value}>{value}</p>
+    <div className='space-y-3'>
+      <h3 className='text-sm font-semibold'>Акумулятор</h3>
+      <Separator />
+      <div className='grid grid-cols-2 gap-4'>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Розміри елемента</p>
+          <p className='text-sm font-medium tabular-nums'>
+            {firstVariant.length} × {firstVariant.width} × {firstVariant.height} мм
+          </p>
+        </div>
+        <div className='space-y-1'>
+          <p className='text-xs text-muted-foreground'>Кількість</p>
+          <p className='text-sm font-medium tabular-nums'>{firstVariant.count || '-'} шт</p>
+        </div>
+      </div>
+      
+      <div className='pt-2'>
+        <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2'>
+          Початкові параметри стелажа
+        </h4>
+        <div className='grid grid-cols-3 gap-4'>
+          <div className='space-y-1'>
+            <p className='text-xs text-muted-foreground'>Ширина</p>
+            <p className='text-sm font-medium tabular-nums'>{firstVariant.width} мм</p>
+          </div>
+          <div className='space-y-1'>
+            <p className='text-xs text-muted-foreground'>Висота</p>
+            <p className='text-sm font-medium tabular-nums'>{firstVariant.height} мм</p>
+          </div>
+          <div className='space-y-1'>
+            <p className='text-xs text-muted-foreground'>Довжина</p>
+            <p className='text-sm font-medium tabular-nums'>{firstVariant.length} мм</p>
+          </div>
+        </div>
+      </div>
+
+      <div className='pt-2'>
+        <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2'>
+          Розрахункова довжина стелажа
+        </h4>
+        <p className='text-base font-semibold tabular-nums text-primary'>
+          {firstVariant.length} мм
+        </p>
+      </div>
     </div>
   );
 });
 
-MetricCell.displayName = 'MetricCell';
+BatteryElement.displayName = 'BatteryElement';
 
 /**
- * ResultsTable - таблиця варіантів
+ * SpansTable - таблиця варіантів прольотів з кнопкою додавання
  */
-interface ResultsTableProps {
-  variants?: Array<{
+interface SpansTableProps {
+  variants: Array<{
+    _index: number;
     name: string;
     width: number;
     height: number;
+    length: number;
+    floors: number;
+    rows: number;
+    supportType: string;
     combination: number[];
     beams: number;
     total: number;
-  }> | null;
+  }>;
   onAdd: (variant: any, quantity: number) => void;
 }
 
-const ResultsTable: React.FC<ResultsTableProps> = memo(({ variants, onAdd }) => {
-  const hasVariants = variants && variants.length > 0;
-
-  if (!hasVariants) {
-    return <EmptyState message="Варіанти з'являться після розрахунку" />;
+const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
+  if (variants.length === 0) {
+    return <EmptyState />;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border border-border overflow-hidden">
+    <div className='space-y-3'>
+      <h3 className='text-sm font-semibold'>Варіанти прольотів</h3>
+      <Separator />
+      <div className='rounded-md border overflow-hidden'>
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50 border-b">
-              <TableHead className="h-11 font-medium">Назва</TableHead>
-              <TableHead className="h-11 font-medium text-right">Прольоти</TableHead>
-              <TableHead className="h-11 font-medium text-right">Балок</TableHead>
-              <TableHead className="h-11 font-medium text-right">Вартість</TableHead>
-              <TableHead className="h-11 w-[44px]"></TableHead>
+            <TableRow className='bg-muted/50'>
+              <TableHead className='h-11 font-medium'>Абревіатура стелажа</TableHead>
+              <TableHead className='h-11 font-medium text-right'>Прольоти</TableHead>
+              <TableHead className='h-11 font-medium text-right'>Балок</TableHead>
+              <TableHead className='h-11 font-medium text-right'>Вартість, ₴</TableHead>
+              <TableHead className='h-11 w-[44px]'></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {variants.map((variant, index) => (
               <TableRow
-                key={index}
-                className="h-12 hover:bg-muted/30 transition-colors border-b last:border-b-0"
+                key={`${variant._index}-${index}`}
+                className='h-12 hover:bg-muted/30 transition-colors'
               >
-                <TableCell className="max-w-[200px]">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium leading-none">{variant.name}</p>
-                    <p className="text-xs text-muted-foreground tabular-nums">
+                <TableCell className='max-w-[200px]'>
+                  <div className='space-y-0.5'>
+                    <p className='text-sm font-medium leading-none font-mono'>{variant.name}</p>
+                    <p className='text-xs text-muted-foreground tabular-nums'>
                       {variant.width} × {variant.height} мм
                     </p>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <span className="text-sm font-mono tabular-nums">
+                <TableCell className='text-right'>
+                  <span className='text-sm font-mono tabular-nums'>
                     {variant.combination.join('+')} мм
                   </span>
                 </TableCell>
-                <TableCell className="text-right">
-                  <span className="text-sm font-mono tabular-nums">
+                <TableCell className='text-right'>
+                  <span className='text-sm font-mono tabular-nums'>
                     {variant.beams} шт
                   </span>
                 </TableCell>
-                <TableCell className="text-right">
-                  <span className="text-sm font-mono tabular-nums font-medium">
+                <TableCell className='text-right'>
+                  <span className='text-sm font-mono tabular-nums font-medium'>
                     {variant.total.toFixed(2)} ₴
                   </span>
                 </TableCell>
                 <TableCell>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    variant='ghost'
+                    size='sm'
+                    className='w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     onClick={() => onAdd(variant, 1)}
                     aria-label={`Додати ${variant.name}`}
                   >
-                    <Plus className="w-4 h-4" aria-hidden="true" />
+                    <Plus className='w-4 h-4' aria-hidden='true' />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -341,97 +299,6 @@ const ResultsTable: React.FC<ResultsTableProps> = memo(({ variants, onAdd }) => 
   );
 });
 
-ResultsTable.displayName = 'ResultsTable';
-
-/**
- * StructureView - перегляд структури стелажа
- */
-const StructureView: React.FC<{ variants?: any[] | null }> = memo(({ variants }) => {
-  const hasVariants = variants && variants.length > 0;
-
-  if (!hasVariants) {
-    return <EmptyState message="Структура з'явиться після розрахунку" />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Конструкція стелажа для обраного варіанту
-      </p>
-      <div className="rounded-md border border-border p-6 bg-muted/20">
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Деталі структури (компоненти, з'єднання, матеріали)
-        </p>
-      </div>
-    </div>
-  );
-});
-
-StructureView.displayName = 'StructureView';
-
-/**
- * LoadAnalysisView - аналіз навантажень
- */
-const LoadAnalysisView: React.FC<{ variants?: any[] | null }> = memo(({ variants }) => {
-  const hasVariants = variants && variants.length > 0;
-
-  if (!hasVariants) {
-    return <EmptyState message="Аналіз навантажень з'явиться після розрахунку" />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Розподіл навантажень на конструкцію
-      </p>
-      <div className="rounded-md border border-border p-6 bg-muted/20">
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Дані про навантаження (кг/м², коефіцієнти запасу)
-        </p>
-      </div>
-    </div>
-  );
-});
-
-LoadAnalysisView.displayName = 'LoadAnalysisView';
-
-/**
- * PricingView - детальна вартість
- */
-const PricingView: React.FC<{ variants?: any[] | null }> = memo(({ variants }) => {
-  const hasVariants = variants && variants.length > 0;
-
-  if (!hasVariants) {
-    return <EmptyState message="Деталі вартості з'являться після розрахунку" />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Деталізація вартості по компонентах
-      </p>
-      <div className="rounded-md border border-border p-6 bg-muted/20">
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Розбивка вартості (опори, балки, прольоти, кріплення)
-        </p>
-      </div>
-    </div>
-  );
-});
-
-PricingView.displayName = 'PricingView';
-
-/**
- * EmptyState - стан відсутності даних
- */
-const EmptyState: React.FC<{ message: string }> = memo(({ message }) => {
-  return (
-    <div className="flex items-center justify-center py-16">
-      <p className="text-sm text-muted-foreground text-center max-w-xs">{message}</p>
-    </div>
-  );
-});
-
-EmptyState.displayName = 'EmptyState';
+SpansTable.displayName = 'SpansTable';
 
 export default BatteryResults;

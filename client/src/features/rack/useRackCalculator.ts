@@ -94,6 +94,13 @@ export const useRackCalculator = ({ priceData }: UseRackCalculatorProps) => {
         totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
         zeroBase: Math.round(zeroBase * 100) / 100,
         components,
+        // Зберігаємо дані форми для редагування
+        form: { ...form },
+        // Зберігаємо прольоти для підрахунку
+        spans: validSpans.map((s: any) => ({
+          item: s.item,
+          quantity: s.quantity,
+        })),
       };
 
       resultsStore.setResult(result);

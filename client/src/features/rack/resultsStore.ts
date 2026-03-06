@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import type { RackComponents } from '../../shared/core/rackCalculator';
+import type { RackFormState } from './formStore';
+import type { SpanItem } from '../../shared/core/rackCalculator';
 
 export interface RackCalculationResult {
   name: string;
@@ -8,6 +10,10 @@ export interface RackCalculationResult {
   totalWithoutIsolators: number;
   zeroBase: number;
   components: RackComponents;
+  // Дані форми для редагування
+  form: RackFormState;
+  // Прольоти для підрахунку кількості
+  spans: SpanItem[];
 }
 
 export interface RackResultsState {

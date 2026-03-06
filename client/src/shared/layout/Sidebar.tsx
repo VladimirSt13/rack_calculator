@@ -20,16 +20,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ...props
 }) => {
   return (
-    <aside
+    <div
       className={cn(
         'w-full lg:w-80 lg:flex-shrink-0 space-y-4',
         collapsible && collapsed && 'hidden lg:block',
         className
       )}
+      role="region"
+      aria-label="Панель фільтрів"
       {...props}
     >
       {children}
-      
+
       {collapsible && (
         <button
           onClick={onToggle}
@@ -38,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {collapsed ? 'Показати фільтри' : 'Сховати фільтри'}
         </button>
       )}
-    </aside>
+    </div>
   );
 };
 

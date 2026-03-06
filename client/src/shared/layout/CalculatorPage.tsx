@@ -9,7 +9,7 @@ export const CALCULATOR_WIDTHS = {
   /** Максимальна ширина контейнера */
   container: '1600px',
   /** Ширина панелі вводу (фіксована) */
-  input: '420px',
+  input: '380px',
   /** Панель результатів (гнучка, minmax(0, 1fr)) */
   results: 'auto',
 } as const;
@@ -21,11 +21,16 @@ export type CalculatorMode = 'analysis' | 'builder';
 
 /**
  * CalculatorPage - універсальний лейаут для сторінок калькуляторів
- * 
+ *
  * Ширина:
  * - Container: max-w-[1600px]
  * - Input Panel: 420px (фіксована)
  * - Results Panel: flexible (minmax(0, 1fr))
+ * - Set Panel: під результатами (на всю ширину контенту)
+ *
+ * Responsive:
+ * - Mobile (< 1024px): 1 колонка (форма → результати → комплект)
+ * - Desktop (≥ 1024px): 2 колонки (форма | результати + комплект)
  */
 export interface CalculatorPageProps {
   /** Заголовок сторінки */
@@ -38,6 +43,8 @@ export interface CalculatorPageProps {
   input: React.ReactNode;
   /** Панель результатів */
   results: React.ReactNode;
+  /** Панель комплекту (опціонально) */
+  setPanel?: React.ReactNode;
   /** Ширина панелі вводу (за замовчуванням 420px) */
   inputWidth?: string;
   /** Режим роботи: analysis (аналіз) | builder (конструктор) */
@@ -50,28 +57,21 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
   headerActions,
   input,
   results,
+  setPanel,
   inputWidth = CALCULATOR_WIDTHS.input,
   mode = 'analysis',
 }) => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       {/* Container: max-w-[1600px], без внутрішніх max-width */}
-      <div
-        className="mx-auto px-4 sm:px-6 lg:px-8 py-6"
-        style={{ maxWidth: CALCULATOR_WIDTHS.container }}
-      >
+      <div className='mx-auto px-4 sm:px-6 lg:px-8 py-6' style={{ maxWidth: CALCULATOR_WIDTHS.container }}>
         {/* Page Header */}
-        <PageHeader
-          title={title}
-          description={description}
-          actions={headerActions}
-          className="mb-6"
-        />
+        <PageHeader title={title} description={description} actions={headerActions} className='mb-6' />
 
-        {/* Calculator Grid: input (fixed) + results (flexible) */}
+        {/* Calculator Grid */}
         {/* Mobile: single column, Desktop: sidebar + content */}
         <div
-          className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,min-content)_minmax(0,1fr)]"
+          className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,min-content)_minmax(0,1fr)]'
           style={{
             gridTemplateColumns: `minmax(0, ${inputWidth}) minmax(0, 1fr)`,
           }}
@@ -79,8 +79,11 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
           {/* Input Panel: 420px fixed */}
           <InputPanel width={inputWidth}>{input}</InputPanel>
 
-          {/* Results Panel: flexible, no max-width */}
-          <ResultsPanel mode={mode}>{results}</ResultsPanel>
+          {/* Results + Set Panel: flexible, stacked vertically */}
+          <ResultsWrapper>
+            <ResultsPanel mode={mode}>{results}</ResultsPanel>
+            {setPanel && <SetPanel>{setPanel}</SetPanel>}
+          </ResultsWrapper>
         </div>
       </div>
     </div>
@@ -98,18 +101,46 @@ export interface InputPanelProps {
   width?: string;
 }
 
-export const InputPanel: React.FC<InputPanelProps> = ({
-  children,
-  width = CALCULATOR_WIDTHS.input,
-}) => {
+export const InputPanel: React.FC<InputPanelProps> = ({ children, width = CALCULATOR_WIDTHS.input }) => {
   return (
-    <aside
-      className="lg:sticky lg:top-6 lg:self-start space-y-4 w-full max-w-full lg:max-w-none"
+    <div
+      className='lg:sticky lg:top-6 lg:self-start space-y-4 w-full max-w-full lg:max-w-none bg-surface rounded-lg p-4 shadow-sm'
       style={{ width, flexShrink: 0 }}
+      role='region'
+      aria-label='Панель вводу'
     >
       {/* Без внутрішніх max-width - діти розтягуються на 100% */}
       {children}
-    </aside>
+    </div>
+  );
+};
+
+/**
+ * ResultsWrapper - контейнер для результатів + комплекту
+ * Stack results and set panel vertically
+ */
+export interface ResultsWrapperProps {
+  children: React.ReactNode;
+}
+
+export const ResultsWrapper: React.FC<ResultsWrapperProps> = ({ children }) => {
+  return <div className='space-y-4 min-w-0'>{children}</div>;
+};
+
+/**
+ * SetPanel - панель комплекту стелажів
+ * Відповідає за: вертикальне складання, відступи
+ * Розташування: під результатами (на всю ширину контенту)
+ */
+export interface SetPanelProps {
+  children: React.ReactNode;
+}
+
+export const SetPanel: React.FC<SetPanelProps> = ({ children }) => {
+  return (
+    <div className='space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm' role='region' aria-label='Комплект стелажів'>
+      {children}
+    </div>
   );
 };
 
@@ -149,7 +180,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
 }) => {
   return (
     /* Flexible width, no max-width constraints */
-    <main className="space-y-4 min-w-0">
+    <div
+      className='space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm'
+      role='region'
+      aria-label='Результати розрахунку'
+    >
       {/* 1. Calculation Status (always first) */}
       <CalculationStatus status={status} message={statusMessage} />
 
@@ -160,7 +195,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
 
       {/* 3. Results Content (mode affects composition) */}
       <ResultsContent mode={mode}>{children}</ResultsContent>
-    </main>
+    </div>
   );
 };
 
@@ -178,16 +213,16 @@ export interface CalculationStatusProps {
   message?: string;
 }
 
-export const CalculationStatus: React.FC<CalculationStatusProps> = ({
-  status,
-  message,
-}) => {
-  const statusConfig: Record<CalculationLifecycleStatus, {
-    icon: string | null;
-    text: string;
-    className: string;
-    pulse?: boolean;
-  }> = {
+export const CalculationStatus: React.FC<CalculationStatusProps> = ({ status, message }) => {
+  const statusConfig: Record<
+    CalculationLifecycleStatus,
+    {
+      icon: string | null;
+      text: string;
+      className: string;
+      pulse?: boolean;
+    }
+  > = {
     idle: {
       icon: null,
       text: message || 'Введіть дані для розрахунку',
@@ -215,20 +250,12 @@ export const CalculationStatus: React.FC<CalculationStatusProps> = ({
 
   return (
     <div
-      className={cn(
-        'flex items-center gap-2 text-sm font-medium',
-        config.className
-      )}
-      role="status"
-      aria-live="polite"
+      className={cn('flex items-center gap-2 text-sm font-medium', config.className)}
+      role='status'
+      aria-live='polite'
     >
       {config.icon && (
-        <span
-          className={cn(
-            'flex-shrink-0 w-5 h-5 flex items-center justify-center',
-            config.pulse && 'animate-pulse'
-          )}
-        >
+        <span className={cn('flex-shrink-0 w-5 h-5 flex items-center justify-center', config.pulse && 'animate-pulse')}>
           {config.icon}
         </span>
       )}
@@ -247,24 +274,12 @@ export interface ResultsSummaryProps {
   mode?: CalculatorMode;
 }
 
-export const ResultsSummary: React.FC<ResultsSummaryProps> = ({
-  title,
-  children,
-  mode = 'analysis',
-}) => {
+export const ResultsSummary: React.FC<ResultsSummaryProps> = ({ title, children, mode = 'analysis' }) => {
   return (
-    <section
-      className={cn('space-y-2', mode === 'builder' && 'border-b pb-4')}
-    >
-      {title && (
-        <h2 className="text-lg font-semibold">{title}</h2>
-      )}
-      <div className="min-h-[1rem]">
-        {children || (
-          <div className="text-sm text-muted-foreground italic">
-            Підсумки з'являться після розрахунку
-          </div>
-        )}
+    <section className={cn('space-y-2', mode === 'builder' && 'border-b pb-4')}>
+      {title && <h2 className='text-lg font-semibold'>{title}</h2>}
+      <div className='min-h-[1rem]'>
+        {children || <div className='text-sm text-muted-foreground italic'>Підсумки з'являться після розрахунку</div>}
       </div>
     </section>
   );
@@ -282,18 +297,6 @@ export interface ResultsContentProps {
   mode?: CalculatorMode;
 }
 
-export const ResultsContent: React.FC<ResultsContentProps> = ({
-  children,
-  mode = 'analysis',
-}) => {
-  return (
-    <section
-      className={cn(
-        'space-y-4',
-        mode === 'builder' && 'bg-muted/30 rounded-lg p-4'
-      )}
-    >
-      {children}
-    </section>
-  );
+export const ResultsContent: React.FC<ResultsContentProps> = ({ children, mode = 'analysis' }) => {
+  return <section className={cn('space-y-4', mode === 'builder' && 'bg-muted/30 rounded-lg p-4')}>{children}</section>;
 };

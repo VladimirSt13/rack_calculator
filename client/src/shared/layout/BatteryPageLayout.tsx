@@ -90,11 +90,15 @@ export const BatterySidebar: React.FC<BatterySidebarProps> = ({
   className,
 }) => {
   return (
-    <aside className={cn('sticky top-6', className)}>
+    <div
+      className={cn('sticky top-6', className)}
+      role="region"
+      aria-label="Панель вводу"
+    >
       <div className="w-full lg:w-[320px] space-y-4">
         {children}
       </div>
-    </aside>
+    </div>
   );
 };
 
