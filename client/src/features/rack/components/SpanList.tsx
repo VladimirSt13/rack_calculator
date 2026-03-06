@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRackSpansStore } from '../spansStore';
 import { Minus } from 'lucide-react';
-import { IconButton } from '../../../shared/components';
+import { IconButton } from '@/shared/components';
 
 interface SpanListProps {
   spanOptions: string[];

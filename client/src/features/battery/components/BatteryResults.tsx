@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { useBatteryResultsStore } from '../resultsStore';
+import { useBatteryResultsStore, type BatteryVariant } from '../resultsStore';
 import { useBatterySetStore } from '../setStore';
 import {
   Table,
@@ -13,7 +13,7 @@ import {
   EmptyState,
   ResultsSkeleton,
   PriceDisplay,
-} from '../../../shared/components';
+} from '@/shared/components';
 import { Plus, CheckCircle2 } from 'lucide-react';
 
 /**
@@ -21,6 +21,15 @@ import { Plus, CheckCircle2 } from 'lucide-react';
  */
 interface BatteryResultsProps {
   isLoading?: boolean;
+}
+
+interface PreambleProps {
+  variants: BatteryVariant[];
+}
+
+interface SpansTableProps {
+  variants: BatteryVariant[];
+  onAdd: (variant: BatteryVariant, quantity: number) => void;
 }
 
 const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false }) => {
@@ -57,26 +66,13 @@ BatteryResults.displayName = 'BatteryResults';
 /**
  * Пreamble - короткі вхідні дані
  */
-interface PreambleProps {
-  variants: Array<{
-    width: number;
-    height: number;
-    length: number;
-    floors: number;
-    rows: number;
-    beams: number;
-    total: number;
-    count?: number;
-  }>;
-}
-
 const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
   // Унікальні параметри стелажа
   const firstVariant = variants[0];
-  
+
   // Кількість варіантів
   const variantsCount = variants.length;
-  
+
   // Мінімальна та максимальна вартість
   const minTotal = Math.min(...variants.map(v => v.total));
   const maxTotal = Math.max(...variants.map(v => v.total));
@@ -117,7 +113,7 @@ Preamble.displayName = 'Preamble';
  */
 const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
   const firstVariant = variants[0];
-  
+
   if (!firstVariant) return null;
 
   return (
@@ -133,10 +129,10 @@ const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
         </div>
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Кількість</p>
-          <p className='text-sm font-medium tabular-nums'>{firstVariant.count || '-'} шт</p>
+          <p className='text-sm font-medium tabular-nums'>-</p>
         </div>
       </div>
-      
+
       <div className='pt-2'>
         <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2'>
           Початкові параметри стелажа
@@ -174,23 +170,6 @@ BatteryElement.displayName = 'BatteryElement';
 /**
  * SpansTable - таблиця варіантів прольотів з кнопкою додавання
  */
-interface SpansTableProps {
-  variants: Array<{
-    _index: number;
-    name: string;
-    width: number;
-    height: number;
-    length: number;
-    floors: number;
-    rows: number;
-    supportType: string;
-    combination: number[];
-    beams: number;
-    total: number;
-  }>;
-  onAdd: (variant: any, quantity: number) => void;
-}
-
 const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
   if (variants.length === 0) {
     return <EmptyState />;
@@ -208,7 +187,7 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
               <TableHead className='h-11 font-medium text-right'>Прольоти</TableHead>
               <TableHead className='h-11 font-medium text-right'>Балок</TableHead>
               <TableHead className='h-11 font-medium text-right'>Вартість, ₴</TableHead>
-              <TableHead className='h-11 w-[44px]'></TableHead>
+              <TableHead className='h-11 w-[44px]' />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -238,13 +217,15 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                 <TableCell className='text-right'>
                   <PriceDisplay value={variant.total} className='font-medium' />
                 </TableCell>
-                <TableCell>
-                  <IconButton
-                    icon={Plus}
-                    variant='icon'
-                    onClick={() => onAdd(variant, 1)}
-                    aria-label={`Додати ${variant.name}`}
-                  />
+                <TableCell className='p-0'>
+                  <div className='flex items-center justify-center h-full'>
+                    <IconButton
+                      icon={Plus}
+                      variant='icon'
+                      onClick={() => onAdd(variant, 1)}
+                      aria-label={`Додати ${variant.name}`}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

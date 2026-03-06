@@ -7,4 +7,4 @@ export * from './components';
 export * from './layout';
 
 // Utils
-export { cn } from '../lib/utils';
+export { cn } from '@/lib/utils';

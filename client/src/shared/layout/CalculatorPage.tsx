@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 import { PageHeader } from './PageHeader';
 
 /**

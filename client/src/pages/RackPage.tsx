@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { Skeleton, CalculationControls } from '@/shared/components';
 import { CalculatorPage } from '@/shared/layout';
-import RackForm from '../features/rack/components/RackForm';
-import RackResults from '../features/rack/components/RackResults';
-import RackSetCard from '../features/rack/components/RackSetCard';
-import { useRackCalculator } from '../features/rack/useRackCalculator';
-import { usePrice } from '../hooks/usePrice';
-import { useRackFormStore } from '../features/rack/formStore';
-import { useRackSpansStore } from '../features/rack/spansStore';
+import RackForm from '@/features/rack/components/RackForm';
+import RackResults from '@/features/rack/components/RackResults';
+import RackSetCard from '@/features/rack/components/RackSetCard';
+import { useRackCalculator } from '@/features/rack/useRackCalculator';
+import { usePrice } from '@/hooks/usePrice';
+import { useRackFormStore } from '@/features/rack/formStore';
+import { useRackSpansStore } from '@/features/rack/spansStore';
 
 /**
  * Rack Page - сторінка розрахунку стелажа

@@ -16,7 +16,7 @@ import {
   EmptyState,
   ResultsSkeleton,
   PriceDisplay,
-} from '../../../shared/components';
+} from '@/shared/components';
 import { Plus, CheckCircle2 } from 'lucide-react';
 
 /**

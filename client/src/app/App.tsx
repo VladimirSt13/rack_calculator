@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeToggle, Toaster } from '../shared/components';
-import RackPage from '../pages/RackPage';
-import BatteryPage from '../pages/BatteryPage';
+import { ThemeToggle, Toaster } from '@/shared/components';
+import RackPage from '@/pages/RackPage';
+import BatteryPage from '@/pages/BatteryPage';
+import { cn } from '@/lib/utils';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,14 +44,12 @@ const Header: React.FC = () => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`
-                      px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base
-                      ${
-                        location.pathname === item.path
-                          ? 'bg-primary-foreground/10 text-primary-foreground underline'
-                          : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
-                      }
-                    `}
+                    className={cn(
+                      'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
+                      location.pathname === item.path
+                        ? 'bg-primary-foreground/10 text-primary-foreground underline'
+                        : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                    )}
                   >
                     {item.label}
                   </Link>

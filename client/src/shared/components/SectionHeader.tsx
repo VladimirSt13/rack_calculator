@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 /**
  * SectionHeader - заголовок інженерної секції
@@ -25,7 +25,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, description
       <div className='flex items-center gap-2'>
         <h3 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
           {title}
-          {required && <span className='text-red-500 ml-0.5'>*</span>}
+          {required && <span className='text-destructive ml-0.5'>*</span>}
         </h3>
       </div>
 

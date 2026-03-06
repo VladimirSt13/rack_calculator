@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRackSetStore } from '../setStore';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '../../../shared/components';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '@/shared/components';
 import { Trash2, Eye } from 'lucide-react';
 
 /**

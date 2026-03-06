@@ -1,5 +1,5 @@
 import React, { memo, useCallback, ChangeEvent } from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 import { FieldRow } from './FieldRow';
 
 /**

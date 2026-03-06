@@ -4,11 +4,11 @@ import {
   calculateTotalCost,
   calculateTotalWithoutIsolators,
   generateRackName,
-} from '../../shared/core/rackCalculator';
+} from '@/shared/core/rackCalculator';
 import { useRackFormStore } from './formStore';
 import { useRackSpansStore } from './spansStore';
 import { useRackResultsStore } from './resultsStore';
-import { CalculationLifecycleStatus } from '../../shared/layout';
+import { CalculationLifecycleStatus } from '@/shared/layout';
 
 interface UseRackCalculatorProps {
   priceData?: any;

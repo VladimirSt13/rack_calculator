@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRackFormStore } from '../formStore';
 import { useRackSpansStore } from '../spansStore';
-import { usePrice } from '../../../hooks/usePrice';
+import { usePrice } from '@/hooks/usePrice';
 import {
   CardContent,
   FieldRow,
@@ -10,7 +10,7 @@ import {
   FormSection,
   FormSectionsGroup,
   IconButton,
-} from '../../../shared/components';
+} from '@/shared/components';
 import SpanList from './SpanList';
 import { Plus } from 'lucide-react';
 
@@ -61,7 +61,7 @@ const RackForm: React.FC = () => {
   }, [floors, isVerticalSupportsDisabled, setVerticalSupports]);
 
   return (
-    <CardContent>
+    <CardContent className='w-full px-0'>
       <FormSectionsGroup>
         {/* Geometry Section */}
         <FormSection title='Геометрія'>
@@ -136,12 +136,7 @@ const RackForm: React.FC = () => {
         {/* Spans Section */}
         <FormSection title='Прольоти'>
           <div className='flex items-center gap-2 mb-2'>
-            <IconButton
-              icon={Plus}
-              variant='icon-outline'
-              onClick={addSpan}
-              aria-label='Додати проліт'
-            />
+            <IconButton icon={Plus} variant='iconOutline' onClick={addSpan} aria-label='Додати проліт' />
             <span className='text-sm text-muted-foreground'>Додати проліт</span>
           </div>
           <SpanList spanOptions={spanOptions} />

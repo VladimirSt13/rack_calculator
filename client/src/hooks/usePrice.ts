@@ -1,5 +1,5 @@
 import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import axios from '../lib/axios';
+import axios from '@/lib/axios';
 
 export interface PriceData {
   supports: Record<string, any>;

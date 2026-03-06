@@ -7,7 +7,7 @@ import {
   NumberField,
   LengthWithGapField,
   FormSelectField,
-} from '../../../shared/components';
+} from '@/shared/components';
 
 /**
  * Battery Form - форма введення параметрів акумулятора
@@ -50,8 +50,8 @@ const BatteryForm: React.FC = () => {
   ];
 
   return (
-    <CardContent>
-      <FormSectionsGroup className='max-w-full overflow-hidden'>
+    <CardContent className='w-full px-0 '>
+      <FormSectionsGroup>
         {/* Dimensions Section */}
         <FormSection title='Розміри акумулятора, мм'>
           <LengthWithGapField
@@ -111,7 +111,7 @@ const BatteryForm: React.FC = () => {
         </FormSection>
 
         {/* Configuration Section */}
-        <FormSection title='Конфігурація'>
+        <FormSection title='Конфігурація стелажа'>
           <FormSelectField
             label='Кількість рядів'
             id='battery-rows'

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from '../lib/axios';
+import axios from '@/lib/axios';
 
 export interface User {
   id: number;

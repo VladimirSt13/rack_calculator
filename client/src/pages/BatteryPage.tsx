@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Skeleton, CalculationControls } from '@/shared/components';
 import { CalculatorPage } from '@/shared/layout';
-import BatteryForm from '../features/battery/components/BatteryForm';
-import BatteryResults from '../features/battery/components/BatteryResults';
-import { useBatteryCalculator } from '../features/battery/useBatteryCalculator';
-import { usePrice } from '../hooks/usePrice';
-import { useBatteryFormStore } from '../features/battery/formStore';
+import BatteryForm from '@/features/battery/components/BatteryForm';
+import BatteryResults from '@/features/battery/components/BatteryResults';
+import { useBatteryCalculator } from '@/features/battery/useBatteryCalculator';
+import { usePrice } from '@/hooks/usePrice';
+import { useBatteryFormStore } from '@/features/battery/formStore';
 
 /**
  * Battery Page - сторінка підбору стелажа для акумулятора
@@ -60,14 +60,14 @@ const BatteryPage: React.FC = () => {
   }, [formState, calculate, setCalculationState]);
 
   const inputContent = (
-    <>
+    <div className='space-y-4'>
       {priceLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-96 w-full rounded-lg" />
-          <Skeleton className="h-10 w-full" />
-        </div>
+        <>
+          <Skeleton className='h-96 w-full rounded-lg' />
+          <Skeleton className='h-10 w-full' />
+        </>
       ) : (
-        <div className="space-y-4">
+        <>
           {/* Form - always enabled, non-blocking */}
           <BatteryForm />
 
@@ -75,21 +75,21 @@ const BatteryPage: React.FC = () => {
           <CalculationControls
             isLoading={isLoading}
             error={error}
-            submitText="Підібрати"
-            loadingText="Розрахунок..."
+            submitText='Підібрати'
+            loadingText='Розрахунок...'
             onSubmit={() => calculate(useBatteryFormStore.getState())}
           />
-        </div>
+        </>
       )}
-    </>
+    </div>
   );
 
   const resultsContent = <BatteryResults isLoading={isLoading} />;
 
   return (
     <CalculatorPage
-      title="Підбір стелажа для батареї"
-      description="Вкажіть розміри та вагу акумулятора для пошуку"
+      title='Підбір стелажа для батареї'
+      description='Вкажіть розміри та вагу акумулятора для пошуку'
       input={inputContent}
       results={resultsContent}
       status={calculationState}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, type ButtonProps } from './Button';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 export interface TextButtonProps extends Omit<ButtonProps, 'size'> {
   /** Іконка зліва */

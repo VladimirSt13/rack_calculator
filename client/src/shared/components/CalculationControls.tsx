@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button } from './Button';
-import { cn } from '../../lib/utils';
+import { Alert } from './Alert';
+import { cn } from '@/lib/utils';
 
 export interface CalculationControlsProps {
   isLoading: boolean;
@@ -41,9 +42,9 @@ const CalculationControls: React.FC<CalculationControlsProps> = ({
       </Button>
 
       {error && (
-        <div className="alert alert-error">
+        <Alert variant="destructive">
           <p className="text-sm">{error}</p>
-        </div>
+        </Alert>
       )}
     </div>
   );
