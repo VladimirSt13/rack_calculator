@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { getDb } from '../db/index.js';
+import * as authController from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
+import { authorizeRole } from '../middleware/authorizeRole.js';
 
 const router = Router();
 
@@ -10,115 +9,66 @@ const router = Router();
  * POST /api/auth/register
  * Реєстрація нового користувача
  */
-router.post('/register', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
-    const db = getDb();
-    
-    // Check if user exists
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (existing) {
-      return res.status(409).json({ error: 'User already exists' });
-    }
-
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Create user
-    const result = db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(email, passwordHash);
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: result.lastInsertRowid, email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    res.status(201).json({
-      user: { id: result.lastInsertRowid, email },
-      token,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/register', authController.register);
 
 /**
  * POST /api/auth/login
  * Вхід користувача
  */
-router.post('/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    const db = getDb();
-    
-    // Find user
-    const user = db.prepare('SELECT id, email, password_hash FROM users WHERE email = ?').get(email);
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Verify password
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    res.json({
-      user: { id: user.id, email: user.email },
-      token,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/login', authController.login);
 
 /**
  * POST /api/auth/logout
- * Вихід (очищення токену на клієнті)
+ * Вихід (відкликання refresh token)
  */
-router.post('/logout', (req, res) => {
-  res.json({ message: 'Logged out successfully' });
-});
+router.post('/logout', authController.logout);
+
+/**
+ * POST /api/auth/refresh
+ * Оновлення access token
+ */
+router.post('/refresh', authController.refreshToken);
+
+/**
+ * POST /api/auth/verify-email
+ * Підтвердження email
+ */
+router.post('/verify-email', authController.verifyEmail);
+
+/**
+ * POST /api/auth/resend-verification
+ * Повторна відправка листа з підтвердженням
+ */
+router.post('/resend-verification', authController.resendVerification);
+
+/**
+ * POST /api/auth/forgot-password
+ * Запит на скидання пароля
+ */
+router.post('/forgot-password', authController.forgotPassword);
+
+/**
+ * POST /api/auth/reset-password
+ * Скидання пароля з токеном
+ */
+router.post('/reset-password', authController.resetPassword);
+
+/**
+ * POST /api/auth/change-password
+ * Зміна пароля (для авторизованого користувача)
+ */
+router.post('/change-password', authenticate, authController.changePassword);
 
 /**
  * GET /api/auth/me
  * Отримати поточного користувача
  */
-router.get('/me', authenticate, (req, res, next) => {
-  try {
-    const db = getDb();
-    const user = db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(req.user.userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+router.get('/me', authenticate, authController.getCurrentUser);
 
-    res.json({ user });
-  } catch (error) {
-    next(error);
-  }
-});
+/**
+ * POST /api/auth/admin/create-user
+ * Створення користувача адміном (будь-яка пошта)
+ */
+router.post('/admin/create-user', authenticate, authorizeRole('admin'), authController.adminCreateUser);
 
 export default router;

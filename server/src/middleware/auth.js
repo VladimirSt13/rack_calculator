@@ -3,12 +3,15 @@ import jwt from 'jsonwebtoken';
 /**
  * Middleware для перевірки JWT токену
  */
-export const authenticate = (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: 'Authentication required',
+        code: 'AUTH_REQUIRED'
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -16,16 +19,28 @@ export const authenticate = (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      return res.status(401).json({ 
+        error: 'Token expired',
+        code: 'TOKEN_EXPIRED'
+      });
     }
-    return res.status(403).json({ error: 'Invalid token' });
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(403).json({ 
+        error: 'Invalid token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+    return res.status(500).json({ 
+      error: 'Authentication error',
+      code: 'AUTH_ERROR'
+    });
   }
 };
 
 /**
  * Middleware для опціональної авторизації (не блокує якщо немає токену)
  */
-export const optionalAuth = (req, res, next) => {
+export const optionalAuth = async (req, res, next) => {
   try {
     const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
     if (token) {

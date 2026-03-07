@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeToggle, Toaster } from '@/shared/components';
+import { useAuthStore } from '@/features/auth/authStore';
+import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
+import { PROTECTED_ROUTES, PUBLIC_ROUTES, DEFAULT_REDIRECT_ROUTE, NAVIGATION_ROUTES } from '@/core/constants/routes';
 import RackPage from '@/pages/RackPage';
 import BatteryPage from '@/pages/BatteryPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import UserManagement from '@/pages/admin/UserManagement';
 import { cn } from '@/lib/utils';
+import { LogOut, User } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,19 +27,15 @@ const queryClient = new QueryClient({
   },
 });
 
-interface NavItem {
-  path: string;
-  label: string;
-}
-
-const navItems: NavItem[] = [
-  { path: '/rack', label: 'Стелаж' },
-  { path: '/battery', label: 'Акумулятор' },
-];
-
-// Header компонент з навігацією
+// Header компонент з навігацією та автентифікацією
 const Header: React.FC = () => {
   const location = useLocation();
+  const { user, logout, accessToken } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   return (
     <header className="bg-primary text-primary-foreground shadow-md">
@@ -40,23 +48,78 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           <nav className="header__nav" aria-label="Головна навігація">
             <ul className="flex list-none gap-2 sm:gap-4 m-0 p-0">
-              {navItems.map((item) => (
-                <li key={item.path}>
+              {/* Rack - тільки для admin */}
+              {user?.role === 'admin' && (
+                <li key={PROTECTED_ROUTES.RACK}>
                   <Link
-                    to={item.path}
+                    to={PROTECTED_ROUTES.RACK}
                     className={cn(
                       'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
-                      location.pathname === item.path
+                      location.pathname === PROTECTED_ROUTES.RACK
                         ? 'bg-primary-foreground/10 text-primary-foreground underline'
                         : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
                     )}
                   >
-                    {item.label}
+                    {NAVIGATION_ROUTES.ADMIN.label}
                   </Link>
                 </li>
-              ))}
+              )}
+              {/* Battery - для admin та manager */}
+              {(user?.role === 'admin' || user?.role === 'manager') && (
+                <li key={PROTECTED_ROUTES.BATTERY}>
+                  <Link
+                    to={PROTECTED_ROUTES.BATTERY}
+                    className={cn(
+                      'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
+                      location.pathname === PROTECTED_ROUTES.BATTERY
+                        ? 'bg-primary-foreground/10 text-primary-foreground underline'
+                        : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                    )}
+                  >
+                    {NAVIGATION_ROUTES.BATTERY.label}
+                  </Link>
+                </li>
+              )}
+              {/* Admin - тільки для admin */}
+              {user?.role === 'admin' && (
+                <li key="/admin">
+                  <Link
+                    to="/admin"
+                    className={cn(
+                      'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
+                      location.pathname.startsWith('/admin')
+                        ? 'bg-primary-foreground/10 text-primary-foreground underline'
+                        : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                    )}
+                  >
+                    Адмін
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
+
+          {accessToken && user && (
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 text-sm">
+                <User className="w-4 h-4" />
+                <span>{user.email}</span>
+                {user.role === 'admin' && (
+                  <span className="px-2 py-0.5 bg-primary-foreground/20 rounded text-xs">
+                    Admin
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                title="Вийти"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           <ThemeToggle size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10" />
         </div>
       </div>
@@ -65,19 +128,76 @@ const Header: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const { checkAuth, accessToken } = useAuthStore();
+
+  useEffect(() => {
+    if (accessToken) {
+      checkAuth();
+    }
+  }, [accessToken]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <div className="app min-h-screen flex flex-col bg-background">
           <Header />
           <main className="main flex-1">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-              <Routes>
-                <Route path="/" element={<Navigate to="/rack" replace />} />
-                <Route path="/rack" element={<RackPage />} />
-                <Route path="/battery" element={<BatteryPage />} />
-              </Routes>
-            </div>
+            <Routes>
+              {/* Публічні маршрути */}
+              <Route path={PUBLIC_ROUTES.LOGIN} element={<LoginPage />} />
+              <Route path={PUBLIC_ROUTES.REGISTER} element={<RegisterPage />} />
+              <Route path={PUBLIC_ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+              <Route path={PUBLIC_ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+              <Route path={PUBLIC_ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+              <Route path={PUBLIC_ROUTES.ACCESS_DENIED} element={<AccessDeniedPage />} />
+
+              {/* Адмін маршрути */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Захищені маршрути */}
+              <Route
+                path={PROTECTED_ROUTES.HOME}
+                element={
+                  <ProtectedRoute requireActive>
+                    <Navigate to={DEFAULT_REDIRECT_ROUTE} replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={PROTECTED_ROUTES.RACK}
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <RackPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={PROTECTED_ROUTES.BATTERY}
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'manager']} requireActive>
+                    <BatteryPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* 404 */}
+              <Route path="*" element={<Navigate to={DEFAULT_REDIRECT_ROUTE} replace />} />
+            </Routes>
           </main>
           <Toaster />
         </div>

@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { generateRackVariants } from '../../shared/core/rackBuilder';
-import { calculateBatteryRack } from '../../shared/core/batteryCalculator';
+import { generateRackVariants } from '@/shared/core/rackBuilder';
+import { calculateBatteryRack } from '@/shared/core/batteryCalculator';
 import { useBatteryResultsStore } from './resultsStore';
-import { CalculationLifecycleStatus } from '../../shared/layout';
+import { CalculationLifecycleStatus } from '@/shared/layout';
 import type { BatteryFormState } from './formStore';
 
 interface UseBatteryCalculatorProps {
@@ -22,13 +22,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
   const resultsStore = useBatteryResultsStore();
   const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
-  const calculate = useCallback((formState: BatteryFormState) => {
-    if (!priceData?.data) {
-      resultsStore.setError('Немає даних прайсу');
-      setCalculationState('idle');
-      return;
-    }
-
+  const calculate = useCallback(async (formState: BatteryFormState) => {
     const { length, width, height, weight, gap, count, rows, floors, supportType } = formState;
 
     // Validation
@@ -57,7 +51,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
         rows: Number(rows),
         floors: Number(floors),
         supportType,
-        price: priceData.data,
+        price: priceData?.data,
       });
 
       // 2. Calculate price for each variant
@@ -76,7 +70,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
             beams: spanVariant.beams,
           };
 
-          const calculation = calculateBatteryRack(rackConfig, priceData.data);
+          const calculation = calculateBatteryRack(rackConfig, priceData?.data);
 
           return {
             ...variant,
@@ -102,7 +96,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       resultsStore.setError('Помилка розрахунку');
       setCalculationState('idle');
     }
-  }, [priceData, resultsStore]);
+  }, [resultsStore, priceData]);
 
   return {
     calculate,

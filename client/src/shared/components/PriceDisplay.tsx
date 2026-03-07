@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 export interface PriceDisplayProps {
   /** Сума для відображення */
-  value: number;
+  value: number | null | undefined;
   /** Показувати символ валюти (за замовчуванням true) */
   withCurrency?: boolean;
   /** Символ валюти (за замовчуванням '₴') */
@@ -37,6 +37,21 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   className,
   size = 'sm',
 }) => {
+  // Якщо value null/undefined - показуємо прочерк
+  if (value == null) {
+    return (
+      <span
+        className={cn(
+          'font-mono tabular-nums',
+          sizeClasses[size],
+          className
+        )}
+      >
+        -
+      </span>
+    );
+  }
+
   const formattedValue = value.toFixed(decimals);
 
   return (

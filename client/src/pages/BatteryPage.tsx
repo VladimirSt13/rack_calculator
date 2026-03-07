@@ -42,11 +42,11 @@ const BatteryPage: React.FC = () => {
     }
 
     // Debounced recalculation (500ms delay)
-    debounceTimerRef.current = setTimeout(() => {
+    debounceTimerRef.current = setTimeout(async () => {
       // Only recalculate if we have valid form data
       if (formState.length && formState.width && formState.height && formState.weight && formState.count) {
         setCalculationState('calculating');
-        calculate(formState);
+        await calculate(formState);
         // State will be set to 'ready' in calculate() after completion
       }
       formValuesRef.current = currentFormValues;

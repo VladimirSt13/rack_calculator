@@ -8,9 +8,9 @@ const router = Router();
  * GET /api/price
  * Отримати поточний прайс-лист
  */
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
 
     // Get latest price
     const price = db.prepare('SELECT data, updated_at FROM prices ORDER BY id DESC LIMIT 1').get();
@@ -32,9 +32,9 @@ router.get('/', (req, res, next) => {
  * PUT /api/price
  * Оновити прайс-лист (auth required)
  */
-router.put('/', authenticate, (req, res, next) => {
+router.put('/', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { data } = req.body;
 
     if (!data || typeof data !== 'object') {
@@ -60,9 +60,9 @@ router.put('/', authenticate, (req, res, next) => {
  * POST /api/price/upload
  * Завантажити прайс з файлу (auth required)
  */
-router.post('/upload', authenticate, (req, res, next) => {
+router.post('/upload', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { data } = req.body;
 
     if (!data || typeof data !== 'object') {
@@ -72,7 +72,7 @@ router.post('/upload', authenticate, (req, res, next) => {
     // Validate price structure (basic)
     const requiredKeys = ['supports', 'spans', 'vertical_supports', 'diagonal_brace', 'isolator'];
     const hasRequired = requiredKeys.some(key => key in data);
-    
+
     if (!hasRequired) {
       return res.status(400).json({ error: 'Invalid price structure' });
     }

@@ -8,11 +8,11 @@ const router = Router();
  * GET /api/calculations
  * Отримати список розрахунків користувача
  */
-router.get('/', authenticate, (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { type, limit = 50 } = req.query;
-    
+
     let query = 'SELECT id, name, type, data, created_at FROM calculations WHERE user_id = ?';
     const params = [req.user.userId];
 
@@ -36,9 +36,9 @@ router.get('/', authenticate, (req, res, next) => {
  * POST /api/calculations
  * Зберегти новий розрахунок
  */
-router.post('/', authenticate, (req, res, next) => {
+router.post('/', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { name, type, data } = req.body;
 
     if (!data || typeof data !== 'object') {
@@ -50,13 +50,13 @@ router.post('/', authenticate, (req, res, next) => {
     }
 
     const result = db.prepare(`
-      INSERT INTO calculations (user_id, name, type, data) 
+      INSERT INTO calculations (user_id, name, type, data)
       VALUES (?, ?, ?, ?)
     `).run(req.user.userId, name || null, type, JSON.stringify(data));
 
     const calculation = db.prepare(`
-      SELECT id, name, type, data, created_at 
-      FROM calculations 
+      SELECT id, name, type, data, created_at
+      FROM calculations
       WHERE id = ?
     `).get(result.lastInsertRowid);
 
@@ -70,14 +70,14 @@ router.post('/', authenticate, (req, res, next) => {
  * GET /api/calculations/:id
  * Отримати конкретний розрахунок
  */
-router.get('/:id', authenticate, (req, res, next) => {
+router.get('/:id', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { id } = req.params;
 
     const calculation = db.prepare(`
-      SELECT id, name, type, data, created_at 
-      FROM calculations 
+      SELECT id, name, type, data, created_at
+      FROM calculations
       WHERE id = ? AND user_id = ?
     `).get(id, req.user.userId);
 
@@ -95,13 +95,13 @@ router.get('/:id', authenticate, (req, res, next) => {
  * DELETE /api/calculations/:id
  * Видалити розрахунок
  */
-router.delete('/:id', authenticate, (req, res, next) => {
+router.delete('/:id', authenticate, async (req, res, next) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const { id } = req.params;
 
     const result = db.prepare(`
-      DELETE FROM calculations 
+      DELETE FROM calculations
       WHERE id = ? AND user_id = ?
     `).run(id, req.user.userId);
 

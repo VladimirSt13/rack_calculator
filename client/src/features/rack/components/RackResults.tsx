@@ -185,14 +185,36 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
 
         {/* Підсумок */}
         <div className='space-y-2 pt-4 border-t'>
-          <div className='flex justify-between items-center py-2'>
-            <span className='text-sm text-muted-foreground'>Без ізоляторів</span>
-            <PriceDisplay value={result.totalWithoutIsolators} className='font-medium' />
-          </div>
-          <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md'>
-            <span className='text-base font-semibold'>Загальна вартість</span>
-            <PriceDisplay value={result.total} size='xl' className='font-bold text-primary' />
-          </div>
+          {/* Відображення дозволених цін з серверу */}
+          {result.prices && result.prices.length > 0 && (
+            <div className='space-y-2 mb-4'>
+              {result.prices.map((price) => (
+                <div key={price.type} className='flex justify-between items-center py-2'>
+                  <span className='text-sm text-muted-foreground'>{price.label}</span>
+                  <span className='text-sm font-medium tabular-nums'>
+                    {price.value.toLocaleString('uk-UA', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })} ₴
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Старі відображення для сумісності */}
+          {!result.prices || result.prices.length === 0 ? (
+            <>
+              <div className='flex justify-between items-center py-2'>
+                <span className='text-sm text-muted-foreground'>Без ізоляторів</span>
+                <PriceDisplay value={result.totalWithoutIsolators} className='font-medium' />
+              </div>
+              <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md'>
+                <span className='text-base font-semibold'>Загальна вартість</span>
+                <PriceDisplay value={result.total} size='xl' className='font-bold text-primary' />
+              </div>
+            </>
+          ) : null}
         </div>
 
         <TextButton

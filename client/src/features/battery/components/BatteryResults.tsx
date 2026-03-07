@@ -73,9 +73,9 @@ const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
   // Кількість варіантів
   const variantsCount = variants.length;
 
-  // Мінімальна та максимальна вартість
-  const minTotal = Math.min(...variants.map(v => v.total));
-  const maxTotal = Math.max(...variants.map(v => v.total));
+  // Мінімальна та максимальна вартість (тільки нульова ціна)
+  const minTotal = 0; // Нульова ціна
+  const maxTotal = 0; // Нульова ціна
 
   return (
     <div className='space-y-3'>
@@ -215,7 +215,19 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                   </span>
                 </TableCell>
                 <TableCell className='text-right'>
-                  <PriceDisplay value={variant.total} className='font-medium' />
+                  <div className='space-y-1'>
+                    {variant.prices?.map((price: any) => (
+                      <div key={price.type} className='text-right'>
+                        <span className='text-xs text-muted-foreground'>{price.label}: </span>
+                        <span className='text-sm font-medium tabular-nums'>
+                          {price.value.toLocaleString('uk-UA', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })} ₴
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </TableCell>
                 <TableCell className='p-0'>
                   <div className='flex items-center justify-center h-full'>

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRackFormStore } from '../formStore';
 import { useRackSpansStore } from '../spansStore';
-import { usePrice } from '@/hooks/usePrice';
+import { useRackComponents } from '../useRackComponents';
 import {
   CardContent,
   FieldRow,
@@ -33,22 +33,27 @@ const RackForm: React.FC = () => {
   } = useRackFormStore();
 
   const { addSpan } = useRackSpansStore();
-  const { data: priceData } = usePrice();
+  const {
+    supports: supportsComponents,
+    verticalSupports: verticalSupportsComponents,
+    spans: spansComponents,
+    isLoading,
+  } = useRackComponents();
 
-  // Опції з прайсу
+  // Трансформація компонентів у формат для селекту
   const supportsOptions = React.useMemo(
-    () => (priceData?.data?.supports ? Object.keys(priceData.data.supports) : []),
-    [priceData],
+    () => supportsComponents.map((s: any) => ({ value: s.code, label: s.name })),
+    [supportsComponents],
   );
 
   const verticalSupportsOptions = React.useMemo(
-    () => (priceData?.data?.vertical_supports ? Object.keys(priceData.data.vertical_supports) : []),
-    [priceData],
+    () => verticalSupportsComponents.map((s: any) => ({ value: s.code, label: s.name })),
+    [verticalSupportsComponents],
   );
 
   const spanOptions = React.useMemo(
-    () => (priceData?.data?.spans ? Object.keys(priceData.data.spans) : []),
-    [priceData],
+    () => spansComponents.map((s: any) => ({ value: s.code, label: s.name || s.code })),
+    [spansComponents],
   );
 
   // Блокування verticalSupports якщо 1 поверх
@@ -59,6 +64,16 @@ const RackForm: React.FC = () => {
       setVerticalSupports('');
     }
   }, [floors, isVerticalSupportsDisabled, setVerticalSupports]);
+
+  // Показуємо лоадер поки дані завантажуються
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center py-8'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+        <span className='ml-2 text-sm text-muted-foreground'>Завантаження комплектуючих...</span>
+      </div>
+    );
+  }
 
   return (
     <CardContent className='w-full px-0'>
@@ -85,9 +100,9 @@ const RackForm: React.FC = () => {
               disabled={isVerticalSupportsDisabled}
               placeholder='Виберіть...'
             >
-              {verticalSupportsOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
+              {verticalSupportsOptions.map((opt: any) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </FieldRowSelect>
@@ -100,9 +115,9 @@ const RackForm: React.FC = () => {
               onChange={(e) => setSupports(e.target.value)}
               placeholder='Виберіть...'
             >
-              {supportsOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
+              {supportsOptions.map((opt: any) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </FieldRowSelect>

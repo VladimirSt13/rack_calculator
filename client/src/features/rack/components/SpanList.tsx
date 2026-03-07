@@ -3,8 +3,13 @@ import { useRackSpansStore } from '../spansStore';
 import { Minus } from 'lucide-react';
 import { IconButton } from '@/shared/components';
 
+interface SpanOption {
+  value: string;
+  label: string;
+}
+
 interface SpanListProps {
-  spanOptions: string[];
+  spanOptions: SpanOption[];
 }
 
 /**
@@ -34,9 +39,9 @@ const SpanList: React.FC<SpanListProps> = ({ spanOptions }) => {
             className="min-w-[120px] flex-1 h-8 px-2 text-sm border border-gray-300 rounded-md bg-card hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all cursor-pointer shadow-sm"
           >
             <option value="">Виберіть проліт...</option>
-            {spanOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt} мм
+            {spanOptions.map((opt: any) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label} мм
               </option>
             ))}
           </select>

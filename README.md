@@ -8,7 +8,7 @@
 
 ```
 rack_calculator/
-├── client/          # React додаток (Vite)
+├── client/          # React додаток (Vite + TypeScript)
 ├── server/          # Express API (SQLite)
 ├── shared/          # Спільна бізнес-логіка
 ├── legacy/          # Vanilla JS проєкт (тимчасово)
@@ -18,20 +18,21 @@ rack_calculator/
 ### Технології
 
 **Frontend (client/):**
-- React 18
+- React 18 + TypeScript
 - React Router DOM 6
 - TanStack Query 5
 - Zustand 4
 - React Hook Form 7 + Zod
 - Axios
-- Lucide React
+- TailwindCSS + Radix UI
 
 **Backend (server/):**
 - Express 4
 - SQLite (better-sqlite3)
-- JWT (jsonwebtoken)
+- JWT + Refresh Tokens
 - bcryptjs
-- Helmet + rate-limit
+- Helmet + Rate Limit
+- **Roles & Permissions (БД)**
 
 ## 🚀 Швидкий старт
 
@@ -44,10 +45,7 @@ rack_calculator/
 
 ```bash
 # Встановити всі залежності
-npm install
-
-# Або для кожного воркспейсу окремо
-npm install --workspaces
+npm run install:all
 ```
 
 ### Розробка
@@ -66,16 +64,6 @@ npm run dev:server   # http://localhost:3001
 ```bash
 # Зібрати всі воркспейси
 npm run build
-
-# Або окремо
-npm run build:client
-npm run build:server
-```
-
-### Тестування
-
-```bash
-npm test
 ```
 
 ## 📁 Структура проєкту
@@ -85,16 +73,14 @@ npm test
 ```
 client/
 ├── src/
-│   ├── app/           # App.jsx, providers
-│   ├── pages/         # RackPage.jsx, BatteryPage.jsx
-│   ├── features/      # rack/, battery/
+│   ├── app/           # App.tsx, routing
+│   ├── pages/         # LoginPage, RegisterPage, RackPage, BatteryPage
+│   ├── features/      # auth/, rack/, battery/
 │   ├── shared/        # UI компоненти
-│   ├── core/          # Бізнес-логіка
+│   ├── core/          # Constants (routes, roles)
 │   ├── hooks/         # Custom hooks
-│   ├── lib/           # Axios instance
-│   └── main.jsx
-├── index.html
-└── package.json
+│   └── lib/           # Axios instance
+└── docs/              # Клієнтська документація
 ```
 
 ### Server
@@ -102,94 +88,102 @@ client/
 ```
 server/
 ├── src/
+│   ├── controllers/   # auth, rack, battery, price, roles
 │   ├── routes/        # API routes
-│   ├── controllers/   # Controllers
+│   ├── middleware/    # auth, authorizeRole
+│   ├── helpers/       # roles, audit, email
 │   ├── db/            # SQLite + migrations
-│   ├── middleware/    # Auth, error handlers
-│   └── index.js
+│   └── core/          # Constants
 ├── data/              # SQLite database
-├── backups/           # Резервні копії
-└── .env
-```
-
-### Shared
-
-```
-shared/
-└── rackCalculator.js  # Спільна бізнес-логіка
+├── docs/              # Серверна документація
+└── scripts/           # migrate, seed-admin
 ```
 
 ## 🔌 API Endpoints
 
 ### Auth
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Реєстрація |
-| POST | `/api/auth/login` | Вхід |
-| POST | `/api/auth/logout` | Вихід |
-| GET | `/api/auth/me` | Поточний користувач |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/auth/register` | Реєстрація | ❌ |
+| POST | `/api/auth/login` | Вхід | ❌ |
+| POST | `/api/auth/logout` | Вихід | ✅ |
+| POST | `/api/auth/refresh` | Refresh token | ❌ |
+| POST | `/api/auth/verify-email` | Підтвердження email | ❌ |
+| GET | `/api/auth/me` | Поточний користувач | ✅ |
 
-### Price
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/price` | Отримати прайс |
-| PUT | `/api/price` | Оновити прайс (auth) |
-| POST | `/api/price/upload` | Завантажити з файлу (auth) |
-
-### Calculations (auth required)
+### Roles (Admin Only)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/calculations` | Список розрахунків |
-| POST | `/api/calculations` | Зберегти розрахунок |
-| GET | `/api/calculations/:id` | Отримати розрахунок |
-| DELETE | `/api/calculations/:id` | Видалити розрахунок |
+| GET | `/api/roles` | Список ролей |
+| PUT | `/api/roles/:name/permissions` | Оновити дозволи |
+| PUT | `/api/roles/:name/price-types` | Оновити типи цін |
+| POST | `/api/roles` | Створити роль |
 
-## 🔐 Безпека
+### Rack Calculations
 
-### Змінні оточення (server/.env)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/rack/calculate` | Розрахунок стелажа |
+| POST | `/api/rack/calculate-batch` | Масовий розрахунок |
+
+### Battery Calculations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/battery/calculate` | Розрахунок по батареї |
+| POST | `/api/battery/find-best` | Підбір варіанту |
+
+## 🔐 Ролі та доступ
+
+### Ролі
+
+| Роль | Доступ | Ціни |
+|------|--------|------|
+| **admin** | Всі сторінки | Всі |
+| **manager** | Тільки Акумулятор | Тільки нульова |
+| **user** | Access Denied | Немає доступу |
+
+### Тестові користувачі
+
+| Email | Пароль | Роль |
+|-------|--------|------|
+| admin@vs.com | P@ssw0rd13 | admin |
+| manager@test.com | 123456 | manager |
+| user@test.com | 123456 | user |
+
+## 📚 Документація
+
+### Server
+
+- [ROLES_AND_PERMISSIONS.md](./server/docs/ROLES_AND_PERMISSIONS.md) - Ролі та дозволи
+- [MIGRATIONS_GUIDE.md](./server/docs/MIGRATIONS_GUIDE.md) - Міграції БД
+- [PASSWORD_RESET.md](./server/docs/PASSWORD_RESET.md) - Відновлення пароля
+- [ROLES_AND_ACCESS.md](./server/docs/ROLES_AND_ACCESS.md) - Доступ за ролями
+
+### Client
+
+- [ROUTES.md](./client/docs/ROUTES.md) - Маршрути
+- [STAGE_3_COMPLETE.md](./client/docs/STAGE_3_COMPLETE.md) - Авторизація
+
+### Загальна
+
+- [MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md) - План модернізації
+- [CONVENTIONS.md](./CONVENTIONS.md) - Конвенції проєкту
+
+## 🛠️ Корисні команди
 
 ```bash
-NODE_ENV=development
-PORT=3001
-JWT_SECRET=your_secret_key
-CORS_ORIGIN=http://localhost:3000
+# Server
+npm run migrate          # Запуск міграцій
+npm run migrate:status   # Статус міграцій
+npm run seed:admin       # Створити адмінів
+
+# Client
+npm run build            # Збірка
+npm run typecheck        # Перевірка типів
 ```
-
-### Middleware
-
-- **Helmet** - security headers
-- **CORS** - обмеження домену
-- **Rate Limit** - 100 запитів / 15 хв
-- **JWT** - авторизація токенів
-
-## 📝 Конвенції
-
-### Іменування
-
-| Тип | Конвенція | Приклад |
-|-----|-----------|---------|
-| Файли | `kebab-case.jsx` | `rack-page.jsx` |
-| Компоненти | `PascalCase.jsx` | `RackForm.jsx` |
-| Функції | `camelCase` | `calculateRack` |
-| Константи | `UPPER_SNAKE_CASE` | `API_BASE_URL` |
-
-## 🧪 Міграція з Legacy
-
-Поточний Vanilla JS проєкт знаходиться в `legacy/`. Поступова міграція:
-
-1. ✅ Бізнес-логіка перенесена в `shared/rackCalculator.js`
-2. ⏳ Rack Page → `client/src/pages/RackPage.jsx`
-3. ⏳ Battery Page → `client/src/pages/BatteryPage.jsx`
-
-## 📚 Корисні посилання
-
-- [TanStack Query](https://tanstack.com/query)
-- [Zustand](https://zustand-demo.pmnd.rs)
-- [React Hook Form](https://react-hook-form.com)
-- [Zod](https://zod.dev)
 
 ## 📄 Ліцензія
 

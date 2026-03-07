@@ -27,9 +27,9 @@ export interface BatteryRackConfig {
 export interface BatteryCalculationResult {
   name: string;
   components: RackComponents;
-  total: number;
-  totalWithoutIsolators: number;
-  zeroBase: number;
+  total: number | null; // Нульова ціна
+  totalWithoutIsolators: number | null;
+  zeroBase: number; // Завжди показуємо
 }
 
 /**
@@ -76,17 +76,17 @@ export const calculateBatteryRack = (rackConfig: BatteryRackConfig, price: Price
     spans,
   });
 
-  // 5. Підрахунок вартості
-  const total = calculateTotalCost(components);
-  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
-  const zeroBase = total * 1.44;
+  // 5. Підрахунок вартості (тільки нульова ціна для менеджерів)
+  calculateTotalCost(components); // Рахуємо для перевірки
+  calculateTotalWithoutIsolators(components);
+  const zeroBase = 0; // Нульова ціна
 
   return {
     name,
     components,
-    total: Math.round(total * 100) / 100,
-    totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
-    zeroBase: Math.round(zeroBase * 100) / 100,
+    total: null, // Приховано для менеджерів
+    totalWithoutIsolators: null, // Приховано для менеджерів
+    zeroBase,
   };
 };
 

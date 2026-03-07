@@ -3,6 +3,12 @@ import type { RackComponents } from '../../shared/core/rackCalculator';
 import type { RackFormState } from './formStore';
 import type { SpanItem } from '../../shared/core/rackCalculator';
 
+export interface PriceInfo {
+  type: string;
+  label: string;
+  value: number;
+}
+
 export interface RackCalculationResult {
   name: string;
   tableHtml: string;
@@ -10,6 +16,7 @@ export interface RackCalculationResult {
   totalWithoutIsolators: number;
   zeroBase: number;
   components: RackComponents;
+  prices?: PriceInfo[]; // Додано масив цін з серверу
   // Дані форми для редагування
   form: RackFormState;
   // Прольоти для підрахунку кількості

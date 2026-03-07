@@ -9,7 +9,12 @@ import { initDatabase } from './db/index.js';
 // Routes
 import authRoutes from './routes/auth.js';
 import priceRoutes from './routes/price.js';
+import priceComponentsRoutes from './routes/priceComponents.js';
 import calculationsRoutes from './routes/calculations.js';
+import rackRoutes from './routes/rack.js';
+import batteryRoutes from './routes/battery.js';
+import rolesRoutes from './routes/roles.js';
+import usersRoutes from './routes/users.js';
 
 // Load environment variables
 dotenv.config();
@@ -55,7 +60,12 @@ initDatabase();
 // ===== ROUTES =====
 app.use('/api/auth', authRoutes);
 app.use('/api/price', priceRoutes);
+app.use('/api/price', priceComponentsRoutes);
 app.use('/api/calculations', calculationsRoutes);
+app.use('/api/rack', rackRoutes);
+app.use('/api/battery', batteryRoutes);
+app.use('/api/roles', rolesRoutes);
+app.use('/api/users', usersRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
