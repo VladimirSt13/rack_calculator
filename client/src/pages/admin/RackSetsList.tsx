@@ -19,7 +19,7 @@ import {
   DialogDescription,
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
-import { Loader2, Eye, Trash2, Package } from 'lucide-react';
+import { Loader2, Eye, Trash2, Package, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
@@ -37,6 +37,39 @@ export const RackSetsList: React.FC = () => {
     queryKey: ['rackSets'],
     queryFn: rackSetsApi.getAll,
   });
+
+  // Мутація для експорту
+  const exportMutation = useMutation({
+    mutationFn: (id: number) => rackSetsApi.export(id),
+    onSuccess: (data, id) => {
+      // Створити blob і завантажити файл
+      const blob = new Blob([data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Отримати ім'я файлу з даних
+      const rackSet = data?.rackSets?.find((s: any) => s.id === id);
+      const fileName = rackSet?.name || `rack-set-${id}`;
+      link.download = `${fileName}.xlsx`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Експорт виконано успішно');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Помилка експорту');
+    },
+  });
+
+  const handleExport = (id: number) => {
+    exportMutation.mutate(id);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => rackSetsApi.delete(id),
@@ -161,6 +194,13 @@ export const RackSetsList: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <IconButton
+                          icon={Download}
+                          variant="icon"
+                          onClick={() => handleExport(rackSet.id)}
+                          aria-label="Експортувати"
+                          disabled={exportMutation.isPending}
+                        />
                         <IconButton
                           icon={Eye}
                           variant="icon"

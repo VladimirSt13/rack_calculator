@@ -94,6 +94,16 @@ export const rackSetsApi = {
     const { data } = await api.get(`/rack-sets/${id}/revisions`);
     return data as { revisions: RackSetRevision[] };
   },
+
+  /**
+   * Експорт комплекту в Excel
+   */
+  export: async (id: number) => {
+    const response = await api.get(`/rack-sets/${id}/export`, {
+      responseType: 'arraybuffer',
+    });
+    return response.data;
+  },
 };
 
 export default rackSetsApi;

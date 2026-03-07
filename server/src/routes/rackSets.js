@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as rackSetController from '../controllers/rackSetController.js';
+import * as exportController from '../controllers/exportController.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
@@ -15,6 +16,12 @@ router.get('/', authenticate, rackSetController.getRackSets);
  * Отримати конкретний комплект з деталями
  */
 router.get('/:id', authenticate, rackSetController.getRackSet);
+
+/**
+ * GET /api/rack-sets/:id/export
+ * Експорт комплекту стелажів в Excel
+ */
+router.get('/:id/export', authenticate, exportController.exportRackSet);
 
 /**
  * POST /api/rack-sets
