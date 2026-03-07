@@ -11,6 +11,8 @@ import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
+import { Checkbox } from '@/shared/components/Checkbox';
+import { Download } from 'lucide-react';
 
 const rackSetSchema = z.object({
   name: z.string().min(1, 'Назва обов\'язкова'),
@@ -32,6 +34,9 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
   racks,
 }) => {
   const queryClient = useQueryClient();
+  const [includePrices, setIncludePrices] = React.useState(false);
+  const [isExporting, setIsExporting] = React.useState(false);
+
   const {
     register,
     handleSubmit,
@@ -49,6 +54,7 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       reset({ name: '', object_name: '', description: '' });
+      setIncludePrices(false);
     }
   }, [isOpen, reset]);
 
@@ -70,6 +76,32 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
       ...data,
       racks,
     });
+  };
+
+  const handleExport = async () => {
+    if (racks.length === 0) {
+      toast.error('Немає стелажів для експорту');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const blob = await rackSetsApi.exportNew(racks, includePrices);
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      const filename = includePrices ? 'комплект_з_цінами.xlsx' : 'комплект.xlsx';
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Експорт виконано успішно');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Помилка експорту');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Розрахунок загальної вартості по нульовій ціні
@@ -99,12 +131,12 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-5xl h-[90vh] sm:h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Зберегти комплект стелажів</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto space-y-4 min-w-0 pr-2">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Назва комплекту</Label>
@@ -272,7 +304,32 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
             </div>
           </div>
 
-          <DialogFooter>
+          <div className="flex items-center gap-6 pt-4 border-t">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="includePrices"
+                checked={includePrices}
+                onCheckedChange={(checked) => setIncludePrices(checked as boolean)}
+                disabled={isExporting}
+              />
+              <Label htmlFor="includePrices" className="text-sm font-medium cursor-pointer">
+                Додати ціни в експорт
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting || racks.length === 0}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              {isExporting ? 'Експорт...' : 'Експорт в Excel'}
+            </Button>
+            <div className="flex-1" />
             <Button
               type="button"
               variant="outline"

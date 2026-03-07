@@ -97,9 +97,24 @@ export const rackSetsApi = {
 
   /**
    * Експорт комплекту в Excel
+   * @param id - ID комплекту
+   * @param includePrices - Чи включати ціни
    */
-  export: async (id: number) => {
+  export: async (id: number, includePrices: boolean = false) => {
     const response = await api.get(`/rack-sets/${id}/export`, {
+      params: { includePrices },
+      responseType: 'arraybuffer',
+    });
+    return response.data;
+  },
+
+  /**
+   * Експорт комплекту в Excel (для нового комплекту, ще не збереженого)
+   * @param racks - Масив стелажів
+   * @param includePrices - Чи включати ціни
+   */
+  exportNew: async (racks: RackSetItem[], includePrices: boolean = false) => {
+    const response = await api.post('/rack-sets/export', { racks, includePrices }, {
       responseType: 'arraybuffer',
     });
     return response.data;

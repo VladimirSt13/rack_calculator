@@ -53,4 +53,10 @@ router.post('/:id/revision', authenticate, rackSetController.createRackSetRevisi
  */
 router.get('/:id/revisions', authenticate, rackSetController.getRackSetRevisions);
 
+/**
+ * POST /api/rack-sets/export
+ * Експорт нового комплекту стелажів (ще не збереженого)
+ */
+router.post('/export', authenticate, exportController.exportNewRackSet);
+
 export default router;
