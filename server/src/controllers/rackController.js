@@ -81,6 +81,9 @@ export const calculateRack = async (req, res, next) => {
     const components = calculateRackComponents(config, price);
     const totalCost = calculateTotalCost(components);
     const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
+    
+    // Розрахунок нульової ціни: базова * 1,2 * 1,2 = базова * 1,44
+    const zeroPrice = totalCost * 1.44;
 
     // Отримати permissions користувача
     const user = req.user;
@@ -103,11 +106,17 @@ export const calculateRack = async (req, res, next) => {
 
     console.log({
       name: generateRackName(config),
+      total: Math.round(totalCost * 100) / 100,
+      totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
+      zeroBase: Math.round(zeroPrice * 100) / 100,
       ...formattedResult,
     });
 
     res.json({
       name: generateRackName(config),
+      total: Math.round(totalCost * 100) / 100,
+      totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
+      zeroBase: Math.round(zeroPrice * 100) / 100,
       ...formattedResult,
     });
   } catch (error) {

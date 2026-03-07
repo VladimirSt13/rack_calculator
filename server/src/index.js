@@ -15,6 +15,7 @@ import rackRoutes from './routes/rack.js';
 import batteryRoutes from './routes/battery.js';
 import rolesRoutes from './routes/roles.js';
 import usersRoutes from './routes/users.js';
+import rackSetsRoutes from './routes/rackSets.js';
 
 // Load environment variables
 dotenv.config();
@@ -66,6 +67,7 @@ app.use('/api/rack', rackRoutes);
 app.use('/api/battery', batteryRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/rack-sets', rackSetsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

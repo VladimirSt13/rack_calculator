@@ -104,7 +104,7 @@ const PreambleCard: React.FC<PreambleCardProps> = memo(({ result }) => {
           </div>
           <div className='space-y-1'>
             <p className='text-xs text-muted-foreground'>Вартість</p>
-            <PriceDisplay value={result.total} size='lg' className='font-semibold text-primary' />
+            <PriceDisplay value={result?.prices?.[0].value || 0} size='lg' className='font-semibold text-primary' />
           </div>
         </div>
       </CardContent>
@@ -172,10 +172,10 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
                     <span className='text-sm font-mono tabular-nums'>{item.amount}</span>
                   </TableCell>
                   <TableCell className='text-right'>
-                    <PriceDisplay value={item.price} />
+                    <PriceDisplay value={item.price ?? null} />
                   </TableCell>
                   <TableCell className='text-right'>
-                    <PriceDisplay value={item.total} className='font-medium' />
+                    <PriceDisplay value={item.total ?? null} className='font-medium' />
                   </TableCell>
                 </TableRow>
               ))}
@@ -187,42 +187,58 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
         <div className='space-y-2 pt-4 border-t'>
           {/* Відображення дозволених цін з серверу */}
           {result.prices && result.prices.length > 0 && (
-            <div className='space-y-2 mb-4'>
-              {result.prices.map((price) => (
-                <div key={price.type} className='flex justify-between items-center py-2'>
-                  <span className='text-sm text-muted-foreground'>{price.label}</span>
-                  <span className='text-sm font-medium tabular-nums'>
-                    {price.value.toLocaleString('uk-UA', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} ₴
+            <>
+              <div className='space-y-2 mb-4'>
+                {result.prices.map((price) => (
+                  <div key={price.type} className='flex justify-between items-center py-2'>
+                    <span className='text-sm text-muted-foreground'>{price.label}</span>
+                    <span className='text-sm font-medium tabular-nums'>
+                      {price.value.toLocaleString('uk-UA', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{' '}
+                      ₴
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Виділена базова ціна */}
+              {result.prices.some((p) => p.type === 'базова' || p.type === 'base') && (
+                <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md mt-3'>
+                  <span className='text-base font-semibold'>Базова ціна</span>
+                  <span className='text-lg font-bold text-primary tabular-nums'>
+                    {result.prices
+                      .find((p) => p.type === 'базова' || p.type === 'base')
+                      ?.value.toLocaleString('uk-UA', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{' '}
+                    ₴
                   </span>
                 </div>
-              ))}
+              )}
+            </>
+          )}
+
+          {/* Якщо немає prices, показуємо total */}
+          {(!result.prices || result.prices.length === 0) && result.total != null && (
+            <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md'>
+              <span className='text-base font-semibold'>Загальна вартість</span>
+              <PriceDisplay value={result.total} size='xl' className='font-bold text-primary' />
             </div>
           )}
 
-          {/* Старі відображення для сумісності */}
-          {!result.prices || result.prices.length === 0 ? (
-            <>
-              <div className='flex justify-between items-center py-2'>
-                <span className='text-sm text-muted-foreground'>Без ізоляторів</span>
-                <PriceDisplay value={result.totalWithoutIsolators} className='font-medium' />
-              </div>
-              <div className='flex justify-between items-center py-3 bg-muted/50 px-4 rounded-md'>
-                <span className='text-base font-semibold'>Загальна вартість</span>
-                <PriceDisplay value={result.total} size='xl' className='font-bold text-primary' />
-              </div>
-            </>
-          ) : null}
+          {/* Якщо немає prices і total, показуємо без ізоляторів */}
+          {(!result.prices || result.prices.length === 0) && result.total == null && (
+            <div className='flex justify-between items-center py-2'>
+              <span className='text-sm text-muted-foreground'>Без ізоляторів</span>
+              <PriceDisplay value={result.totalWithoutIsolators} className='font-medium' />
+            </div>
+          )}
         </div>
 
-        <TextButton
-          variant='outline'
-          className='w-full'
-          onClick={() => onAddToSet(result, 1)}
-          leftIcon={Plus}
-        >
+        <TextButton variant='outline' className='w-full' onClick={() => onAddToSet(result, 1)} leftIcon={Plus}>
           Додати до комплекту
         </TextButton>
       </CardContent>

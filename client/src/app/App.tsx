@@ -15,6 +15,7 @@ import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
+import RackSetsList from '@/pages/admin/RackSetsList';
 import { cn } from '@/lib/utils';
 import { LogOut, User } from 'lucide-react';
 
@@ -165,6 +166,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute allowedRoles={['admin']} requireActive>
                     <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/rack-sets"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <RackSetsList />
                   </ProtectedRoute>
                 }
               />
