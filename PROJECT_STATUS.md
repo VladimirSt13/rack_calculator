@@ -1,7 +1,7 @@
 # 📊 Проект: Rack Calculator v2.0 - Статус
 
 **Останнє оновлення:** 8 березня 2026
-**Статус:** Phase 1 завершено, Phase 2 завершено на 100%, Виправлення експорту виконано
+**Статус:** Phase 1 завершено, Phase 2 завершено на 100%, User Menu та Token Cleanup виконано
 
 ---
 
@@ -84,6 +84,19 @@
 - [x] JSDoc коментарі для контролерів
 - [x] Документація для Auth, Rack, Battery API
 
+### ✅ Етап 11: User Menu та Профіль - ЗАВЕРШЕНО
+- [x] Іконка профілю в Header
+- [x] Відображення нікнейму користувача
+- [x] Випадаюче меню (Загальні налаштування, Профіль, Адмін-панель, Збережені комплекти, Вихід)
+- [x] ProfilePage
+- [x] ProfileApi
+
+### ✅ Етап 12: Cron для очистки токенів - ЗАВЕРШЕНО
+- [x] Додати cron для cleanup застарілих refresh токенів
+- [x] Налаштування в .env (TOKEN_CLEANUP_ENABLED, TOKEN_CLEANUP_SCHEDULE, TOKEN_CLEANUP_DAYS)
+- [x] Скрипт token:cleanup
+- [x] Документація
+
 ---
 
 ## 🔧 Виправлення (Bug Fixes)
@@ -132,13 +145,20 @@ npm run migrate:rollback # Відкат міграції
 npm run seed:admin       # Створити адмінів
 npm run audit:cleanup    # Очистити аудит (90 днів)
 npm run audit:cleanup 30 # Очистити аудит (30 днів)
+npm run token:cleanup    # Очистити застарілі токени
 ```
 
 **Cron налаштування** (в `.env`):
 ```env
+# Audit Cleanup
 AUDIT_CLEANUP_ENABLED=true
 AUDIT_CLEANUP_SCHEDULE=0 2 * * 0  # Кожну неділю о 02:00
 AUDIT_CLEANUP_DAYS=90
+
+# Token Cleanup
+TOKEN_CLEANUP_ENABLED=true
+TOKEN_CLEANUP_SCHEDULE=0 3 * * 0  # Кожну неділю о 03:00
+TOKEN_CLEANUP_DAYS=30
 ```
 
 ### Client
