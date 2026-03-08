@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeToggle, Toaster } from '@/shared/components';
+import { UserMenu } from '@/features/auth/UserMenu';
 import { useAuthStore } from '@/features/auth/authStore';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { PROTECTED_ROUTES, PUBLIC_ROUTES, DEFAULT_REDIRECT_ROUTE, NAVIGATION_ROUTES } from '@/core/constants/routes';
@@ -13,6 +14,7 @@ import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import ProfilePage from '@/pages/ProfilePage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
 import RackSetsList from '@/pages/admin/RackSetsList';
@@ -21,7 +23,7 @@ import PriceManagementPage from '@/pages/admin/PriceManagementPage';
 import RolesManagementPage from '@/pages/admin/RolesManagementPage';
 import MyRackSetsPage from '@/pages/MyRackSetsPage';
 import { cn } from '@/lib/utils';
-import { LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,18 +123,13 @@ const Header: React.FC = () => {
 
           {accessToken && user && (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-                <User className="w-4 h-4" />
-                <span>{user.email}</span>
-                {user.role === 'admin' && (
-                  <span className="px-2 py-0.5 bg-primary-foreground/20 rounded text-xs">
-                    Admin
-                  </span>
-                )}
-              </div>
+              {/* User Menu */}
+              <UserMenu />
+              
+              {/* Кнопка виходу для мобільних */}
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className="sm:hidden p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
                 title="Вийти"
               >
                 <LogOut className="w-5 h-5" />
@@ -183,6 +180,16 @@ const App: React.FC = () => {
               <Route path={PUBLIC_ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
               <Route path={PUBLIC_ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
               <Route path={PUBLIC_ROUTES.ACCESS_DENIED} element={<AccessDeniedPage />} />
+
+              {/* Профіль користувача */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute requireActive>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Адмін маршрути */}
               <Route

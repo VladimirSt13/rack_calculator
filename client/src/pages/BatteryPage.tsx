@@ -1,14 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { Skeleton, CalculationControls } from '@/shared/components';
+import React, { useEffect, useRef, useState } from 'react';
+import { Skeleton, CalculationControls, Button } from '@/shared/components';
 import { CalculatorPage } from '@/shared/layout';
 import BatteryForm from '@/features/battery/components/BatteryForm';
 import BatteryResults from '@/features/battery/components/BatteryResults';
+import { BatterySetModal } from '@/features/battery/BatterySetModal';
 import { useBatteryCalculator } from '@/features/battery/useBatteryCalculator';
 import { usePrice } from '@/hooks/usePrice';
 import { useBatteryFormStore } from '@/features/battery/formStore';
+import { useBatterySetStore } from '@/features/battery/setStore';
+import { Package } from 'lucide-react';
 
 /**
- * Battery Page - сторінка підбору стелажа для акумулятора
+ * Battery Page - сторінка підбору стелажа для батареї
  *
  * Live recalculation UX:
  * - editing → calculating → ready
@@ -19,6 +22,9 @@ const BatteryPage: React.FC = () => {
   const { data: priceData, isLoading: priceLoading } = usePrice();
   const { calculate, isLoading, error, calculationState, setCalculationState } = useBatteryCalculator({ priceData: priceData?.data });
   const formState = useBatteryFormStore();
+  const { racks, clear } = useBatterySetStore();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Track form changes for live recalculation
   const formValuesRef = useRef(JSON.stringify(formState));
@@ -59,6 +65,13 @@ const BatteryPage: React.FC = () => {
     };
   }, [formState, calculate, setCalculationState]);
 
+  // Очищення комплекту при зміні форми
+  useEffect(() => {
+    return () => {
+      clear();
+    };
+  }, [clear]);
+
   const inputContent = (
     <div className='space-y-4'>
       {priceLoading ? (
@@ -79,6 +92,20 @@ const BatteryPage: React.FC = () => {
             loadingText='Розрахунок...'
             onSubmit={() => calculate(useBatteryFormStore.getState())}
           />
+          
+          {/* Кнопка відкриття комплекту */}
+          {racks.length > 0 && (
+            <div className="pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setIsModalOpen(true)}
+                className="w-full"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Відкрити комплект ({racks.length} стелажів)
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -87,13 +114,21 @@ const BatteryPage: React.FC = () => {
   const resultsContent = <BatteryResults isLoading={isLoading} />;
 
   return (
-    <CalculatorPage
-      title='Підбір стелажа для батареї'
-      description='Вкажіть розміри та вагу акумулятора для пошуку'
-      input={inputContent}
-      results={resultsContent}
-      status={calculationState}
-    />
+    <>
+      <CalculatorPage
+        title='Підбір стелажа для батареї'
+        description='Вкажіть розміри та вагу акумулятора для пошуку'
+        input={inputContent}
+        results={resultsContent}
+        status={calculationState}
+      />
+      
+      <BatterySetModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        racks={racks}
+      />
+    </>
   );
 };
 
