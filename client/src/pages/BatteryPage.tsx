@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Skeleton, CalculationControls, Button } from '@/shared/components';
 import { CalculatorPage } from '@/shared/layout';
 import BatteryForm from '@/features/battery/components/BatteryForm';
@@ -8,15 +8,15 @@ import { useBatteryCalculator } from '@/features/battery/useBatteryCalculator';
 import { usePrice } from '@/hooks/usePrice';
 import { useBatteryFormStore } from '@/features/battery/formStore';
 import { useBatterySetStore } from '@/features/battery/setStore';
-import { Package } from 'lucide-react';
+import { Package, RefreshCw } from 'lucide-react';
 
 /**
  * Battery Page - сторінка підбору стелажа для батареї
  *
- * Live recalculation UX:
- * - editing → calculating → ready
- * - Non-blocking inputs
- * - Auto-recalculate on form change (debounced)
+ * Manual calculation UX:
+ * - Користувач заповнює форму
+ * - Натискає кнопку "Підібрати"
+ * - Отримує результат з сервера
  */
 const BatteryPage: React.FC = () => {
   const { data: priceData, isLoading: priceLoading } = usePrice();
@@ -26,51 +26,17 @@ const BatteryPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Track form changes for live recalculation
-  const formValuesRef = useRef(JSON.stringify(formState));
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Auto-recalculate when form values change
-  useEffect(() => {
-    const currentFormValues = JSON.stringify(formState);
-
-    // Skip if form values haven't changed
-    if (currentFormValues === formValuesRef.current) {
-      return;
-    }
-
-    // Mark as editing when user changes inputs
-    setCalculationState('editing');
-
-    // Clear previous debounce timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Debounced recalculation (500ms delay)
-    debounceTimerRef.current = setTimeout(async () => {
-      // Only recalculate if we have valid form data
-      if (formState.length && formState.width && formState.height && formState.weight && formState.count) {
-        setCalculationState('calculating');
-        await calculate(formState);
-        // State will be set to 'ready' in calculate() after completion
-      }
-      formValuesRef.current = currentFormValues;
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [formState, calculate, setCalculationState]);
-
-  // Очищення комплекту при зміні форми
-  useEffect(() => {
+  // Очищення комплекту при зміні сторінки
+  React.useEffect(() => {
     return () => {
       clear();
     };
   }, [clear]);
+
+  const handleCalculate = async () => {
+    setCalculationState('calculating');
+    await calculate(formState);
+  };
 
   const inputContent = (
     <div className='space-y-4'>
@@ -81,16 +47,16 @@ const BatteryPage: React.FC = () => {
         </>
       ) : (
         <>
-          {/* Form - always enabled, non-blocking */}
+          {/* Form */}
           <BatteryForm />
 
-          {/* Manual Calculate Button (fallback) */}
+          {/* Manual Calculate Button */}
           <CalculationControls
             isLoading={isLoading}
             error={error}
             submitText='Підібрати'
             loadingText='Розрахунок...'
-            onSubmit={() => calculate(useBatteryFormStore.getState())}
+            onSubmit={handleCalculate}
           />
           
           {/* Кнопка відкриття комплекту */}
@@ -111,7 +77,21 @@ const BatteryPage: React.FC = () => {
     </div>
   );
 
-  const resultsContent = <BatteryResults isLoading={isLoading} />;
+  const resultsContent = (
+    <>
+      {calculationState === 'calculating' && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      )}
+      {calculationState === 'ready' && <BatteryResults isLoading={false} />}
+      {calculationState === 'idle' && (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <p>Заповніть форму та натисніть "Підібрати" для розрахунку</p>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <>

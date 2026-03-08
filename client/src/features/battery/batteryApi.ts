@@ -21,17 +21,19 @@ export const batteryApi = {
   },
 
   /**
-   * Підбір найкращого варіанту стелажа по батареї
+   * Підбір найкращого варіанту стелажа по батареї з варіантами балок
    */
   findBest: async (
     batteryDimensions: BatteryCalculationRequest['batteryDimensions'],
     weight: number,
-    quantity: number
+    quantity: number,
+    config?: { floors?: number; rows?: number; supportType?: string }
   ): Promise<{ variants: BatteryVariantDto[]; bestMatch?: unknown }> => {
     const { data } = await api.post('/battery/find-best', {
       batteryDimensions,
       weight,
       quantity,
+      config,
     });
     return data;
   },

@@ -191,18 +191,18 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
     return priceItem?.value || 0;
   };
 
-  // Формування назви: (прольот+прольот / висота / н бал.)
+  // Формування назви: Стелаж ... L1A2C-1000/430 (комбінація / висота / н бал.)
   const formatName = (variant: BatteryVariant) => {
     const combinationStr = variant.combination.join('+');
     const beamsCount = variant.combination.length;
     
     // Якщо багатоповерховий - додаємо висоту
     if (variant.floors > 1) {
-      return `(${combinationStr} / ${variant.height} / ${beamsCount} бал.)`;
+      return `${variant.name} (${combinationStr} / ${variant.height} / ${beamsCount} бал.)`;
     }
     
     // Якщо одноповерховий - без висоти
-    return `(${combinationStr} / ${beamsCount} бал.)`;
+    return `${variant.name} (${combinationStr} / ${beamsCount} бал.)`;
   };
 
   return (
@@ -213,6 +213,7 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
         <Table>
           <TableHeader>
             <TableRow className='bg-muted/50'>
+              <TableHead className='h-11 font-medium w-[40px]'>№</TableHead>
               <TableHead className='h-11 font-medium'>Назва</TableHead>
               <TableHead className='h-11 font-medium text-right'>Нульова ціна, ₴</TableHead>
               <TableHead className='h-11 w-[44px]' />
@@ -228,7 +229,10 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                   key={`${variant._index}-${index}`}
                   className='h-12 hover:bg-muted/30 transition-colors'
                 >
-                  <TableCell className='max-w-[300px]'>
+                  <TableCell className='text-sm text-muted-foreground text-center'>
+                    {index + 1}
+                  </TableCell>
+                  <TableCell className='max-w-[400px]'>
                     <p className='text-sm font-medium font-mono'>{formattedName}</p>
                   </TableCell>
                   <TableCell className='text-right'>
