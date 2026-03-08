@@ -21,6 +21,8 @@ export interface RackCalculationResult {
   form: RackFormState;
   // Прольоти для підрахунку кількості
   spans: SpanItem[];
+  // ID конфігурації в БД (новий підхід)
+  rackConfigId?: number;
 }
 
 export interface RackResultsState {

@@ -52,7 +52,8 @@ export const rackSetsApi = {
     name: string;
     object_name?: string;
     description?: string;
-    racks: RackSetItem[];
+    racks?: RackSetItem[];
+    rack_items?: Array<{ rackConfigId: number; quantity: number }>;
   }) => {
     const { data } = await api.post('/rack-sets', rackSetData);
     return data;

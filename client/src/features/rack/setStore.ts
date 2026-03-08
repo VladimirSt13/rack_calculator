@@ -3,6 +3,7 @@ import { RackCalculationResult } from './resultsStore';
 
 export interface RackSetItem extends RackCalculationResult {
   setId: number;
+  rackConfigId?: number;  // ID конфігурації в БД (новий підхід)
   quantity: number;
 }
 
@@ -28,9 +29,13 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
 
   addRack: (rack, quantity = 1) =>
     set((state) => {
-      // Перевіряємо чи вже існує такий самий стелаж (за назвою)
-      const existingIndex = state.racks.findIndex((r) => r.name === rack.name);
-      
+      // Перевіряємо чи вже існує такий самий стелаж (за назвою або rackConfigId)
+      const existingIndex = state.racks.findIndex((r) => 
+        r.rackConfigId 
+          ? r.rackConfigId === rack.rackConfigId 
+          : r.name === rack.name
+      );
+
       if (existingIndex !== -1) {
         // Якщо існує - збільшуємо кількість
         const updatedRacks = state.racks.map((r, index) =>
@@ -42,7 +47,7 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
           racks: updatedRacks,
         };
       }
-      
+
       // Якщо не існує - додаємо новий
       return {
         racks: [

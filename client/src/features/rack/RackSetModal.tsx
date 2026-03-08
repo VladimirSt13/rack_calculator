@@ -73,9 +73,18 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
   });
 
   const onSubmit = (data: RackSetForm) => {
+    // Формуємо нову структуру: rack_items = [{rackConfigId, quantity}]
+    const rackItems = racks
+      .filter(rack => rack.rackConfigId) // фільтруємо ті, що мають ID
+      .map(rack => ({
+        rackConfigId: rack.rackConfigId!,
+        quantity: rack.quantity || 1,
+      }));
+    
     createMutation.mutate({
       ...data,
-      racks,
+      rack_items: rackItems, // нова структура
+      racks, // залишаємо для зворотної сумісності
     });
   };
 

@@ -58,14 +58,17 @@ export const useRackCalculator = () => {
         })),
       };
 
-      // Call API
-      const response = await rackApi.calculate(rackConfig);
+      // Call API - новий метод з findOrCreateConfiguration
+      const response = await rackApi.findOrCreateConfiguration(rackConfig);
 
       const result = {
         name: response.name,
         tableHtml: '', // Will be generated in component
         components: response.components,
         prices: response.prices, // Зберігаємо всі ціни (3 типи)
+        total: response.totalCost,
+        totalWithoutIsolators: response.totalCost * 0.9, // приклад
+        zeroBase: response.totalCost * 1.44,
         // Зберігаємо дані форми для редагування
         form: { ...formState },
         // Зберігаємо прольоти для підрахунку
@@ -73,6 +76,8 @@ export const useRackCalculator = () => {
           item: s.item,
           quantity: s.quantity,
         })),
+        // ID конфігурації в БД
+        rackConfigId: response.rackConfigId,
       };
 
       resultsStore.setResult(result as any);
