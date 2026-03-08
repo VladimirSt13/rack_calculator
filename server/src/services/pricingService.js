@@ -64,6 +64,12 @@ export const calculateRackPrices = async (rackConfig, user, priceData = null) =>
 export const calculateRackSetPrices = async (racksData, user, priceData = null) => {
   const db = await getDb();
 
+  // Перевірка на масив
+  if (!Array.isArray(racksData)) {
+    console.error('calculateRackSetPrices: очікується масив racksData, отримано:', racksData);
+    return [];
+  }
+
   // Отримати актуальний прайс, якщо не передано
   if (!priceData) {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
@@ -93,6 +99,16 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
           config: rackConfig,
           ...prices,
         };
+      } else {
+        // Конфігурацію не знайдено - повертаємо rack з попередженням
+        console.warn(`[pricingService] Конфігурацію rackConfigId=${rack.rackConfigId} не знайдено`);
+        return {
+          ...rack,
+          components: {},
+          prices: [],
+          totalCost: 0,
+          name: rack.name || 'Невідома конфігурація',
+        };
       }
     }
 
@@ -108,17 +124,29 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
     }
 
     // Дуже стара структура або немає priceData - повертаємо як є
-    return rack;
+    // Додаємо порожні компоненти і ціни для сумісності
+    return {
+      ...rack,
+      components: rack.components || {},
+      prices: rack.prices || [],
+      totalCost: rack.totalCost || 0,
+    };
   });
 };
 
 /**
  * Розрахувати загальну вартість комплекту стелажів
- * 
+ *
  * @param {Array} racksWithPrices - Масив стелажів з цінами
  * @returns {number} Загальна вартість
  */
 export const calculateRackSetTotal = (racksWithPrices) => {
+  // Перевірка на масив для уникнення помилки "reduce is not a function"
+  if (!Array.isArray(racksWithPrices)) {
+    console.error('calculateRackSetTotal: очікується масив, отримано:', racksWithPrices);
+    return 0;
+  }
+
   return racksWithPrices.reduce(
     (sum, rack) => sum + ((rack.totalCost || 0) * (rack.quantity || 1)), 0
   );

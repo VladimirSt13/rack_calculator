@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface DataTableProps {
+export interface DataTableProps<T = unknown> {
   columns: {
     header: string;
-    key?: string;
+    key?: keyof T;
     className?: string;
-    render?: (row: any, index: number) => React.ReactNode;
+    render?: (row: T, index: number) => React.ReactNode;
   }[];
-  data: any[];
+  data: T[];
   className?: string;
 }
 
@@ -40,7 +40,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   {col.render
                     ? col.render(row, rowIndex)
                     : col.key
-                    ? row[col.key]
+                    ? String((row as Record<string, unknown>)[col.key as string] ?? '')
                     : null}
                 </td>
               ))}

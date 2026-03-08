@@ -95,8 +95,8 @@ export const AuditLogPage: React.FC = () => {
       setIsCleanupOpen(false);
       toast.success(data.message);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка очищення');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка очищення');
     },
   });
 

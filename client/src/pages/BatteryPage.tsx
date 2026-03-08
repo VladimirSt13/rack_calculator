@@ -17,7 +17,7 @@ import { useBatteryFormStore } from '@/features/battery/formStore';
  */
 const BatteryPage: React.FC = () => {
   const { data: priceData, isLoading: priceLoading } = usePrice();
-  const { calculate, isLoading, error, calculationState, setCalculationState } = useBatteryCalculator({ priceData });
+  const { calculate, isLoading, error, calculationState, setCalculationState } = useBatteryCalculator({ priceData: priceData?.data });
   const formState = useBatteryFormStore();
 
   // Track form changes for live recalculation

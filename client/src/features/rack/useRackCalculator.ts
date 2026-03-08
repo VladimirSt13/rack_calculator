@@ -4,6 +4,8 @@ import { useRackFormStore } from './formStore';
 import { useRackSpansStore } from './spansStore';
 import { useRackResultsStore } from './resultsStore';
 import { CalculationLifecycleStatus } from '@/shared/layout';
+import type { SpanItem } from '@rack-calculator/shared';
+import { logger } from '@/lib/logger';
 
 /**
  * Hook для розрахунку стелажа
@@ -27,7 +29,7 @@ export const useRackCalculator = () => {
       return;
     }
 
-    if (spansState.spans.length === 0 || !spansState.spans.some((s: any) => s.item && s.quantity > 0)) {
+    if (spansState.spans.length === 0 || !spansState.spans.some((s: SpanItem) => s.item && s.quantity > 0)) {
       resultsStore.setError('Додайте хоча б один проліт');
       setCalculationState('idle');
       return;
@@ -44,7 +46,7 @@ export const useRackCalculator = () => {
 
     try {
       // Prepare data for API
-      const validSpans = spansState.spans.filter((s: any) => s.item && s.quantity > 0);
+      const validSpans = spansState.spans.filter((s: SpanItem) => s.item && s.quantity > 0);
 
       const rackConfig = {
         floors: formState.floors,
@@ -52,7 +54,7 @@ export const useRackCalculator = () => {
         beamsPerRow: formState.beamsPerRow,
         supports: formState.supports,
         verticalSupports: formState.verticalSupports,
-        spans: validSpans.map((s: any) => ({
+        spans: validSpans.map((s: SpanItem) => ({
           item: s.item,
           quantity: s.quantity,
         })),
@@ -72,7 +74,7 @@ export const useRackCalculator = () => {
         // Зберігаємо дані форми для редагування
         form: { ...formState },
         // Зберігаємо прольоти для підрахунку
-        spans: validSpans.map((s: any) => ({
+        spans: validSpans.map((s: SpanItem) => ({
           item: s.item,
           quantity: s.quantity,
         })),
@@ -82,9 +84,9 @@ export const useRackCalculator = () => {
 
       resultsStore.setResult(result as any);
       setCalculationState('ready');
-    } catch (error: any) {
-      console.error('[RackCalculator] Error:', error);
-      resultsStore.setError(error.response?.data?.error || 'Помилка розрахунку');
+    } catch (error) {
+      logger.error('[RackCalculator] Error:', error);
+      resultsStore.setError((error as any).response?.data?.error || 'Помилка розрахунку');
       setCalculationState('idle');
     }
   }, [formState, spansState.spans, resultsStore]);

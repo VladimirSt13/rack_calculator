@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { RackCalculationResult } from './resultsStore';
+import { RackCalculationResult, type PriceInfo } from './resultsStore';
 
 export interface RackSetItem extends RackCalculationResult {
   setId: number;
   rackConfigId?: number;  // ID конфігурації в БД (новий підхід)
   quantity: number;
 }
+
+export { PriceInfo };
 
 export interface RackSetState {
   racks: RackSetItem[];

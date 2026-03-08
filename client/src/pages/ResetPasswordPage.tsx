@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,8 @@ import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
 import { Loader2, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+
+const COOLDOWN_MS = 30000; // 30 секунд між запитами
 
 const resetSchema = z
   .object({
@@ -26,9 +28,10 @@ export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const tokenFromUrl = searchParams.get('token');
-  
+
   const { resetPassword, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmit, setLastSubmit] = useState<number>(0);
 
   const {
     register,
@@ -38,31 +41,75 @@ export const ResetPasswordPage: React.FC = () => {
     resolver: zodResolver(resetSchema),
   });
 
-  const onSubmit = async (data: ResetForm) => {
+  const onSubmit = useCallback(async (data: ResetForm) => {
     if (!tokenFromUrl) {
       toast.error('Токен не знайдено');
       return;
     }
 
+    // Rate limiting на клієнті
+    const now = Date.now();
+    if (now - lastSubmit < COOLDOWN_MS) {
+      const remainingTime = Math.ceil((COOLDOWN_MS - (now - lastSubmit)) / 1000);
+      toast.error(`Зачекайте ${remainingTime} секунд перед наступним запитом`);
+      return;
+    }
+
+    // Валідація складності пароля
+    if (data.newPassword.length < 8) {
+      toast.error('Пароль має бути не менше 8 символів');
+      return;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(data.newPassword);
+    const hasLowerCase = /[a-z]/.test(data.newPassword);
+    const hasNumbers = /\d/.test(data.newPassword);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      toast.error('Пароль повинен містити хоча б одну велику літеру, малу літеру та цифру');
+      return;
+    }
+
     setIsSubmitting(true);
+    setLastSubmit(now);
     clearError();
 
     try {
       await resetPassword(tokenFromUrl, data.newPassword);
       toast.success('Пароль змінено успішно');
-      
+
       // Через 2 секунди редірект на login
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка скидання пароля';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка скидання пароля';
+      
+      // Перевірка на мережеву помилку для retry
+      if ((err as any).code === 'NETWORK_ERROR' || !(err as any).response) {
+        toast.info('Спробуємо ще раз через 5 секунд...');
+        setTimeout(async () => {
+          try {
+            await resetPassword(tokenFromUrl, data.newPassword);
+            toast.success('Пароль змінено успішно');
+            setTimeout(() => {
+              navigate('/login');
+            }, 2000);
+          } catch (retryErr) {
+            toast.error((retryErr as any).response?.data?.error || 'Помилка скидання пароля');
+          } finally {
+            setIsSubmitting(false);
+          }
+        }, 5000);
+        return;
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [tokenFromUrl, resetPassword, lastSubmit, clearError, navigate]);
 
   if (!tokenFromUrl) {
     return (

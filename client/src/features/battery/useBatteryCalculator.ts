@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react';
 import { generateRackVariants } from '@/shared/core/rackBuilder';
 import { calculateBatteryRack } from '@/shared/core/batteryCalculator';
-import { useBatteryResultsStore } from './resultsStore';
+import { useBatteryResultsStore, type BatteryVariant } from './resultsStore';
 import { CalculationLifecycleStatus } from '@/shared/layout';
 import type { BatteryFormState } from './formStore';
 import { rackApi } from '@/features/rack/rackApi';
+import type { PriceData } from '@rack-calculator/shared';
+import { logger } from '@/lib/logger';
 
 interface UseBatteryCalculatorProps {
-  priceData?: any;
+  priceData?: PriceData;
 }
 
 /**
@@ -52,14 +54,14 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
         rows: Number(rows),
         floors: Number(floors),
         supportType,
-        price: priceData?.data,
+        price: priceData,
       });
 
       // 2. Calculate price for each variant
-      const resultsWithCalculation = rackVariants.map((variant: any) => {
+      const resultsWithCalculation = rackVariants.map((variant) => {
         const spanVariants = variant.topSpans || [];
 
-        const variantsWithPrice = spanVariants.map((spanVariant: any, idx: number) => {
+        const variantsWithPrice = spanVariants.map((spanVariant, idx) => {
           const rackConfig = {
             floors: variant.floors,
             rows: variant.rows,
@@ -71,7 +73,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
             beams: spanVariant.beams,
           };
 
-          const calculation = calculateBatteryRack(rackConfig, priceData?.data);
+          const calculation = priceData ? calculateBatteryRack(rackConfig, priceData) : null;
 
           return {
             ...variant,
@@ -88,11 +90,31 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       });
 
       // Flatten variants
-      const allVariants = resultsWithCalculation.flatMap((r: any) => r.variantsWithPrice);
+      const allVariants = resultsWithCalculation.flatMap((r) => r.variantsWithPrice);
+
+      // Transform to BatteryVariant type
+      const transformedVariants: BatteryVariant[] = allVariants.map((variant: any, index: number) => ({
+        _index: index,
+        name: variant.name || `Варіант ${index + 1}`,
+        width: variant.width,
+        height: variant.height,
+        length: variant.length,
+        floors: variant.floors,
+        rows: variant.rows,
+        supportType: variant.supportType,
+        combination: variant.combination,
+        beams: variant.beams,
+        prices: variant.prices?.map((p: any) => ({
+          type: p.type,
+          label: p.label,
+          value: p.value,
+        })),
+        rackConfigId: undefined,
+      }));
 
       // 3. Створити конфігурації для кожного варіанту (опціонально, для збереження)
       const variantsWithConfigIds = await Promise.all(
-        allVariants.map(async (variant: any) => {
+        transformedVariants.map(async (variant) => {
           try {
             const rackConfig = {
               floors: variant.floors,
@@ -112,7 +134,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
               rackConfigId: response.rackConfigId,
             };
           } catch (error) {
-            console.error('[Battery] Error creating config:', error);
+            logger.error('[Battery] Error creating config:', error);
             return variant;
           }
         })
@@ -121,7 +143,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       resultsStore.setVariants(variantsWithConfigIds);
       setCalculationState('ready');
     } catch (error) {
-      console.error('[BatteryCalculator] Error:', error);
+      logger.error('[BatteryCalculator] Error:', error);
       resultsStore.setError('Помилка розрахунку');
       setCalculationState('idle');
     }

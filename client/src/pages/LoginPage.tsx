@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
   const { login, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const from = (location.state as any)?.from?.pathname || '/';
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
 
   const {
     register,
@@ -40,15 +40,18 @@ export const LoginPage: React.FC = () => {
     try {
       await login(data.email, data.password);
       toast.success('Вхід успішний');
-      navigate(from, { replace: true });
-    } catch (err: any) {
+      
+      // Визначаємо куди редиректити після логіну
+      const redirectPath = from || '/battery';
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка входу';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка входу';
 
       // Спеціальна обробка для непідтвердженого email
-      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+      if ((err as any).response?.data?.code === 'EMAIL_NOT_VERIFIED') {
         toast.error('Підтвердіть email будь ласка');
-        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, { replace: true });
       } else {
         toast.error(errorMessage);
       }

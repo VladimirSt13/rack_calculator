@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import { initDatabase } from './db/index.js';
 import { initAuditCleanup } from './services/auditCleanupService.js';
 
@@ -45,13 +47,32 @@ app.use(helmet({
   crossOriginOpenerPolicy: false,
 }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Global Rate limiting (100 запитів за 15 хвилин)
+const globalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-app.use('/api/', limiter);
+app.use('/api/', globalLimiter);
+
+// Auth-specific Rate limiting (5 запитів на годину для критичних endpoint)
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 година
+  max: 5,  // 5 запитів на годину
+  message: 'Too many authentication requests, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,  // Рахувати навіть успішні запити
+});
+
+// Застосовуємо auth limiter до критичних endpoint
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/verify-email', authLimiter);
 
 // Body parsing
 app.use(express.json());
@@ -76,6 +97,19 @@ app.use('/api/users', usersRoutes);
 app.use('/api/rack-sets', rackSetsRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/rack-configurations', rackConfigurationsRoutes);
+
+// ===== SWAGGER DOCUMENTATION =====
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none } .swagger-ui .info { margin-bottom: 10px }',
+  customSiteTitle: 'Rack Calculator API Docs',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // Health check
 app.get('/api/health', (req, res) => {

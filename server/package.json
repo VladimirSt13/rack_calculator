@@ -5,13 +5,13 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node --watch src/index.js",
-    "start": "node src/index.js",
-    "migrate": "node scripts/migrate.js",
-    "migrate:status": "node scripts/migrate.js status",
-    "migrate:rollback": "node scripts/migrate.js rollback",
-    "seed:admin": "node scripts/seed-admin.js",
-    "audit:cleanup": "node scripts/cleanup-audit.js",
+    "dev": "tsx watch src/index.js",
+    "start": "tsx src/index.js",
+    "migrate": "tsx scripts/migrate.js",
+    "migrate:status": "tsx scripts/migrate.js status",
+    "migrate:rollback": "tsx scripts/migrate.js rollback",
+    "seed:admin": "tsx scripts/seed-admin.js",
+    "audit:cleanup": "tsx scripts/cleanup-audit.js",
     "lint": "eslint src --ext js",
     "format": "prettier --write \"src/**/*.{js,json}\"",
     "test": "jest",
@@ -29,7 +29,11 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.1"
+    "nodemailer": "^8.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "tsx": "^4.21.0",
+    "validator": "^13.15.26"
   },
   "devDependencies": {
     "eslint": "^8.56.0",

@@ -71,8 +71,8 @@ export const RackSetsList: React.FC = () => {
 
       toast.success('Експорт виконано успішно');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка експорту');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка експорту');
     },
   });
 
@@ -104,8 +104,8 @@ export const RackSetsList: React.FC = () => {
       setIsDeleteOpen(false);
       toast.success('Комплект видалено');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка видалення');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка видалення');
     },
   });
 

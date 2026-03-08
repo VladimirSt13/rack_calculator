@@ -2,7 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authApi } from './authApi';
 
-interface User {
+/**
+ * Інтерфейс користувача
+ * 
+ * @property id - Унікальний ID користувача
+ * @property email - Email адреса
+ * @property role - Роль користувача (admin, manager, user)
+ * @property permissions - Дозволи користувача
+ * @property permissions.price_types - Доступні типи цін
+ * @property emailVerified - Чи підтверджено email
+ */
+export interface User {
   id: number;
   email: string;
   role: 'admin' | 'manager' | 'user';
@@ -12,7 +22,30 @@ interface User {
   emailVerified: boolean;
 }
 
-interface AuthState {
+/**
+ * Стан та дії для управління аутентифікацією
+ * 
+ * @property user - Поточний користувач або null
+ * @property accessToken - JWT access token
+ * @property refreshToken - JWT refresh token
+ * @property isLoading - Чи триває завантаження
+ * @property error - Остання помилка
+ * 
+ * @example
+ * ```typescript
+ * const { login, logout, user } = useAuthStore();
+ * 
+ * // Логін
+ * await login('user@accu-energo.com.ua', 'password');
+ * 
+ * // Перевірка авторизації
+ * if (user?.role === 'admin') { ... }
+ * 
+ * // Логаут
+ * await logout();
+ * ```
+ */
+export interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -33,6 +66,35 @@ interface AuthState {
   clearError: () => void;
 }
 
+/**
+ * Zustand store для управління аутентифікацією
+ * 
+ * @features
+ * - Persist middleware для збереження токенів в localStorage
+ * - Повний набір auth actions (login, register, logout, etc.)
+ * - Обробка помилок та loading states
+ * - Email verification
+ * - Password reset
+ * 
+ * @example
+ * ```typescript
+ * import { useAuthStore } from '@/features/auth/authStore';
+ * 
+ * // Отримання даних
+ * const { user, accessToken, isLoading } = useAuthStore();
+ * 
+ * // Використання actions
+ * const { login, logout, checkAuth } = useAuthStore();
+ * 
+ * // Перевірка прав
+ * if (user?.role === 'admin') { ... }
+ * 
+ * // Перевірка дозволів
+ * if (user?.permissions?.price_types?.includes('нульова')) { ... }
+ * ```
+ * 
+ * @see {@link https://zustand-demo.pmnd.rs/ Zustand Documentation}
+ */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -46,15 +108,24 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login(email, password);
+          // authApi повертає { user, accessToken, refreshToken, emailVerified }
+          const newUser = response.user;
+          const newAccessToken = response.accessToken;
+          const newRefreshToken = response.refreshToken;
+          
+          // Явне збереження в localStorage для надійності
+          localStorage.setItem('accessToken', newAccessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
+          
           set({
-            user: response.user,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
+            user: newUser,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка входу',
+            error: (error as any).response?.data?.error || 'Помилка входу',
             isLoading: false,
           });
           throw error;
@@ -71,9 +142,9 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: response.refreshToken,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка реєстрації',
+            error: (error as any).response?.data?.error || 'Помилка реєстрації',
             isLoading: false,
           });
           throw error;
@@ -82,13 +153,14 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          const { refreshToken } = get();
-          if (refreshToken) {
-            await authApi.logout(refreshToken);
-          }
+          await authApi.logout();
         } catch (error) {
-          console.error('Logout error:', error);
+          // Ігноруємо помилки logout
         } finally {
+          // Явне очищення localStorage
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          
           set({
             user: null,
             accessToken: null,
@@ -103,9 +175,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authApi.verifyEmail(token);
           set({ isLoading: false });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка підтвердження',
+            error: (error as any).response?.data?.error || 'Помилка підтвердження',
             isLoading: false,
           });
           throw error;
@@ -117,9 +189,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authApi.resendVerification(email);
           set({ isLoading: false });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка відправки',
+            error: (error as any).response?.data?.error || 'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -131,9 +203,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authApi.forgotPassword(email);
           set({ isLoading: false });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка відправки',
+            error: (error as any).response?.data?.error || 'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -145,9 +217,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authApi.resetPassword(token, newPassword);
           set({ isLoading: false });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка скидання пароля',
+            error: (error as any).response?.data?.error || 'Помилка скидання пароля',
             isLoading: false,
           });
           throw error;
@@ -159,9 +231,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authApi.changePassword(currentPassword, newPassword);
           set({ isLoading: false });
-        } catch (error: any) {
+        } catch (error) {
           set({
-            error: error.response?.data?.error || 'Помилка зміни пароля',
+            error: (error as any).response?.data?.error || 'Помилка зміни пароля',
             isLoading: false,
           });
           throw error;
@@ -169,18 +241,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refreshAuth: async () => {
+        // Refresh token обробляється автоматично через axios interceptor
         try {
-          const { refreshToken: currentRefreshToken } = get();
-          if (!currentRefreshToken) return;
-
-          const response = await authApi.refreshToken(currentRefreshToken);
-          set({
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-          });
-        } catch (error) {
-          console.error('Token refresh error:', error);
-          // Якщо refresh token не валідний - виходимо
+          const response = await authApi.me();
+          set({ user: response.user });
+        } catch {
+          // Якщо не вдалося отримати користувача - очищаємо стан
           set({
             user: null,
             accessToken: null,
@@ -190,16 +256,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        try {
-          const { accessToken } = get();
-          if (!accessToken) return;
+        const { accessToken } = get();
+        if (!accessToken) return;
 
+        try {
           const response = await authApi.me();
           set({ user: response.user });
-        } catch (error) {
-          console.error('Check auth error:', error);
-          // Спробуємо оновити токен
-          await get().refreshAuth();
+        } catch {
+          // Помилка обробляється автоматично через axios interceptor
         }
       },
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,9 @@ import { Label } from '@/shared/components/Label';
 import { Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
+const ALLOWED_DOMAINS = ['accu-energo.com.ua', 'vs.com'];
+const COOLDOWN_MS = 60000; // 1 хвилина між запитами
+
 const forgotSchema = z.object({
   email: z.string().email('Невірний формат email'),
 });
@@ -20,6 +23,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const { forgotPassword, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [lastSubmit, setLastSubmit] = useState<number>(0);
 
   const {
     register,
@@ -29,22 +33,56 @@ export const ForgotPasswordPage: React.FC = () => {
     resolver: zodResolver(forgotSchema),
   });
 
-  const onSubmit = async (data: ForgotForm) => {
+  const onSubmit = useCallback(async (data: ForgotForm) => {
+    // Rate limiting на клієнті
+    const now = Date.now();
+    if (now - lastSubmit < COOLDOWN_MS) {
+      const remainingTime = Math.ceil((COOLDOWN_MS - (now - lastSubmit)) / 1000);
+      toast.error(`Зачекайте ${remainingTime} секунд перед наступним запитом`);
+      return;
+    }
+
+    // Валідація домену
+    const domain = data.email.split('@')[1]?.toLowerCase();
+    if (!ALLOWED_DOMAINS.includes(domain)) {
+      toast.error(`Використовуйте корпоративну пошту: ${ALLOWED_DOMAINS.join(', ')}`);
+      return;
+    }
+
     setIsSubmitting(true);
+    setLastSubmit(now);
     clearError();
 
     try {
       await forgotPassword(data.email);
       setIsSent(true);
       toast.success('Лист зі скиданням пароля відправлено');
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка відправки';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка відправки';
+      
+      // Перевірка на мережеву помилку для retry
+      if ((err as any).code === 'NETWORK_ERROR' || !(err as any).response) {
+        toast.info('Спробуємо ще раз через 5 секунд...');
+        setTimeout(async () => {
+          try {
+            await forgotPassword(data.email);
+            setIsSent(true);
+            toast.success('Лист зі скиданням пароля відправлено');
+          } catch (retryErr) {
+            toast.error((retryErr as any).response?.data?.error || 'Помилка відправки');
+          } finally {
+            setIsSubmitting(false);
+          }
+        }, 5000);
+        return;
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [forgotPassword, lastSubmit, clearError]);
 
   if (isSent) {
     return (

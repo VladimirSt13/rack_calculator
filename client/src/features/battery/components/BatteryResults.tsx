@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { useBatteryResultsStore, type BatteryVariant } from '../resultsStore';
-import { useBatterySetStore } from '../setStore';
+import { useBatteryResultsStore, type BatteryVariant, type PriceInfo } from '@/features/battery/resultsStore';
+import { useBatterySetStore } from '@/features/battery/setStore';
 import {
   Table,
   TableHeader,
@@ -216,7 +216,7 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                 </TableCell>
                 <TableCell className='text-right'>
                   <div className='space-y-1'>
-                    {variant.prices?.map((price: any) => (
+                    {variant.prices?.map((price: PriceInfo) => (
                       <div key={price.type} className='text-right'>
                         <span className='text-xs text-muted-foreground'>{price.label}: </span>
                         <span className='text-sm font-medium tabular-nums'>

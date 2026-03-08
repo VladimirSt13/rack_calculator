@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
-import { useRackFormStore } from '../formStore';
-import { useRackSpansStore } from '../spansStore';
-import { useRackComponents } from '../useRackComponents';
+import { useRackFormStore } from '@/features/rack/formStore';
+import { useRackSpansStore } from '@/features/rack/spansStore';
+import { useRackComponents } from '@/features/rack/useRackComponents';
+import type { SupportComponent, VerticalSupportComponent, SpanComponent } from '@/features/rack/types/rack.types';
+import type { ComponentOption } from '@/features/rack/types/rack.types';
 import {
   CardContent,
   FieldRow,
@@ -42,17 +44,17 @@ const RackForm: React.FC = () => {
 
   // Трансформація компонентів у формат для селекту
   const supportsOptions = React.useMemo(
-    () => supportsComponents.map((s: any) => ({ value: s.code, label: s.name })),
+    () => supportsComponents.map((s: SupportComponent) => ({ value: s.code, label: s.name })),
     [supportsComponents],
   );
 
   const verticalSupportsOptions = React.useMemo(
-    () => verticalSupportsComponents.map((s: any) => ({ value: s.code, label: s.name })),
+    () => verticalSupportsComponents.map((s: VerticalSupportComponent) => ({ value: s.code, label: s.name })),
     [verticalSupportsComponents],
   );
 
   const spanOptions = React.useMemo(
-    () => spansComponents.map((s: any) => ({ value: s.code, label: s.name || s.code })),
+    () => spansComponents.map((s: SpanComponent) => ({ value: s.code, label: s.name || s.code })),
     [spansComponents],
   );
 
@@ -100,7 +102,7 @@ const RackForm: React.FC = () => {
               disabled={isVerticalSupportsDisabled}
               placeholder='Виберіть...'
             >
-              {verticalSupportsOptions.map((opt: any) => (
+              {verticalSupportsOptions.map((opt: ComponentOption) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -115,7 +117,7 @@ const RackForm: React.FC = () => {
               onChange={(e) => setSupports(e.target.value)}
               placeholder='Виберіть...'
             >
-              {supportsOptions.map((opt: any) => (
+              {supportsOptions.map((opt: ComponentOption) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

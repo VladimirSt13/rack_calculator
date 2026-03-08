@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { priceComponentsApi, type ComponentsResponse } from './priceComponentsApi';
 import { useRackComponentsStore } from './componentsStore';
+import { logger } from '@/lib/logger';
 
 /**
  * Hook для завантаження комплектуючих з серверу
@@ -19,10 +20,10 @@ export const useRackComponents = () => {
     setLoading(isLoading);
     if (error) {
       setError((error as Error).message);
-      console.error('[useRackComponents] Error:', error);
+      logger.error('[useRackComponents] Error:', error);
     }
     if (data && data.components) {
-      console.log('[useRackComponents] Data loaded:', data);
+      logger.debug('[useRackComponents] Data loaded:', data);
       setComponents({
         supports: data.components.supports || [],
         spans: data.components.spans || [],

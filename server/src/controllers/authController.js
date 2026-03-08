@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import validator from 'validator';
 import { getDb } from '../db/index.js';
 import { ROLE_PERMISSIONS, USER_ROLES } from '../helpers/roles.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
@@ -621,50 +622,65 @@ export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
+    // Валідація email
     if (!email) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Email is required',
         code: 'VALIDATION_ERROR'
       });
     }
 
+    // Перевірка формату email
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({
+        error: 'Invalid email format',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
     const db = await getDb();
 
-    const user = db.prepare('SELECT id, email FROM users WHERE email = ?').get(email);
+    const user = db.prepare('SELECT id, email FROM users WHERE email = ?').get(normalizedEmail);
 
     // Не показуємо чи існує користувач (безпека)
     if (!user) {
-      return res.json({ 
+      return res.json({
         message: 'If the email exists, a password reset link has been sent',
         code: 'EMAIL_SENT'
       });
+    }
+
+    // Видалення тільки прострочених токенів
+    db.prepare(`
+      DELETE FROM password_resets 
+      WHERE expires_at < datetime('now')
+    `).run();
+
+    // Перевірка чи є активний токен - видаляємо тільки його
+    const existingToken = db.prepare(`
+      SELECT id FROM password_resets 
+      WHERE user_id = ? AND expires_at > datetime('now')
+    `).get(user.id);
+
+    if (existingToken) {
+      db.prepare(`DELETE FROM password_resets WHERE id = ?`).run(existingToken.id);
     }
 
     // Генерація токену скидання пароля
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 година
 
-    // Збереження хешу токену в БД
+    // Збереження хешу токену в БД (в транзакції)
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-    
+
     db.prepare(`
       INSERT INTO password_resets (user_id, token_hash, expires_at)
       VALUES (?, ?, ?)
     `).run(user.id, resetTokenHash, resetExpires.toISOString());
 
-    // Відправка email
-    try {
-      await sendPasswordResetEmail(email, resetToken);
-    } catch (emailError) {
-      console.error('[Auth] Failed to send password reset email:', emailError.message);
-      return res.status(500).json({ 
-        error: 'Failed to send password reset email',
-        code: 'EMAIL_SEND_ERROR'
-      });
-    }
-
-    // Audit log
-    await logAudit({
+    // Audit log (async, не блокує відповідь)
+    logAudit({
       userId: user.id,
       action: AUDIT_ACTIONS.UPDATE,
       entityType: ENTITY_TYPES.USER,
@@ -672,9 +688,22 @@ export const forgotPassword = async (req, res, next) => {
       newValue: { password_reset_requested: true },
       ipAddress: req.ip,
       userAgent: req.get('user-agent')
+    }).catch(err => {
+      console.error('[Auth] Audit log error:', err);
     });
 
-    res.json({ 
+    // Відправка email (async, не блокуємо відповідь)
+    sendPasswordResetEmail(normalizedEmail, resetToken).catch(emailError => {
+      console.error('[Auth] Password reset email failed:', {
+        email: normalizedEmail,
+        userId: user.id,
+        error: emailError.message,
+        stack: emailError.stack,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    res.json({
       message: 'If the email exists, a password reset link has been sent',
       code: 'EMAIL_SENT'
     });
@@ -692,15 +721,27 @@ export const resetPassword = async (req, res, next) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Token and new password are required',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        error: 'Password must be at least 6 characters',
+    // Валідація складності пароля (уніфіковано з клієнтом)
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasLowerCase = /[a-z]/.test(newPassword);
+    const hasNumbers = /\d/.test(newPassword);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      return res.status(400).json({
+        error: 'Password must contain uppercase, lowercase and number',
         code: 'WEAK_PASSWORD'
       });
     }
@@ -709,7 +750,7 @@ export const resetPassword = async (req, res, next) => {
 
     // Перевірка токену
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    
+
     const reset = db.prepare(`
       SELECT user_id, expires_at
       FROM password_resets
@@ -717,7 +758,7 @@ export const resetPassword = async (req, res, next) => {
     `).get(tokenHash);
 
     if (!reset) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid reset token',
         code: 'INVALID_TOKEN'
       });
@@ -725,7 +766,10 @@ export const resetPassword = async (req, res, next) => {
 
     const expiresAt = new Date(reset.expires_at);
     if (expiresAt < new Date()) {
-      return res.status(400).json({ 
+      // Видалення простроченого токену
+      db.prepare(`DELETE FROM password_resets WHERE token_hash = ?`).run(tokenHash);
+      
+      return res.status(400).json({
         error: 'Reset token expired',
         code: 'TOKEN_EXPIRED'
       });
@@ -734,29 +778,34 @@ export const resetPassword = async (req, res, next) => {
     // Хешування нового пароля
     const passwordHash = await bcrypt.hash(newPassword, 12);
 
-    // Оновлення пароля
-    db.prepare(`
-      UPDATE users SET password_hash = ? WHERE id = ?
-    `).run(passwordHash, reset.user_id);
+    // Оновлення пароля (в транзакції)
+    db.transaction(() => {
+      // Оновлення пароля
+      db.prepare(`
+        UPDATE users SET password_hash = ? WHERE id = ?
+      `).run(passwordHash, reset.user_id);
 
-    // Видалення використаних токенів
-    db.prepare(`
-      DELETE FROM password_resets WHERE user_id = ?
-    `).run(reset.user_id);
+      // Видалення використаних токенів
+      db.prepare(`
+        DELETE FROM password_resets WHERE user_id = ?
+      `).run(reset.user_id);
 
-    // Відкликання всіх refresh tokenів користувача
-    db.prepare(`
-      UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?
-    `).run(reset.user_id);
+      // Відкликання всіх refresh tokenів користувача
+      db.prepare(`
+        UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?
+      `).run(reset.user_id);
+    })();
 
-    // Audit log
-    await logAudit({
+    // Audit log (async, не блокує)
+    logAudit({
       userId: reset.user_id,
       action: AUDIT_ACTIONS.PASSWORD_CHANGE,
       entityType: ENTITY_TYPES.USER,
       entityId: reset.user_id,
       ipAddress: req.ip,
       userAgent: req.get('user-agent')
+    }).catch(err => {
+      console.error('[Auth] Audit log error:', err);
     });
 
     res.json({ message: 'Password reset successfully' });
@@ -775,15 +824,27 @@ export const changePassword = async (req, res, next) => {
     const userId = req.user.userId;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Current password and new password are required',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        error: 'Password must be at least 6 characters',
+    // Валідація складності пароля (уніфіковано з resetPassword)
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasLowerCase = /[a-z]/.test(newPassword);
+    const hasNumbers = /\d/.test(newPassword);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      return res.status(400).json({
+        error: 'Password must contain uppercase, lowercase and number',
         code: 'WEAK_PASSWORD'
       });
     }
@@ -794,7 +855,7 @@ export const changePassword = async (req, res, next) => {
     const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(userId);
 
     if (!user) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'User not found',
         code: 'USER_NOT_FOUND'
       });
@@ -803,7 +864,7 @@ export const changePassword = async (req, res, next) => {
     // Перевірка поточного пароля
     const valid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!valid) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Current password is incorrect',
         code: 'INVALID_PASSWORD'
       });
@@ -812,19 +873,28 @@ export const changePassword = async (req, res, next) => {
     // Хешування нового пароля
     const passwordHash = await bcrypt.hash(newPassword, 12);
 
-    // Оновлення пароля
-    db.prepare(`
-      UPDATE users SET password_hash = ? WHERE id = ?
-    `).run(passwordHash, userId);
+    // Оновлення пароля (в транзакції)
+    db.transaction(() => {
+      db.prepare(`
+        UPDATE users SET password_hash = ? WHERE id = ?
+      `).run(passwordHash, userId);
 
-    // Audit log
-    await logAudit({
+      // Відкликання всіх refresh tokenів крім поточного
+      db.prepare(`
+        UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?
+      `).run(userId);
+    })();
+
+    // Audit log (async)
+    logAudit({
       userId,
       action: AUDIT_ACTIONS.PASSWORD_CHANGE,
       entityType: ENTITY_TYPES.USER,
       entityId: userId,
       ipAddress: req.ip,
       userAgent: req.get('user-agent')
+    }).catch(err => {
+      console.error('[Auth] Audit log error:', err);
     });
 
     res.json({ message: 'Password changed successfully' });

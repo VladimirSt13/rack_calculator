@@ -51,8 +51,8 @@ export const UserManagement: React.FC = () => {
       setIsDeleteOpen(false);
       toast.success('Користувача видалено');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка видалення');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка видалення');
     },
   });
 

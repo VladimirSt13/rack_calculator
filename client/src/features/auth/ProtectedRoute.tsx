@@ -19,7 +19,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Якщо завантажується - показуємо лоадер
+  // Якщо завантажується користувач - показуємо лоадер
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -28,13 +28,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Якщо роль 'user' і вимагається активна роль - редірект на access-denied
-  if (requireActive && user.role === 'user') {
+  // Якщо потрібна конкретна роль і користувач не має її
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/access-denied" replace />;
   }
 
-  // Якщо потрібна конкретна роль
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  // Якщо роль 'user' і вимагається активна роль - редірект на access-denied
+  if (requireActive && user.role === 'user') {
     return <Navigate to="/access-denied" replace />;
   }
 

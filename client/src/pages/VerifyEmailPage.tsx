@@ -52,14 +52,14 @@ export const VerifyEmailPage: React.FC = () => {
       await verifyEmail(token);
       setIsVerified(true);
       toast.success('Email підтверджено!');
-      
+
       // Через 2 секунди редірект на login
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка підтвердження';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка підтвердження';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -80,9 +80,9 @@ export const VerifyEmailPage: React.FC = () => {
     try {
       await resendVerification(email);
       toast.success('Лист з підтвердженням відправлено');
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка відправки';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка відправки';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);

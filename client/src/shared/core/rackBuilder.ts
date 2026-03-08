@@ -85,7 +85,7 @@ export const generateRackVariants = ({
   rows?: number;
   floors?: number;
   supportType?: string;
-  price?: any;
+  price?: unknown;
 }) => {
   const config = buildRackConfig({
     element,

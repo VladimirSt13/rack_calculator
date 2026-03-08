@@ -33,7 +33,7 @@
       "@lib/*": ["src/lib/*"],
       "@pages/*": ["src/pages/*"],
       "@shared/*": ["src/shared/*"],
-      "@rack-calculator/shared": ["../shared/rackCalculator"],
+      "@rack-calculator/shared": ["../shared/rackCalculator.ts"],
     },
 
     /* Types */

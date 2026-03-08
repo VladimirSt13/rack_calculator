@@ -52,15 +52,15 @@ export const RegisterPage: React.FC = () => {
       await registerUser(data.email, data.password);
       toast.success('Реєстрація успішна! Перевірте email для підтвердження.');
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage =
-        err.response?.data?.error || err.response?.data?.message || 'Помилка реєстрації';
+        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка реєстрації';
 
       // Спеціальна обробка для існуючого користувача
-      if (err.response?.data?.code === 'USER_EXISTS') {
+      if ((err as any).response?.data?.code === 'USER_EXISTS') {
         toast.error('Користувач з таким email вже існує');
         navigate(`/login`);
-      } else if (err.response?.data?.code === 'INVALID_DOMAIN') {
+      } else if ((err as any).response?.data?.code === 'INVALID_DOMAIN') {
         toast.error(`Використовуйте пошту ${ALLOWED_DOMAIN}`);
       } else {
         toast.error(errorMessage);

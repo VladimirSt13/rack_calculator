@@ -4,7 +4,7 @@
 const enrichVariant = (
   r: { combination: number[]; beams: number },
   rackLength: number,
-  price: any
+  price: unknown
 ) => {
   const spans = r.combination;
   const totalLength = spans.reduce((s, x) => s + x, 0);
@@ -17,8 +17,9 @@ const enrichVariant = (
 
   // Розрахунок вартості балок
   let beamsCost = 0;
+  const priceData = price as { spans?: Record<string, { price: number }> } | null;
   spans.forEach((spanLength) => {
-    const beamPrice = price?.spans?.[String(spanLength)]?.price || 0;
+    const beamPrice = priceData?.spans?.[String(spanLength)]?.price || 0;
     beamsCost += beamPrice * r.beams;
   });
 
@@ -43,7 +44,7 @@ export const optimizeRacks = (
   rackLength: number,
   _maxAllowedSpan: number,
   topN = 5,
-  price: any = null
+  price: unknown = null
 ): { combination: number[]; beams: number }[] => {
   if (!variants.length) return [];
 

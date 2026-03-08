@@ -53,6 +53,7 @@ export default defineConfig({
       '@lib': resolve(__dirname, 'src/lib'),
       '@pages': resolve(__dirname, 'src/pages'),
       '@shared': resolve(__dirname, 'src/shared'),
+      '@rack-calculator/shared': resolve(__dirname, '../shared/rackCalculator.ts'),
     },
   },
 

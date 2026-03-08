@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
-import { useRackResultsStore, type RackCalculationResult } from '../resultsStore';
-import { useRackSetStore } from '../setStore';
+import { useRackResultsStore, type RackCalculationResult } from '@/features/rack/resultsStore';
+import { useRackSetStore } from '@/features/rack/setStore';
+import type { ComponentItem } from '@rack-calculator/shared';
 import {
   Card,
   CardHeader,
@@ -165,7 +166,7 @@ const ComponentsTableCard: React.FC<ComponentsTableCardProps> = memo(({ result, 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allComponents.map((item: any, idx: number) => (
+              {allComponents.map((item: ComponentItem, idx: number) => (
                 <TableRow key={idx} className='h-12 hover:bg-muted/30 transition-colors'>
                   <TableCell className='font-medium'>{item.name}</TableCell>
                   <TableCell className='text-right'>

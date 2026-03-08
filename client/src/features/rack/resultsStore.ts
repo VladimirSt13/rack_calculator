@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import type { RackComponents } from '../../shared/core/rackCalculator';
+import type { RackComponents, SpanItem } from '@rack-calculator/shared';
 import type { RackFormState } from './formStore';
-import type { SpanItem } from '../../shared/core/rackCalculator';
 
 export interface PriceInfo {
   type: string;

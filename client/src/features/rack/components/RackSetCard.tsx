@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useRackSetStore } from '../setStore';
-import { RackSetModal } from '../RackSetModal';
+import { useRackSetStore, type RackSetItem, type PriceInfo } from '@/features/rack/setStore';
+import { RackSetModal } from '@/features/rack/RackSetModal';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '@/shared/components';
 import { Trash2, Eye } from 'lucide-react';
 
@@ -12,20 +12,20 @@ const RackSetCard: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Функція для отримання нульової ціни з prices масиву
-  const getZeroPrice = (rack: any) => {
-    const priceItem = rack.prices?.find((p: any) => p.type === 'нульова' || p.type === 'zero');
+  const getZeroPrice = (rack: RackSetItem) => {
+    const priceItem = rack.prices?.find((p: PriceInfo) => p.type === 'нульова' || p.type === 'zero');
     return priceItem?.value || 0;
   };
 
   // Функція для отримання ціни "без ізоляторів" з prices масиву
-  const getPriceWithoutIsolators = (rack: any) => {
-    const priceItem = rack.prices?.find((p: any) => p.type === 'без_ізоляторів' || p.type === 'no_isolators');
+  const getPriceWithoutIsolators = (rack: RackSetItem) => {
+    const priceItem = rack.prices?.find((p: PriceInfo) => p.type === 'без_ізоляторів' || p.type === 'no_isolators');
     return priceItem?.value || 0;
   };
 
   // Перевіряємо чи є хоча б одна нульова ціна в комплектах
-  const hasZeroPrice = racks.some((rack) => 
-    rack.prices?.some((p: any) => p.type === 'нульова' || p.type === 'zero')
+  const hasZeroPrice = racks.some((rack: RackSetItem) =>
+    rack.prices?.some((p: PriceInfo) => p.type === 'нульова' || p.type === 'zero')
   );
 
   const totalZero = racks.reduce((sum, rack) => {

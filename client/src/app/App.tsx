@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeToggle, Toaster } from '@/shared/components';
 import { useAuthStore } from '@/features/auth/authStore';
@@ -35,11 +35,12 @@ const queryClient = new QueryClient({
 // Header компонент з навігацією та автентифікацією
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout, accessToken } = useAuthStore();
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -147,13 +148,26 @@ const Header: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const { checkAuth, accessToken } = useAuthStore();
+  const { accessToken, checkAuth } = useAuthStore();
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
-  useEffect(() => {
+  // Перевірка авторизації при першому завантаженні
+  React.useEffect(() => {
     if (accessToken) {
-      checkAuth();
+      checkAuth().finally(() => setIsCheckingAuth(false));
+    } else {
+      setIsCheckingAuth(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  // Показуємо лоадер під час перевірки авторизації
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,127 +1,23 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
-// Створення axios інстансу
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Interceptor для додавання access token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Interceptor для оновлення токену
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
-}> = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      try {
-        const response = await axios.post(`${API_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
-
-        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        processQueue(null, accessToken);
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
+import api from '@/lib/axios';
 
 export const authApi = {
   // Реєстрація
   register: async (email: string, password: string) => {
-    const { data } = await api.post('/auth/register', { email, password });
-    // Зберігаємо токени
-    localStorage.setItem('token', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    const { data } = await api.post('/auth/users', { email, password });
+    // Сервер повертає { user, accessToken, refreshToken } напряму
     return data;
   },
 
-  // Вхід
+  // Вхід (створення сесії)
   login: async (email: string, password: string) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    // Зберігаємо токени
-    localStorage.setItem('token', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    const { data } = await api.post('/auth/session', { email, password });
+    // Сервер повертає { user, accessToken, refreshToken, emailVerified }
     return data;
   },
 
-  // Вихід
-  logout: async (refreshToken: string) => {
-    await api.post('/auth/logout', { refreshToken });
-    // Очищаємо токени
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-  },
-
-  // Оновлення токену
-  refreshToken: async (refreshToken: string) => {
-    const { data } = await api.post('/auth/refresh', { refreshToken });
-    // Зберігаємо нові токени
-    localStorage.setItem('token', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    return data;
+  // Вихід (видалення сесії)
+  logout: async () => {
+    await api.delete('/auth/session');
   },
 
   // Отримати поточного користувача
@@ -132,31 +28,31 @@ export const authApi = {
 
   // Підтвердження email
   verifyEmail: async (token: string) => {
-    const { data } = await api.post('/auth/verify-email', { token });
+    const { data } = await api.post('/auth/email/verify', { token });
     return data;
   },
 
   // Повторна відправка підтвердження
   resendVerification: async (email: string) => {
-    const { data } = await api.post('/auth/resend-verification', { email });
+    const { data } = await api.post('/auth/email/verification', { email });
     return data;
   },
 
   // Запит на скидання пароля
   forgotPassword: async (email: string) => {
-    const { data } = await api.post('/auth/forgot-password', { email });
+    const { data } = await api.post('/auth/password-resets', { email });
     return data;
   },
 
-  // Скидання пароля
+  // Скидання пароля з токеном (PUT)
   resetPassword: async (token: string, newPassword: string) => {
-    const { data } = await api.post('/auth/reset-password', { token, newPassword });
+    const { data } = await api.put('/auth/password', { token, newPassword });
     return data;
   },
 
-  // Зміна пароля
+  // Зміна пароля (PATCH, для авторизованого)
   changePassword: async (currentPassword: string, newPassword: string) => {
-    const { data } = await api.post('/auth/change-password', {
+    const { data } = await api.patch('/auth/password', {
       currentPassword,
       newPassword,
     });

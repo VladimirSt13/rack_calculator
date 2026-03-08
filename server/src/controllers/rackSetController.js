@@ -32,12 +32,12 @@ export const getRackSets = async (req, res, next) => {
 
     if (priceData) {
       // Перерахувати total_cost та racks для кожного комплекту
-      const rackSetsWithPrices = rackSets.map(rackSet => {
+      const rackSetsWithPrices = await Promise.all(rackSets.map(async (rackSet) => {
         const racks = db.prepare('SELECT racks FROM rack_sets WHERE id = ?').get(rackSet.id);
         const racksData = JSON.parse(racks.racks);
 
         // Розрахувати ціни для всіх стелажів
-        const racksWithPrices = calculateRackSetPrices(racksData, req.user, priceData);
+        const racksWithPrices = await calculateRackSetPrices(racksData, req.user, priceData);
         const currentTotal = calculateRackSetTotal(racksWithPrices);
 
         return {
@@ -46,7 +46,7 @@ export const getRackSets = async (req, res, next) => {
           total_cost: currentTotal,
           calculated_at: new Date().toISOString(),
         };
-      });
+      }));
 
       res.json({ rackSets: rackSetsWithPrices });
     } else {
@@ -98,7 +98,7 @@ export const getRackSet = async (req, res, next) => {
 
     if (priceData) {
       // Розрахувати ціни для кожного стелажа
-      const racksWithPrices = calculateRackSetPrices(racksData, req.user, priceData);
+      const racksWithPrices = await calculateRackSetPrices(racksData, req.user, priceData);
 
       // Розрахувати актуальну загальну вартість
       const currentTotal = calculateRackSetTotal(racksWithPrices);
@@ -154,7 +154,7 @@ export const createRackSet = async (req, res, next) => {
     let totalCostSnapshot = 0;
 
     if (priceData && itemsArray.length > 0) {
-      const racksWithPrices = calculateRackSetPrices(itemsArray, req.user, priceData);
+      const racksWithPrices = await calculateRackSetPrices(itemsArray, req.user, priceData);
       totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
     }
 
@@ -266,7 +266,7 @@ export const updateRackSet = async (req, res, next) => {
       const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
       if (priceRecord && rack_items.length > 0) {
         const priceData = JSON.parse(priceRecord.data);
-        const racksWithPrices = calculateRackSetPrices(rack_items, req.user, priceData);
+        const racksWithPrices = await calculateRackSetPrices(rack_items, req.user, priceData);
         const totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
         updates.push('total_cost_snapshot = ?');
         values.push(totalCostSnapshot);

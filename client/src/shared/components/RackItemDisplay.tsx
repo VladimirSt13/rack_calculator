@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ComponentItem } from '@rack-calculator/shared';
 
 interface RackItemDisplayProps {
   rack: {
@@ -19,7 +20,7 @@ interface RackItemDisplayProps {
       value: number;
     }>;
     totalCost?: number;
-    components?: Record<string, any>;
+    components?: Record<string, ComponentItem | ComponentItem[]>;
   };
   showDetails?: boolean; // Показувати деталі (розміри, комплектацію)
 }
@@ -73,16 +74,16 @@ export const RackItemDisplay: React.FC<RackItemDisplayProps> = ({ rack, showDeta
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {Object.entries(rack.components)
-                      .flatMap(([_category, items]: [string, any]) =>
+                      .flatMap(([_category, items]) =>
                         Array.isArray(items)
-                          ? items.slice(0, 6).map((item: any) => ({
+                          ? items.slice(0, 6).map((item: ComponentItem) => ({
                               name: item.name,
                               amount: item.amount,
                             }))
                           : []
                       )
                       .slice(0, 6)
-                      .map((comp: any, i: number) => (
+                      .map((comp: { name: string; amount: number }, i: number) => (
                         <div key={i} className="flex justify-between">
                           <span className="text-muted-foreground truncate">
                             {comp.name}:

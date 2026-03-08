@@ -1,10 +1,11 @@
 import api from '@/features/auth/authApi';
+import type { RackCalculationRequest, RackCalculationResponse } from '@/shared/types/api.types';
 
 export const rackApi = {
   /**
    * Розрахунок стелажа (старий API, для сумісності)
    */
-  calculate: async (config: any) => {
+  calculate: async (config: RackCalculationRequest): Promise<RackCalculationResponse> => {
     const { data } = await api.post('/rack/calculate', config);
     return data;
   },
@@ -28,7 +29,7 @@ export const rackApi = {
   /**
    * Масовий розрахунок стелажів
    */
-  calculateBatch: async (racks: any[]) => {
+  calculateBatch: async (racks: RackCalculationRequest[]) => {
     const { data } = await api.post('/rack/calculate-batch', { racks });
     return data;
   },

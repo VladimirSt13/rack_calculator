@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import type { BatteryCalculationResult } from '../../shared/core/batteryCalculator';
 
 export interface PriceInfo {
   type: string;
@@ -7,8 +6,9 @@ export interface PriceInfo {
   value: number;
 }
 
-export interface BatteryVariant extends BatteryCalculationResult {
+export interface BatteryVariant {
   _index: number;
+  name: string;
   width: number;
   height: number;
   length: number;

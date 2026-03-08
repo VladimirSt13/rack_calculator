@@ -67,8 +67,8 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
       toast.success('Комплект стелажів збережено');
       onClose();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка збереження');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка збереження');
     },
   });
 
@@ -107,8 +107,8 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success('Експорт виконано успішно');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Помилка експорту');
+    } catch (error) {
+      toast.error((error as any).response?.data?.error || 'Помилка експорту');
     } finally {
       setIsExporting(false);
     }
@@ -237,10 +237,17 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {Object.entries(rack.components).flatMap(([category, items]) =>
-                              Array.isArray(items) ? items.map(item => ({ category, ...item })) : []
-                            ).map((component, compIndex) => (
-                              <TableRow key={compIndex}>
+                            {Object.entries(rack.components).flatMap(([category, items]) => {
+                              // Обробка обох типів: ComponentItem та ComponentItem[]
+                              if (Array.isArray(items)) {
+                                return items.map(item => ({ category, ...item }));
+                              } else if (items && typeof items === 'object') {
+                                // Одиночний компонент (наприклад, verticalSupports, braces, isolators)
+                                return [{ category, ...items }];
+                              }
+                              return [];
+                            }).map((component, compIndex) => (
+                              <TableRow key={`${component.category}-${compIndex}`}>
                                 <TableCell className="text-sm text-muted-foreground">
                                   {compIndex + 1}
                                 </TableCell>

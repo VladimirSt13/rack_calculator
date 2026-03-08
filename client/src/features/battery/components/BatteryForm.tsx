@@ -1,5 +1,5 @@
 import React from 'react';
-import { useBatteryFormStore } from '../formStore';
+import { useBatteryFormStore } from '@/features/battery/formStore';
 import {
   CardContent,
   FormSection,

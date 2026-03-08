@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { usersApi } from '@/features/users/usersApi';
 import { rolesApi } from '@/features/users/rolesApi';
+import type { RoleDto } from '@/shared/types/api.types';
 import { Input } from '@/shared/components/Input';
 import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
@@ -68,8 +69,8 @@ export const UserForm: React.FC<UserFormProps> = ({
       toast.success('Користувача створено');
       onSuccess();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка створення');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка створення');
     },
   });
 
@@ -80,8 +81,8 @@ export const UserForm: React.FC<UserFormProps> = ({
       toast.success('Користувача оновлено');
       onSuccess();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Помилка оновлення');
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка оновлення');
     },
   });
 
@@ -149,9 +150,9 @@ export const UserForm: React.FC<UserFormProps> = ({
           {rolesLoading ? (
             <option>Завантаження...</option>
           ) : (
-            rolesData?.map((role: any) => (
-              <option key={role.id} value={role.name}>
-                {role.label}
+            rolesData?.map((role: RoleDto) => (
+              <option key={role.name} value={role.name}>
+                {role.description || role.name}
               </option>
             ))
           )}

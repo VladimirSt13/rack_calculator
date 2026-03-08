@@ -1,7 +1,7 @@
 # 📊 Проект: Rack Calculator v2.0 - Статус
 
 **Останнє оновлення:** 8 березня 2026
-**Статус:** Phase 1 завершено, Phase 2 завершено на 100%
+**Статус:** Phase 1 завершено, Phase 2 завершено на 100%, API Documentation додано
 
 ---
 
@@ -76,6 +76,13 @@
 - [x] Індекси для оптимізації (міграція 010)
 - [x] Cron-планувальник (node-cron)
 - [x] Документація (AUDIT_MANAGEMENT.md)
+
+### ✅ Етап 10: Swagger API Documentation - ЗАВЕРШЕНО
+- [x] Встановити swagger-jsdoc, swagger-ui-express
+- [x] Swagger специфікація для всіх API endpoint
+- [x] UI документація на /api-docs
+- [x] JSDoc коментарі для контролерів
+- [x] Документація для Auth, Rack, Battery API
 
 ---
 

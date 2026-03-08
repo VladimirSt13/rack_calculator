@@ -127,22 +127,34 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
 
     // Додати комплектацію стелажа
     if (rack.components && Object.keys(rack.components).length > 0) {
-      // Рядок "Комплектація:"
+      const maxCol = showPrices ? 6 : 4;
+
+      // Рядок "Комплектація:" - без об'єднання, щоб уникнути конфліктів
       worksheet.getCell(`A${currentRow}`).value = 'Комплектація:';
       worksheet.getCell(`A${currentRow}`).font = { italic: true, size: 10 };
-      worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
+      // Застосовуємо межі до всіх стовпців рядка
+      for (let col = 1; col <= maxCol; col++) {
+        worksheet.getCell(currentRow, col).border = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } }
+        };
+      }
       worksheet.getRow(currentRow).height = 20;
       currentRow++;
 
       // Заголовок таблиці комплектації
-      const compHeader = ['№', 'Назва компонента', 'К-сть\nна 1 од', 'Всього', 'Ціна', 'Сума'];
+      const compHeader = showPrices
+        ? ['№', 'Назва компонента', 'К-сть\nна 1 од', 'Всього', 'Ціна', 'Сума']
+        : ['№', 'Назва компонента', 'К-сть\nна 1 од', 'Всього'];
       const compHeaderRow = worksheet.getRow(currentRow);
       compHeaderRow.values = compHeader;
       compHeaderRow.font = { bold: true, size: 10, name: 'Arial' };
       compHeaderRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      
-      // Сірий фон заголовка комплектації
-      for (let col = 1; col <= 6; col++) {
+
+      // Сірий фон заголовка комплектації та межі
+      for (let col = 1; col <= maxCol; col++) {
         compHeaderRow.getCell(col).fill = {
           type: 'pattern',
           pattern: 'solid',
@@ -161,12 +173,16 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
       // Компоненти
       let compIndex = 1;
       Object.entries(rack.components).forEach(([category, items]) => {
-        if (Array.isArray(items)) {
-          items.forEach((item) => {
-            const totalAmount = item.amount * quantity;
-            const totalSum = item.total * quantity;
+        // Обробка обох типів: ComponentItem та ComponentItem[]
+        const itemsArray = Array.isArray(items) ? items : [items];
+        itemsArray.forEach((item) => {
+          if (!item || !item.name) return; // Пропустити невалідні дані
 
-            const compRow = worksheet.getRow(currentRow);
+          const totalAmount = item.amount * quantity;
+
+          const compRow = worksheet.getRow(currentRow);
+          if (showPrices) {
+            const totalSum = item.total * quantity;
             compRow.values = [
               compIndex++,
               item.name,
@@ -175,28 +191,34 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
               formatNumber(item.price.toFixed(2)),
               formatNumber(totalSum.toFixed(2))
             ];
-            compRow.alignment = { vertical: 'middle' };
-            compRow.getCell(2).alignment = { wrapText: true };
-            
-            // Межі для компонентів
-            for (let col = 1; col <= 6; col++) {
-              compRow.getCell(col).border = {
-                top: { style: 'thin', color: { argb: 'FF000000' } },
-                left: { style: 'thin', color: { argb: 'FF000000' } },
-                bottom: { style: 'thin', color: { argb: 'FF000000' } },
-                right: { style: 'thin', color: { argb: 'FF000000' } }
-              };
-            }
-            compRow.height = 20;
-            currentRow++;
-          });
-        }
+          } else {
+            compRow.values = [
+              compIndex++,
+              item.name,
+              item.amount,
+              totalAmount
+            ];
+          }
+          compRow.alignment = { vertical: 'middle' };
+          compRow.getCell(2).alignment = { wrapText: true };
+
+          // Межі для компонентів
+          for (let col = 1; col <= maxCol; col++) {
+            compRow.getCell(col).border = {
+              top: { style: 'thin', color: { argb: 'FF000000' } },
+              left: { style: 'thin', color: { argb: 'FF000000' } },
+              bottom: { style: 'thin', color: { argb: 'FF000000' } },
+              right: { style: 'thin', color: { argb: 'FF000000' } }
+            };
+          }
+          compRow.height = 20;
+          currentRow++;
+        });
       });
 
       // Товста лінія після комплектації (відділення стелажів)
       const separatorRow = worksheet.getRow(currentRow);
-      for (let col = 1; col <= 6; col++) {
-        separatorRow.getCell(col).value = '';
+      for (let col = 1; col <= maxCol; col++) {
         separatorRow.getCell(col).border = {
           bottom: { style: 'thick', color: { argb: 'FF000000' } }
         };
@@ -208,6 +230,8 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
 
   // Підсумковий рядок "РАЗОМ:"
   const totalRow = worksheet.getRow(currentRow);
+  const mainCols = showPrices ? 6 : 3;
+  
   totalRow.values = ['', 'РАЗОМ:', racks.reduce((sum, r) => sum + (r.quantity || 1), 0)];
   if (showPrices) {
     totalRow.values = [
@@ -221,9 +245,9 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
   }
   totalRow.font = { bold: true, size: 11 };
   totalRow.alignment = { vertical: 'middle' };
-  
+
   // Сірий фон для підсумкового рядка
-  for (let col = 1; col <= (showPrices ? 6 : 3); col++) {
+  for (let col = 1; col <= mainCols; col++) {
     totalRow.getCell(col).fill = {
       type: 'pattern',
       pattern: 'solid',
@@ -280,7 +304,7 @@ export const exportRackSet = async (req, res, next) => {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    const racks = calculateRackSetPrices(racksData, req.user, priceData);
+    const racks = await calculateRackSetPrices(racksData, req.user, priceData);
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
@@ -325,6 +349,16 @@ export const exportNewRackSet = async (req, res, next) => {
       return res.status(400).json({ error: 'Racks array is required' });
     }
 
+    // Отримати актуальний прайс для розрахунку цін і компонентів
+    const db = await getDb();
+    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
+
+    // Розрахувати ціни і компоненти для кожного стелажа, якщо їх немає
+    const racksWithPrices = priceData
+      ? await calculateRackSetPrices(racks, req.user, priceData)
+      : racks;
+
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Rack Calculator';
@@ -333,9 +367,9 @@ export const exportNewRackSet = async (req, res, next) => {
     workbook.modified = new Date();
 
     // Створити worksheet з даними
-    createRackSetWorksheet(workbook, 'Новий комплект стелажів', racks, showPrices, {
+    createRackSetWorksheet(workbook, 'Новий комплект стелажів', racksWithPrices, showPrices, {
       date: new Date(),
-      total_quantity: racks.reduce((sum, r) => sum + (r.quantity || 1), 0)
+      total_quantity: racksWithPrices.reduce((sum, r) => sum + (r.quantity || 1), 0)
     });
 
     // Генерация файла и отправка клиенту
