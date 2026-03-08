@@ -17,6 +17,9 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
 import RackSetsList from '@/pages/admin/RackSetsList';
 import AuditLogPage from '@/pages/admin/AuditLogPage';
+import PriceManagementPage from '@/pages/admin/PriceManagementPage';
+import RolesManagementPage from '@/pages/admin/RolesManagementPage';
+import MyRackSetsPage from '@/pages/MyRackSetsPage';
 import { cn } from '@/lib/utils';
 import { LogOut, User } from 'lucide-react';
 
@@ -50,6 +53,20 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           <nav className="header__nav" aria-label="Головна навігація">
             <ul className="flex list-none gap-2 sm:gap-4 m-0 p-0">
+              {/* Мої комплекти - для всіх */}
+              <li key="/my-sets">
+                <Link
+                  to="/my-sets"
+                  className={cn(
+                    'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
+                    location.pathname === '/my-sets'
+                      ? 'bg-primary-foreground/10 text-primary-foreground underline'
+                      : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                  )}
+                >
+                  Мої комплекти
+                </Link>
+              </li>
               {/* Rack - тільки для admin */}
               {user?.role === 'admin' && (
                 <li key={PROTECTED_ROUTES.RACK}>
@@ -183,6 +200,32 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute allowedRoles={['admin']} requireActive>
                     <AuditLogPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/price"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <PriceManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/roles"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']} requireActive>
+                    <RolesManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Сторінка "Мої комплекти" для всіх користувачів */}
+              <Route
+                path="/my-sets"
+                element={
+                  <ProtectedRoute requireActive>
+                    <MyRackSetsPage />
                   </ProtectedRoute>
                 }
               />

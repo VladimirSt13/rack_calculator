@@ -11,24 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/Table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
-import { Loader2, Eye, Trash2, Package, Download, Edit } from 'lucide-react';
+import { Loader2, Package, Download, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
-import { Label } from '@/shared/components/Label';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/authStore';
 
-export const RackSetsList: React.FC = () => {
+export const MyRackSetsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [viewingSet, setViewingSet] = useState<RackSet | null>(null);
+  const { user } = useAuthStore();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [setToDelete, setSetToDelete] = useState<RackSet | null>(null);
   const [filters, setFilters] = useState({
@@ -36,7 +29,7 @@ export const RackSetsList: React.FC = () => {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['rackSets'],
+    queryKey: ['myRackSets'],
     queryFn: rackSetsApi.getAll,
   });
 
@@ -44,7 +37,6 @@ export const RackSetsList: React.FC = () => {
   const exportMutation = useMutation({
     mutationFn: (id: number) => rackSetsApi.export(id),
     onSuccess: (data, id) => {
-      // Створити blob і завантажити файл
       const blob = new Blob([data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
@@ -52,7 +44,6 @@ export const RackSetsList: React.FC = () => {
       const link = document.createElement('a');
       link.href = url;
 
-      // Отримати ім'я файлу з даних
       const rackSet = data?.rackSets?.find((s: any) => s.id === id);
       const fileName = rackSet?.name || `rack-set-${id}`;
       link.download = `${fileName}.xlsx`;
@@ -75,7 +66,6 @@ export const RackSetsList: React.FC = () => {
 
   // Відкрити комплект в редакторі
   const handleEditInCalculator = (rackSet: RackSet) => {
-    // Зберігаємо комплект в localStorage для передачі в калькулятор
     localStorage.setItem('rackSetToEdit', JSON.stringify(rackSet));
     navigate('/rack', { state: { editSetId: rackSet.id } });
   };
@@ -83,7 +73,7 @@ export const RackSetsList: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => rackSetsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rackSets'] });
+      queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       setIsDeleteOpen(false);
       toast.success('Комплект видалено');
     },
@@ -103,7 +93,9 @@ export const RackSetsList: React.FC = () => {
     }
   };
 
-  const filteredSets = data?.rackSets.filter((set) => {
+  // Фільтруємо тільки свої комплекти
+  const mySets = data?.rackSets.filter((set) => set.user_id === user?.id);
+  const filteredSets = mySets?.filter((set) => {
     if (!filters.search) return true;
     const searchLower = filters.search.toLowerCase();
     return (
@@ -117,11 +109,15 @@ export const RackSetsList: React.FC = () => {
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Комплекти стелажів</h1>
+          <h1 className="text-3xl font-bold mb-2">Мої комплекти</h1>
           <p className="text-muted-foreground">
-            Збережені комплекти стелажів з розрахунками
+            Ваші збережені комплекти стелажів
           </p>
         </div>
+        <Button onClick={() => navigate('/rack')}>
+          <Package className="w-4 h-4 mr-2" />
+          Створити новий
+        </Button>
       </div>
 
       {/* Фільтри */}
@@ -162,7 +158,7 @@ export const RackSetsList: React.FC = () => {
                       <p className="text-muted-foreground">
                         {filters.search
                           ? 'Комплекти не знайдено'
-                          : 'Немає збережених комплектів'}
+                          : 'У вас ще немає збережених комплектів'}
                       </p>
                       {!filters.search && (
                         <p className="text-sm text-muted-foreground">
@@ -186,7 +182,7 @@ export const RackSetsList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {rackSet.racks?.length || 0} од.
+                        {rackSet.racks?.reduce((sum, r) => sum + (r.quantity || 1), 0) || 0} од.
                       </span>
                     </TableCell>
                     <TableCell>
@@ -207,7 +203,7 @@ export const RackSetsList: React.FC = () => {
                           icon={Edit}
                           variant="icon"
                           onClick={() => handleEditInCalculator(rackSet)}
-                          aria-label="Відкрити в редакторі"
+                          aria-label="Редагувати"
                           title="Відкрити в калькуляторі"
                         />
                         <IconButton
@@ -216,12 +212,6 @@ export const RackSetsList: React.FC = () => {
                           onClick={() => handleExport(rackSet.id)}
                           aria-label="Експортувати"
                           disabled={exportMutation.isPending}
-                        />
-                        <IconButton
-                          icon={Eye}
-                          variant="icon"
-                          onClick={() => setViewingSet(rackSet)}
-                          aria-label="Переглянути"
                         />
                         <IconButton
                           icon={Trash2}
@@ -240,145 +230,6 @@ export const RackSetsList: React.FC = () => {
         )}
       </div>
 
-      {/* Діалог перегляду */}
-      {viewingSet && (
-        <Dialog open onOpenChange={() => setViewingSet(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Комплект стелажів: {viewingSet.name}</DialogTitle>
-              <DialogDescription>
-                Детальна інформація про комплект
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              {/* Основна інформація */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Назва</Label>
-                  <p className="text-sm font-medium">{viewingSet.name}</p>
-                </div>
-                <div>
-                  <Label>Об'єкт</Label>
-                  <p className="text-sm">{viewingSet.object_name || '—'}</p>
-                </div>
-              </div>
-
-              {viewingSet.description && (
-                <div>
-                  <Label>Опис</Label>
-                  <p className="text-sm">{viewingSet.description}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Кількість стелажів</Label>
-                  <p className="text-sm">
-                    {viewingSet.racks?.reduce((sum, r) => sum + (r.quantity || 1), 0) || 0} од.
-                  </p>
-                </div>
-                <div>
-                  <Label>Загальна вартість</Label>
-                  <p className="text-lg font-bold text-primary">
-                    {(viewingSet.total_cost || 0).toFixed(2)} ₴
-                  </p>
-                </div>
-              </div>
-
-              {/* Список стелажів */}
-              {viewingSet.racks && viewingSet.racks.length > 0 && (
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <h4 className="font-semibold mb-3 text-sm uppercase tracking-wider text-muted-foreground">
-                    Склад комплекту
-                  </h4>
-
-                  <div className="space-y-3">
-                    {viewingSet.racks.map((rack, index) => {
-                      // Знаходимо ціну з типу "нульова" або "zero"
-                      const rackPrice = rack.prices?.find((p) =>
-                        p.type === 'нульова' || p.type === 'zero'
-                      )?.value || 0;
-                      const totalRackPrice = rackPrice * (rack.quantity || 1);
-
-                      return (
-                        <div
-                          key={rack.setId || index}
-                          className="border rounded-md bg-background p-3"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium">{rack.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Кількість:{' '}
-                                <span className="font-medium">
-                                  {rack.quantity || 1} од.
-                                </span>
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Розміри: {rack.form?.floors || 0} пов. × {rack.form?.rows || 0} рядів × {rack.form?.beamsPerRow || 0} балок
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">
-                                Вартість:
-                              </p>
-                              <p className="font-semibold">
-                                {totalRackPrice.toFixed(2)} ₴
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Компоненти - перші 6 */}
-                          {rack.components && Object.keys(rack.components).length > 0 && (
-                            <div className="mt-3 pt-3 border-t">
-                              <p className="text-xs font-medium uppercase text-muted-foreground mb-2">
-                                Комплектація:
-                              </p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                {Object.entries(rack.components)
-                                  .flatMap(([_category, items]: [string, any]) =>
-                                    Array.isArray(items)
-                                      ? items.slice(0, 6).map((item: any) => ({
-                                          name: item.name,
-                                          amount: item.amount,
-                                        }))
-                                      : []
-                                  )
-                                  .slice(0, 6)
-                                  .map((comp: any, i: number) => (
-                                    <div key={i} className="flex justify-between">
-                                      <span className="text-muted-foreground truncate">
-                                        {comp.name}:
-                                      </span>
-                                      <span className="font-medium">
-                                        {comp.amount} од.
-                                      </span>
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setViewingSet(null)}
-                >
-                  Закрити
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
       {/* Діалог видалення */}
       {isDeleteOpen && (
         <DeleteDialog
@@ -393,4 +244,4 @@ export const RackSetsList: React.FC = () => {
   );
 };
 
-export default RackSetsList;
+export default MyRackSetsPage;
