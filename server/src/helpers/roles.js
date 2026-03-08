@@ -19,10 +19,10 @@ export const getUserPermissions = async (user) => {
   // Отримуємо permissions з БД завжди
   try {
     const db = await getDb();
-    
+
     // Спочатку пробуємо отримати з таблиці users
     const userData = db.prepare('SELECT permissions FROM users WHERE id = ?').get(user.userId || user.id);
-    
+
     if (userData && userData.permissions) {
       return typeof userData.permissions === 'string'
         ? JSON.parse(userData.permissions)
@@ -47,6 +47,34 @@ export const getUserPermissions = async (user) => {
     console.error('[Roles] Error getting permissions:', error.message);
     return { price_types: [] };
   }
+};
+
+/**
+ * Отримати типи цін для користувача (зручний формат)
+ * @param {Object} user - Об'єкт користувача
+ * @returns {string[]} Масив типів цін
+ */
+export const getUserPriceTypes = async (user) => {
+  const permissions = await getUserPermissions(user);
+  return permissions.price_types || [];
+};
+
+/**
+ * Отримати permissions користувача у форматі для фільтрації цін
+ * @param {Object} user - Об'єкт користувача  
+ * @returns {Object} Permissions у форматі { show_zero: boolean, ... }
+ */
+export const getUserPricePermissions = async (user) => {
+  const priceTypes = await getUserPriceTypes(user);
+  
+  // Формуємо об'єкт permissions у зручному форматі
+  return {
+    show_zero: priceTypes.includes('нульова') || priceTypes.includes('zero'),
+    show_no_isolators: priceTypes.includes('без_ізоляторів') || priceTypes.includes('no_isolators'),
+    show_base: priceTypes.includes('базова') || priceTypes.includes('base'),
+    show_retail: priceTypes.includes('роздрібна') || priceTypes.includes('retail'),
+    show_wholesale: priceTypes.includes('оптова') || priceTypes.includes('wholesale'),
+  };
 };
 
 /**

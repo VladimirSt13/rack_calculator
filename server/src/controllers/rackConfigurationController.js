@@ -70,7 +70,7 @@ export const findOrCreateConfiguration = async (req, res, next) => {
     }
 
     const priceData = JSON.parse(priceRecord.data);
-    const userPermissions = getUserPricePermissions(req.user);
+    const userPermissions = await getUserPricePermissions(req.user);
 
     // 3. Розрахувати компоненти та ціни
     const components = calculateRackComponents(config, priceData);
@@ -160,7 +160,7 @@ export const calculatePricesForConfiguration = async (req, res, next) => {
     }
 
     const priceData = JSON.parse(priceRecord.data);
-    const userPermissions = getUserPricePermissions(req.user);
+    const userPermissions = await getUserPricePermissions(req.user);
 
     // Підготувати конфігурацію для розрахунку
     const rackConfig = {

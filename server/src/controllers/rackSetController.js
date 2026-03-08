@@ -1,7 +1,7 @@
 import { getDb } from '../db/index.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
 import { calculateRackComponents, calculateTotalCost } from '../../../shared/rackCalculator.js';
-import { filterPricesByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+import { filterPricesByPermissions, getUserPricePermissions, getUserPriceTypes } from '../helpers/roles.js';
 
 /**
  * Розрахувати ціни для стелажів на основі актуального прайсу
@@ -36,7 +36,7 @@ export const getRackSets = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user.userId;
-    const userPermissions = getUserPricePermissions(req.user);
+    const userPermissions = await getUserPricePermissions(req.user);
 
     const rackSets = db.prepare(`
       SELECT
@@ -94,7 +94,7 @@ export const getRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
-    const userPermissions = getUserPricePermissions(req.user);
+    const userPermissions = await getUserPricePermissions(req.user);
 
     const rackSet = db.prepare(`
       SELECT
@@ -183,7 +183,7 @@ export const createRackSet = async (req, res, next) => {
     // Отримати актуальний прайс для розрахунку snapshot
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
-    const userPermissions = getUserPricePermissions(req.user);
+    const userPermissions = await getUserPricePermissions(req.user);
 
     // Розрахунок загальної вартості (snapshot)
     let totalCostSnapshot = 0;
