@@ -100,6 +100,43 @@ export const hasRole = (user, ...roles) => {
 };
 
 /**
+ * Фільтрувати масив цін за permissions користувача
+ * @param {Array} prices - Масив цін [{type, label, value}, ...]
+ * @param {Object} permissions - Permissions користувача
+ * @returns {Array} Відфільтрований масив цін
+ */
+export const filterPriceArrayByPermissions = (prices, permissions) => {
+  if (!permissions || !permissions.price_types) {
+    return prices;
+  }
+
+  // Для адміна повертаємо все
+  if (permissions.price_types.includes('all')) {
+    return prices;
+  }
+
+  // Фільтрація масиву цін
+  return prices.filter(price => {
+    // Перевіряємо чи має користувач доступ до цього типу ціни
+    const priceTypeMap = {
+      'базова': 'base',
+      'base': 'base',
+      'без_ізоляторів': 'no_isolators',
+      'no_isolators': 'no_isolators',
+      'нульова': 'zero',
+      'zero': 'zero',
+      'роздрібна': 'retail',
+      'retail': 'retail',
+      'оптова': 'wholesale',
+      'wholesale': 'wholesale',
+    };
+
+    const mappedType = priceTypeMap[price.type] || price.type;
+    return permissions.price_types.includes(mappedType) || permissions.price_types.includes(price.type);
+  });
+};
+
+/**
  * Фільтрувати ціни за permissions користувача
  * @param {Object} priceData - Дані прайсу
  * @param {Object} permissions - Permissions користувача
@@ -109,25 +146,25 @@ export const filterPricesByPermissions = (priceData, permissions) => {
   if (!permissions || !permissions.price_types) {
     return priceData;
   }
-  
+
   // Для адміна повертаємо все
   if (permissions.price_types.includes('all')) {
     return priceData;
   }
-  
+
   // Фільтрація за типами цін
   const filtered = { ...priceData };
-  
+
   // Якщо немає доступу до "без ізоляторів", фільтруємо
   if (!permissions.price_types.includes(PRICE_TYPES.NO_ISOLATORS)) {
     // Логіка фільтрації залежить від структури priceData
   }
-  
+
   // Якщо немає доступу до "загальна", фільтруємо
   if (!permissions.price_types.includes(PRICE_TYPES.RETAIL)) {
     // Логіка фільтрації
   }
-  
+
   return filtered;
 };
 

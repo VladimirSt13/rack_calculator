@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { getDb } from '../db/index.js';
 import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
-import { filterPricesByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpers/roles.js';
 
 /**
  * Форматування числа з комою як розділовим знаком
@@ -309,7 +309,7 @@ export const exportRackSet = async (req, res, next) => {
             rackConfigId: rack.rackConfigId,
             config: rackConfig,
             components,
-            prices: filterPricesByPermissions(prices, userPermissions),
+            prices: filterPriceArrayByPermissions(prices, userPermissions),
             totalCost,
             name: generateRackName(rackConfig),
           };
