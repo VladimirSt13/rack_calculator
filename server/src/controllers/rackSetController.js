@@ -74,8 +74,8 @@ export const getRackSets = async (req, res, next) => {
                 floors: config.floors,
                 rows: config.rows,
                 beamsPerRow: config.beams_per_row,
-                supports: config.supports ? JSON.parse(config.supports) : null,
-                verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+                supports: config.supports || null,
+                verticalSupports: config.vertical_supports || null,
                 spans: config.spans ? JSON.parse(config.spans) : null,
               };
               const components = calculateRackComponents(rackConfig, priceData);
@@ -414,8 +414,8 @@ export const updateRackSet = async (req, res, next) => {
                 floors: config.floors,
                 rows: config.rows,
                 beamsPerRow: config.beams_per_row,
-                supports: config.supports ? JSON.parse(config.supports) : null,
-                verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+                supports: config.supports || null,
+                verticalSupports: config.vertical_supports || null,
                 spans: config.spans ? JSON.parse(config.spans) : null,
               };
               const components = calculateRackComponents(rackConfig, priceData);

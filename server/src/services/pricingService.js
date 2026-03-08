@@ -80,13 +80,13 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
           floors: config.floors,
           rows: config.rows,
           beamsPerRow: config.beams_per_row,
-          supports: config.supports ? JSON.parse(config.supports) : null,
-          verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+          supports: config.supports || null,
+          verticalSupports: config.vertical_supports || null,
           spans: config.spans ? JSON.parse(config.spans) : null,
         };
-        
+
         const prices = calculateRackPrices(rackConfig, user, priceData);
-        
+
         return {
           ...rack,
           rackConfigId: rack.rackConfigId,
