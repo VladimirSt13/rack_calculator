@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { initDatabase } from './db/index.js';
+import { initAuditCleanup } from './services/auditCleanupService.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -16,6 +17,7 @@ import batteryRoutes from './routes/battery.js';
 import rolesRoutes from './routes/roles.js';
 import usersRoutes from './routes/users.js';
 import rackSetsRoutes from './routes/rackSets.js';
+import auditRoutes from './routes/audit.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +60,9 @@ app.use(cookieParser());
 // ===== DATABASE INITIALIZATION =====
 initDatabase();
 
+// ===== AUDIT CLEANUP SCHEDULER =====
+initAuditCleanup();
+
 // ===== ROUTES =====
 app.use('/api/auth', authRoutes);
 app.use('/api/price', priceRoutes);
@@ -68,6 +73,7 @@ app.use('/api/battery', batteryRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/rack-sets', rackSetsRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

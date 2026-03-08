@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Package, Settings, TrendingUp } from 'lucide-react';
+import { Users, Package, Settings, TrendingUp, FileText } from 'lucide-react';
 
 const adminMenuItems = [
   {
@@ -29,6 +29,13 @@ const adminMenuItems = [
     description: 'Перегляд та експорт комплектів',
     icon: Package,
     color: 'bg-orange-500',
+  },
+  {
+    path: '/admin/audit',
+    label: 'Журнал аудиту',
+    description: 'Історія всіх дій у системі',
+    icon: FileText,
+    color: 'bg-red-500',
   },
 ];
 

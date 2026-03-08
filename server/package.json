@@ -11,6 +11,7 @@
     "migrate:status": "node scripts/migrate.js status",
     "migrate:rollback": "node scripts/migrate.js rollback",
     "seed:admin": "node scripts/seed-admin.js",
+    "audit:cleanup": "node scripts/cleanup-audit.js",
     "lint": "eslint src --ext js",
     "format": "prettier --write \"src/**/*.{js,json}\"",
     "test": "jest",
@@ -27,6 +28,7 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {

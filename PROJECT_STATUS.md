@@ -1,7 +1,7 @@
 # 📊 Проект: Rack Calculator v2.0 - Статус
 
 **Останнє оновлення:** 8 березня 2026
-**Статус:** Phase 1 завершено, Phase 2 завершено на 90%
+**Статус:** Phase 1 завершено, Phase 2 завершено на 100%
 
 ---
 
@@ -43,7 +43,7 @@
 
 ---
 
-## ✅ Поточний етап (Phase 2) - Майже завершено
+## ✅ Поточний етап (Phase 2) - ЗАВЕРШЕНО
 
 ### ✅ Етап 7: Збереження комплектів
 - [x] Створити таблиці rack_sets, rack_set_revisions
@@ -60,9 +60,22 @@
 - [x] Межі, заливка, перенесення рядків
 - [x] Адаптивна модалка (max-w-5xl)
 
-### 🔄 Етап 9: Аудит
+### ✅ Етап 9: Аудит - ЗАВЕРШЕНО
 - [x] Audit log таблиця
-- [ ] Фінальне тестування
+- [x] Audit helper (server/src/helpers/audit.js)
+- [x] Audit routes (server/src/routes/audit.js)
+- [x] Audit API (client/src/features/audit/auditApi.ts)
+- [x] AuditLogPage (client/src/pages/admin/AuditLogPage.tsx)
+- [x] Інтеграція в адмін-панель
+- [x] Фільтрація за діями, сутностями, датами
+- [x] Пагінація
+- [x] Перегляд змін (було/стало)
+- [x] Статистика журналу аудиту
+- [x] API очищення старих записів
+- [x] Скрипт audit:cleanup
+- [x] Індекси для оптимізації (міграція 010)
+- [x] Cron-планувальник (node-cron)
+- [x] Документація (AUDIT_MANAGEMENT.md)
 
 ---
 
@@ -91,7 +104,17 @@
 ```bash
 npm run migrate          # Запуск міграцій
 npm run migrate:status   # Статус міграцій
+npm run migrate:rollback # Відкат міграції
 npm run seed:admin       # Створити адмінів
+npm run audit:cleanup    # Очистити аудит (90 днів)
+npm run audit:cleanup 30 # Очистити аудит (30 днів)
+```
+
+**Cron налаштування** (в `.env`):
+```env
+AUDIT_CLEANUP_ENABLED=true
+AUDIT_CLEANUP_SCHEDULE=0 2 * * 0  # Кожну неділю о 02:00
+AUDIT_CLEANUP_DAYS=90
 ```
 
 ### Client
@@ -115,6 +138,7 @@ npm run install:all      # Встановити все
 - [PRICING.md](./server/docs/PRICING.md)
 - [MIGRATIONS_GUIDE.md](./server/docs/MIGRATIONS_GUIDE.md)
 - [PASSWORD_RESET.md](./server/docs/PASSWORD_RESET.md)
+- [AUDIT_MANAGEMENT.md](./server/docs/AUDIT_MANAGEMENT.md)
 
 ### Client
 - [ROUTES.md](./client/docs/ROUTES.md)
