@@ -1,6 +1,6 @@
 import { getDb } from '../db/index.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
-import { calculateRackComponents, calculateTotalCost } from '../../../shared/rackCalculator.js';
+import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
 import { filterPricesByPermissions, getUserPricePermissions, getUserPriceTypes } from '../helpers/roles.js';
 
 /**
@@ -94,7 +94,7 @@ export const getRackSets = async (req, res, next) => {
                 components,
                 prices: filterPricesByPermissions(prices, userPermissions),
                 totalCost,
-                name: `Стелаж ${config.floors}х${config.rows}х${config.beamsPerRow}`,
+                name: generateRackName(rackConfig),
               };
             }
           }

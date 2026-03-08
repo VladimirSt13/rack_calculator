@@ -19,6 +19,7 @@ import {
   DialogDescription,
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
+import { RackItemDisplay } from '@/shared/components/RackItemDisplay';
 import { Loader2, Package, Download, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
@@ -304,27 +305,7 @@ export const MyRackSetsPage: React.FC = () => {
 
                   <div className="space-y-3">
                     {viewingSet.racks.map((rack, index) => (
-                      <div key={rack.setId || rack.rackConfigId || index} className="border rounded-md bg-background p-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{rack.name || `Стелаж ${rack.form?.floors || 0}х${rack.form?.rows || 0}х${rack.form?.beamsPerRow || 0}`}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Кількість:{' '}
-                              <span className="font-medium">
-                                {rack.quantity || 1} од.
-                              </span>
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">
-                              Вартість:
-                            </p>
-                            <p className="font-semibold">
-                              {(rack.prices?.find((p) => p.type === 'нульова' || p.type === 'zero')?.value || 0) * (rack.quantity || 1)} ₴
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      <RackItemDisplay key={rack.setId || rack.rackConfigId || index} rack={rack} />
                     ))}
                   </div>
                 </div>
