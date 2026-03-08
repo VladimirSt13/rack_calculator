@@ -18,6 +18,7 @@ import rolesRoutes from './routes/roles.js';
 import usersRoutes from './routes/users.js';
 import rackSetsRoutes from './routes/rackSets.js';
 import auditRoutes from './routes/audit.js';
+import rackConfigurationsRoutes from './routes/rackConfigurations.js';
 
 // Load environment variables
 dotenv.config();
@@ -74,6 +75,7 @@ app.use('/api/roles', rolesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/rack-sets', rackSetsRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/rack-configurations', rackConfigurationsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
