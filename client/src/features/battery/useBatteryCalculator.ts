@@ -4,6 +4,7 @@ import { calculateBatteryRack } from '@/shared/core/batteryCalculator';
 import { useBatteryResultsStore } from './resultsStore';
 import { CalculationLifecycleStatus } from '@/shared/layout';
 import type { BatteryFormState } from './formStore';
+import { rackApi } from '@/features/rack/rackApi';
 
 interface UseBatteryCalculatorProps {
   priceData?: any;
@@ -89,7 +90,35 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
       // Flatten variants
       const allVariants = resultsWithCalculation.flatMap((r: any) => r.variantsWithPrice);
 
-      resultsStore.setVariants(allVariants);
+      // 3. Створити конфігурації для кожного варіанту (опціонально, для збереження)
+      const variantsWithConfigIds = await Promise.all(
+        allVariants.map(async (variant: any) => {
+          try {
+            const rackConfig = {
+              floors: variant.floors,
+              rows: variant.rows,
+              beamsPerRow: 2, // Для battery використовується фіксоване значення
+              supports: variant.supportType === 'step' ? 'C' : undefined,
+              verticalSupports: variant.floors > 1 ? 'V' : undefined,
+              spans: variant.combination.map((span: number) => ({
+                item: String(span),
+                quantity: 1,
+              })),
+            };
+
+            const response = await rackApi.findOrCreateConfiguration(rackConfig);
+            return {
+              ...variant,
+              rackConfigId: response.rackConfigId,
+            };
+          } catch (error) {
+            console.error('[Battery] Error creating config:', error);
+            return variant;
+          }
+        })
+      );
+
+      resultsStore.setVariants(variantsWithConfigIds);
       setCalculationState('ready');
     } catch (error) {
       console.error('[BatteryCalculator] Error:', error);

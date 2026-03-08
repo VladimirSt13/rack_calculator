@@ -18,6 +18,7 @@ export interface BatteryVariant extends BatteryCalculationResult {
   combination: number[];
   beams: number;
   prices?: PriceInfo[];
+  rackConfigId?: number;  // ID конфігурації в БД (нова інтеграція)
 }
 
 export interface BatteryResultsState {
