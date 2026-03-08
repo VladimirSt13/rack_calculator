@@ -305,7 +305,7 @@ export const MyRackSetsPage: React.FC = () => {
 
                   <div className="space-y-3">
                     {viewingSet.racks.map((rack, index) => (
-                      <RackItemDisplay key={rack.setId || rack.rackConfigId || index} rack={rack} />
+                      <RackItemDisplay key={rack.setId || rack.rackConfigId || index} rack={rack} showDetails={false} />
                     ))}
                   </div>
                 </div>
