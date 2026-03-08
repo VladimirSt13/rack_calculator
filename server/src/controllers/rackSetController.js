@@ -64,8 +64,8 @@ export const getRackSets = async (req, res, next) => {
         const racks = db.prepare('SELECT racks FROM rack_sets WHERE id = ?').get(rackSet.id);
         const racksData = JSON.parse(racks.racks);
 
-        const currentTotal = racksData.reduce((sum, rack) => {
-          // Перевіряємо структуру даних
+        // Розрахувати актуальні ціни для кожного стелажа
+        const racksWithPrices = racksData.map(rack => {
           // Нова структура: { rackConfigId, quantity }
           if (rack.rackConfigId) {
             const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
@@ -79,24 +79,42 @@ export const getRackSets = async (req, res, next) => {
                 spans: config.spans ? JSON.parse(config.spans) : null,
               };
               const components = calculateRackComponents(rackConfig, priceData);
-              const rackTotal = calculateTotalCost(components);
-              return sum + (rackTotal * (rack.quantity || 1));
+              const totalCost = calculateTotalCost(components);
+              
+              const prices = [
+                { type: 'базова', label: 'Базова', value: totalCost },
+                { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
+                { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
+              ];
+              
+              return {
+                ...rack,
+                rackConfigId: rack.rackConfigId,
+                config: rackConfig,
+                components,
+                prices: filterPricesByPermissions(prices, userPermissions),
+                totalCost,
+                name: `Стелаж ${config.floors}х${config.rows}х${config.beamsPerRow}`,
+              };
             }
           }
           // Стара структура: { form, quantity }
           else if (rack.form) {
-            const calculated = calculateRackPrices(rack, priceData, userPermissions);
-            return sum + (calculated.totalCost * (rack.quantity || 1));
+            return calculateRackPrices(rack, priceData, userPermissions);
           }
-          // Дуже стара структура: просто об'єкт з ціною
+          // Дуже стара структура: повертаємо як є
           else {
-            const rackTotal = rack.totalCost || rack.total_cost || 0;
-            return sum + (rackTotal * (rack.quantity || 1));
+            return rack;
           }
-        }, 0);
+        });
+
+        const currentTotal = racksWithPrices.reduce(
+          (sum, rack) => sum + ((rack.totalCost || 0) * (rack.quantity || 1)), 0
+        );
 
         return {
           ...rackSet,
+          racks: racksWithPrices, // повертаємо з розрахованими даними
           total_cost: currentTotal, // актуальна вартість
           calculated_at: new Date().toISOString(),
         };
