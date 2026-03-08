@@ -1,7 +1,7 @@
 import { getDb } from '../db/index.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
-import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
-import { filterPricesByPermissions, getUserPricePermissions, getUserPriceTypes } from '../helpers/roles.js';
+import { calculateRackSetPrices, calculateRackSetTotal } from '../services/pricingService.js';
+import { getUserPriceTypes } from '../helpers/roles.js';
 
 /**
  * Розрахувати ціни для стелажів на основі актуального прайсу
