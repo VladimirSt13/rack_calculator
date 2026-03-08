@@ -10,21 +10,40 @@ export const getRackSets = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user.userId;
+    const userRole = req.user.role;
+    
+    // Перевіряємо чи є користувач адміністратором
+    const isAdmin = userRole === 'admin';
 
-    const rackSets = db.prepare(`
-      SELECT
-        id,
-        user_id,
-        name,
-        object_name,
-        description,
-        total_cost,
-        created_at,
-        updated_at
-      FROM rack_sets
-      WHERE user_id = ?
-      ORDER BY created_at DESC
-    `).all(userId);
+    // Отримуємо комплекти: для адміністраторів - всі, для інших - тільки свої
+    const rackSets = isAdmin 
+      ? db.prepare(`
+        SELECT
+          id,
+          user_id,
+          name,
+          object_name,
+          description,
+          total_cost,
+          created_at,
+          updated_at
+        FROM rack_sets
+        ORDER BY created_at DESC
+      `).all()
+      : db.prepare(`
+        SELECT
+          id,
+          user_id,
+          name,
+          object_name,
+          description,
+          total_cost,
+          created_at,
+          updated_at
+        FROM rack_sets
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+      `).all(userId);
 
     // Отримати актуальний прайс для розрахунку
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
@@ -66,21 +85,44 @@ export const getRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
+    const userRole = req.user.role;
+    
+    // Перевіряємо чи є користувач адміністратором
+    const isAdmin = userRole === 'admin';
 
-    const rackSet = db.prepare(`
-      SELECT
-        id,
-        user_id,
-        name,
-        object_name,
-        description,
-        racks,
-        total_cost,
-        created_at,
-        updated_at
-      FROM rack_sets
-      WHERE id = ? AND user_id = ?
-    `).get(id, userId);
+    // Отримати комплект: для адміністраторів - будь-який, для інших - тільки свій
+    let rackSet;
+    if (isAdmin) {
+      rackSet = db.prepare(`
+        SELECT
+          id,
+          user_id,
+          name,
+          object_name,
+          description,
+          racks,
+          total_cost,
+          created_at,
+          updated_at
+        FROM rack_sets
+        WHERE id = ?
+      `).get(id);
+    } else {
+      rackSet = db.prepare(`
+        SELECT
+          id,
+          user_id,
+          name,
+          object_name,
+          description,
+          racks,
+          total_cost,
+          created_at,
+          updated_at
+        FROM rack_sets
+        WHERE id = ? AND user_id = ?
+      `).get(id, userId);
+    }
 
     if (!rackSet) {
       return res.status(404).json({
@@ -138,7 +180,11 @@ export const createRackSet = async (req, res, next) => {
       });
     }
 
+    // Визначаємо масив стелажів для збереження
+    // rack_items - нова структура [{rackConfigId, quantity}]
+    // racks - стара структура з повними даними стелажів
     const itemsArray = rack_items || racks;
+    
     if (itemsArray.length === 0) {
       return res.status(400).json({
         error: 'Racks array cannot be empty',
@@ -165,18 +211,23 @@ export const createRackSet = async (req, res, next) => {
       quantity: item.quantity || 1,
     }));
 
+    // Для збереження в поле racks використовуємо повні дані стелажів
+    // Якщо передано racks (старий формат) - використовуємо його
+    // Якщо передано тільки rack_items - розширюємо його повними даними з racks
+    const racksDataToSave = racks || itemsArray;
+
     // Створення комплекту
     const result = db.prepare(`
       INSERT INTO rack_sets (
-        user_id, name, object_name, description, 
+        user_id, name, object_name, description,
         racks, rack_items_new, total_cost_snapshot
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-      userId, 
-      name, 
-      object_name || null, 
-      description || null, 
-      JSON.stringify(itemsArray), // зберігаємо оригінальні дані для зворотної сумісності
+      userId,
+      name,
+      object_name || null,
+      description || null,
+      JSON.stringify(racksDataToSave), // зберігаємо повні дані стелажів для експорту
       JSON.stringify(rackItemsNew), // нова структура
       totalCostSnapshot
     );
@@ -272,8 +323,8 @@ export const updateRackSet = async (req, res, next) => {
         values.push(totalCostSnapshot);
       }
     }
-    
-    // Оновлення старої структури racks (для зворотної сумісності)
+
+    // Оновлення старої структури racks (для зворотної сумісності та експорту)
     if (racks !== undefined) {
       updates.push('racks = ?');
       values.push(JSON.stringify(racks));
@@ -286,6 +337,32 @@ export const updateRackSet = async (req, res, next) => {
       }, 0);
       updates.push('total_cost_snapshot = ?');
       values.push(totalCost);
+    } else if (rack_items !== undefined) {
+      // Якщо оновлюється rack_items без racks, оновлюємо і racks для експорту
+      // Розширюємо rack_items повними даними з існуючих racks
+      const existingRacks = JSON.parse(existing.racks);
+      
+      // Створюємо нові racks з повними даними, зберігаючи кількість з rack_items
+      const updatedRacks = rack_items.map(rackItem => {
+        // Шукаємо існуючий стелаж з таким rackConfigId
+        const existingRack = existingRacks.find(r => 
+          r.rackConfigId === rackItem.rackConfigId || r.id === rackItem.rackConfigId
+        );
+        
+        // Якщо знайдено - повертаємо існуючий з новою кількістю
+        if (existingRack) {
+          return {
+            ...existingRack,
+            quantity: rackItem.quantity || existingRack.quantity || 1
+          };
+        }
+        
+        // Якщо не знайдено - повертаємо rackItem з мінімальними даними
+        return rackItem;
+      });
+      
+      updates.push('racks = ?');
+      values.push(JSON.stringify(updatedRacks));
     }
 
     if (updates.length === 0) {

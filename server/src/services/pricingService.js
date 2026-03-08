@@ -78,7 +78,22 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
 
   // Розрахувати ціни для кожного стелажа
   return racksData.map(rack => {
-    // Нова структура: { rackConfigId, quantity }
+    // Якщо вже є components і prices (збережені повні дані) - використовуємо їх
+    // Це важливо для експорту, щоб не втрачати дані
+    if (rack.components && Object.keys(rack.components).length > 0 && 
+        rack.prices && rack.prices.length > 0 && 
+        rack.totalCost !== undefined && rack.totalCost !== 0) {
+      // Дані вже розраховані - повертаємо як є
+      return {
+        ...rack,
+        components: rack.components,
+        prices: rack.prices,
+        totalCost: rack.totalCost,
+        name: rack.name || 'Стелаж',
+      };
+    }
+
+    // Нова структура: { rackConfigId, quantity } без components і prices
     if (rack.rackConfigId && priceData) {
       const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
       if (config) {
@@ -104,9 +119,9 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
         console.warn(`[pricingService] Конфігурацію rackConfigId=${rack.rackConfigId} не знайдено`);
         return {
           ...rack,
-          components: {},
-          prices: [],
-          totalCost: 0,
+          components: rack.components || {},
+          prices: rack.prices || [],
+          totalCost: rack.totalCost || 0,
           name: rack.name || 'Невідома конфігурація',
         };
       }

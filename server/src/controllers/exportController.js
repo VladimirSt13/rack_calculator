@@ -284,15 +284,29 @@ export const exportRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
+    const userRole = req.user.role;
     const { includePrices } = req.query;
     const showPrices = includePrices === 'true';
 
+    // Перевіряємо чи є користувач адміністратором
+    const isAdmin = userRole === 'admin';
+
     // Отримати комплект з БД
-    const rackSet = db.prepare(`
-      SELECT id, name, object_name, description, racks, total_cost, created_at
-      FROM rack_sets
-      WHERE id = ? AND user_id = ?
-    `).get(id, userId);
+    // Для адміністраторів - будь-який комплект, для інших - тільки свої
+    let rackSet;
+    if (isAdmin) {
+      rackSet = db.prepare(`
+        SELECT id, name, object_name, description, racks, total_cost, created_at
+        FROM rack_sets
+        WHERE id = ?
+      `).get(id);
+    } else {
+      rackSet = db.prepare(`
+        SELECT id, name, object_name, description, racks, total_cost, created_at
+        FROM rack_sets
+        WHERE id = ? AND user_id = ?
+      `).get(id, userId);
+    }
 
     if (!rackSet) {
       return res.status(404).json({ error: 'Rack set not found' });
