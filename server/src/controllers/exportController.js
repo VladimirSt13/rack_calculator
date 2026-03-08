@@ -1,7 +1,6 @@
 import ExcelJS from 'exceljs';
 import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
-import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+import { calculateRackSetPrices } from '../services/pricingService.js';
 
 /**
  * Форматування числа з комою як розділовим знаком
@@ -263,7 +262,6 @@ export const exportRackSet = async (req, res, next) => {
     const userId = req.user.userId;
     const { includePrices } = req.query;
     const showPrices = includePrices === 'true';
-    const userPermissions = await getUserPricePermissions(req.user);
 
     // Отримати комплект з БД
     const rackSet = db.prepare(`
@@ -282,63 +280,7 @@ export const exportRackSet = async (req, res, next) => {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    const racks = racksData.map(rack => {
-      // Нова структура: { rackConfigId, quantity }
-      if (rack.rackConfigId && priceData) {
-        const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
-        if (config) {
-          const rackConfig = {
-            floors: config.floors,
-            rows: config.rows,
-            beamsPerRow: config.beams_per_row,
-            supports: config.supports ? JSON.parse(config.supports) : null,
-            verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
-            spans: config.spans ? JSON.parse(config.spans) : null,
-          };
-          const components = calculateRackComponents(rackConfig, priceData);
-          const totalCost = calculateTotalCost(components);
-
-          const prices = [
-            { type: 'базова', label: 'Базова', value: totalCost },
-            { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-            { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-          ];
-
-          return {
-            ...rack,
-            rackConfigId: rack.rackConfigId,
-            config: rackConfig,
-            components,
-            prices: filterPriceArrayByPermissions(prices, userPermissions),
-            totalCost,
-            name: generateRackName(rackConfig),
-          };
-        }
-      }
-      // Стара структура: { form, quantity } - розрахувати ціни
-      else if (rack.form && priceData) {
-        const components = calculateRackComponents(rack.form, priceData);
-        const totalCost = calculateTotalCost(components);
-
-        const prices = [
-          { type: 'базова', label: 'Базова', value: totalCost },
-          { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-          { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-        ];
-
-        return {
-          ...rack,
-          components,
-          prices: filterPriceArrayByPermissions(prices, userPermissions),
-          totalCost,
-          name: rack.name || generateRackName(rack.form),
-        };
-      }
-      // Дуже стара структура - повертаємо як є
-      else {
-        return rack;
-      }
-    });
+    const racks = calculateRackSetPrices(racksData, req.user, priceData);
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
