@@ -1,10 +1,10 @@
 import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
+import { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } from '../../../shared/rackCalculator.js';
 import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpers/roles.js';
 
 /**
  * Сервіс для розрахунку цін на стелажі
- * 
+ *
  * Використовується в:
  * - rackSetController (getRackSets, getRackSet, createRackSet)
  * - rackConfigurationController (findOrCreateConfiguration, calculatePricesForConfiguration)
@@ -13,7 +13,7 @@ import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpe
 
 /**
  * Розрахувати ціни для стелажа з урахуванням дозволів користувача
- * 
+ *
  * @param {Object} rackConfig - Конфігурація стелажа {floors, rows, beamsPerRow, supports, verticalSupports, spans}
  * @param {Object} user - Користувач з правами доступу
  * @param {Object} priceData - Дані прайсу (опціонально, якщо не передано - береться останній з БД)
@@ -21,30 +21,32 @@ import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpe
  */
 export const calculateRackPrices = async (rackConfig, user, priceData = null) => {
   const db = await getDb();
-  
+
   // Отримати актуальний прайс, якщо не передано
   if (!priceData) {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
   }
-  
+
   // Отримати дозволи користувача
   const userPermissions = await getUserPricePermissions(user);
-  
+
   // Розрахувати компоненти
   const components = calculateRackComponents(rackConfig, priceData);
   const totalCost = calculateTotalCost(components);
-  
+  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
+
   // Сформувати масив цін
+  // "Без ізоляторів" = базова ціна мінус вартість ізоляторів (а не знижка 10%)
   const prices = [
     { type: 'базова', label: 'Базова', value: totalCost },
-    { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
+    { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalWithoutIsolators },
     { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
   ];
-  
+
   // Відфільтрувати за дозволами
   const filteredPrices = filterPriceArrayByPermissions(prices, userPermissions);
-  
+
   return {
     components,
     prices: filteredPrices,

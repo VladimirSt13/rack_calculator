@@ -15,7 +15,8 @@ export interface RackSet {
   object_name?: string;
   description?: string;
   racks?: RackSetItem[];
-  total_cost: number;
+  total_cost?: number;  // Старе поле (для сумісності)
+  total_cost_snapshot?: number;  // Нове поле
   created_at: string;
   updated_at?: string;
 }
@@ -111,11 +112,11 @@ export const rackSetsApi = {
 
   /**
    * Експорт комплекту в Excel (для нового комплекту, ще не збереженого)
-   * @param racks - Масив стелажів
+   * @param rack_items - Масив елементів комплекту {rackConfigId, quantity}
    * @param includePrices - Чи включати ціни
    */
-  exportNew: async (racks: RackSetItem[], includePrices: boolean = false) => {
-    const response = await api.post('/rack-sets/export', { racks, includePrices }, {
+  exportNew: async (rack_items: Array<{ rackConfigId: number; quantity: number }>, includePrices: boolean = false) => {
+    const response = await api.post('/rack-sets/export', { rack_items, includePrices }, {
       responseType: 'arraybuffer',
     });
     return response.data;

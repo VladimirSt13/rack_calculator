@@ -212,7 +212,7 @@ export const MyRackSetsPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <span className="font-semibold text-lg">
-                        {(rackSet.total_cost || 0).toFixed(2)} ₴
+                        {(rackSet.total_cost_snapshot || rackSet.total_cost || 0).toFixed(2)} ₴
                       </span>
                     </TableCell>
                     <TableCell>
@@ -363,7 +363,7 @@ export const MyRackSetsPage: React.FC = () => {
                 <div>
                   <Label>Загальна вартість</Label>
                   <p className="text-lg font-bold text-primary">
-                    {(viewingSet.total_cost || 0).toFixed(2)} ₴
+                    {(viewingSet.total_cost_snapshot || viewingSet.total_cost || 0).toFixed(2)} ₴
                   </p>
                 </div>
               </div>

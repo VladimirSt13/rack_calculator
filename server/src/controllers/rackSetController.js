@@ -3,6 +3,73 @@ import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
 import { calculateRackSetPrices, calculateRackSetTotal } from '../services/pricingService.js';
 
 /**
+ * Отримати повні дані стелажа з rack_configurations
+ */
+const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
+  const config = db.prepare(`
+    SELECT * FROM rack_configurations WHERE id = ?
+  `).get(rackConfigId);
+
+  if (!config || !priceData) return null;
+
+  // Парсинг JSON полів
+  const rackConfig = {
+    floors: config.floors,
+    rows: config.rows,
+    beamsPerRow: config.beams_per_row,
+    supports: config.supports || null,  // Простий рядок, не JSON
+    verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+    spans: config.spans ? JSON.parse(config.spans) : null,
+  };
+
+  // Імпортуємо функцію розрахунку
+  const rackCalculator = await import('../../../shared/rackCalculator.js');
+  const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
+
+  const components = calculateRackComponents(rackConfig, priceData);
+  const totalCost = calculateTotalCost(components);
+  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
+  const zeroPrice = totalCost * 1.44;
+
+  // Формуємо ціни з урахуванням дозволів користувача
+  const permissions = user?.permissions || { price_types: [] };
+  const prices = [];
+
+  if (permissions.price_types?.includes('базова')) {
+    prices.push({ type: 'базова', label: 'Базова ціна', value: Math.round(totalCost * 100) / 100 });
+  }
+  if (permissions.price_types?.includes('без_ізоляторів')) {
+    prices.push({ type: 'без_ізоляторів', label: 'Без ізоляторів', value: Math.round(totalWithoutIsolators * 100) / 100 });
+  }
+  if (permissions.price_types?.includes('нульова')) {
+    prices.push({ type: 'нульова', label: 'Нульова ціна', value: Math.round(zeroPrice * 100) / 100 });
+  }
+
+  // Визначаємо основну ціну для розрахунку totalCost
+  // Якщо є дозвіл на "нульова" - використовуємо її, інакше "без ізоляторів" або "базова"
+  // Якщо немає дозволів на ціни - повертаємо 0
+  let mainTotalCost = 0;
+  if (permissions.price_types?.includes('нульова')) {
+    mainTotalCost = zeroPrice;
+  } else if (permissions.price_types?.includes('без_ізоляторів')) {
+    mainTotalCost = totalWithoutIsolators;
+  } else if (permissions.price_types?.includes('базова')) {
+    mainTotalCost = totalCost;
+  } else {
+    mainTotalCost = 0;  // Немає дозволів на ціни
+  }
+
+  return {
+    rackConfigId: config.id,
+    name: generateRackName(rackConfig),
+    config: rackConfig,
+    components,
+    prices,
+    totalCost: mainTotalCost,  // Використовуємо основну ціну для totalCost
+  };
+};
+
+/**
  * GET /api/rack-sets
  * Отримати список комплектів стелажів для поточного користувача
  */
@@ -11,12 +78,12 @@ export const getRackSets = async (req, res, next) => {
     const db = await getDb();
     const userId = req.user.userId;
     const userRole = req.user.role;
-    
+
     // Перевіряємо чи є користувач адміністратором
     const isAdmin = userRole === 'admin';
 
     // Отримуємо комплекти: для адміністраторів - всі, для інших - тільки свої
-    const rackSets = isAdmin 
+    const rackSets = isAdmin
       ? db.prepare(`
         SELECT
           id,
@@ -24,7 +91,8 @@ export const getRackSets = async (req, res, next) => {
           name,
           object_name,
           description,
-          total_cost,
+          rack_items,
+          total_cost_snapshot,
           created_at,
           updated_at
         FROM rack_sets
@@ -37,7 +105,8 @@ export const getRackSets = async (req, res, next) => {
           name,
           object_name,
           description,
-          total_cost,
+          rack_items,
+          total_cost_snapshot,
           created_at,
           updated_at
         FROM rack_sets
@@ -50,19 +119,22 @@ export const getRackSets = async (req, res, next) => {
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
     if (priceData) {
-      // Перерахувати total_cost та racks для кожного комплекту
+      // Перерахувати ціни та компоненти для кожного комплекту
       const rackSetsWithPrices = await Promise.all(rackSets.map(async (rackSet) => {
-        const racks = db.prepare('SELECT racks FROM rack_sets WHERE id = ?').get(rackSet.id);
-        const racksData = JSON.parse(racks.racks);
+        const rackItems = rackSet.rack_items ? JSON.parse(rackSet.rack_items) : [];
 
-        // Розрахувати ціни для всіх стелажів
-        const racksWithPrices = await calculateRackSetPrices(racksData, req.user, priceData);
+        // Отримати повні дані для кожного стелажа
+        const racksWithPrices = (await Promise.all(rackItems.map(async (item) => {
+          const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+          return rackData ? { ...rackData, quantity: item.quantity } : null;
+        }))).filter(Boolean);
+
         const currentTotal = calculateRackSetTotal(racksWithPrices);
 
         return {
           ...rackSet,
           racks: racksWithPrices,
-          total_cost: currentTotal,
+          total_cost_snapshot: currentTotal,
           calculated_at: new Date().toISOString(),
         };
       }));
@@ -86,7 +158,7 @@ export const getRackSet = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.userId;
     const userRole = req.user.role;
-    
+
     // Перевіряємо чи є користувач адміністратором
     const isAdmin = userRole === 'admin';
 
@@ -100,8 +172,8 @@ export const getRackSet = async (req, res, next) => {
           name,
           object_name,
           description,
-          racks,
-          total_cost,
+          rack_items,
+          total_cost_snapshot,
           created_at,
           updated_at
         FROM rack_sets
@@ -115,8 +187,8 @@ export const getRackSet = async (req, res, next) => {
           name,
           object_name,
           description,
-          racks,
-          total_cost,
+          rack_items,
+          total_cost_snapshot,
           created_at,
           updated_at
         FROM rack_sets
@@ -131,30 +203,30 @@ export const getRackSet = async (req, res, next) => {
       });
     }
 
-    // Парсинг JSON даних
-    const racksData = JSON.parse(rackSet.racks);
-
     // Отримати актуальний прайс
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    if (priceData) {
-      // Розрахувати ціни для кожного стелажа
-      const racksWithPrices = await calculateRackSetPrices(racksData, req.user, priceData);
+    if (priceData && rackSet.rack_items) {
+      // Отримати повні дані для кожного стелажа
+      const rackItems = JSON.parse(rackSet.rack_items);
+      const racksWithPrices = (await Promise.all(rackItems.map(async (item) => {
+        const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+        return rackData ? { ...rackData, quantity: item.quantity } : null;
+      }))).filter(Boolean);
 
-      // Розрахувати актуальну загальну вартість
       const currentTotal = calculateRackSetTotal(racksWithPrices);
 
       res.json({
         rackSet: {
           ...rackSet,
           racks: racksWithPrices,
-          total_cost: currentTotal,
+          total_cost_snapshot: currentTotal,
           calculated_at: new Date().toISOString(),
         }
       });
     } else {
-      rackSet.racks = racksData;
+      // Повертаємо тільки rack_items без розрахунку
       res.json({ rackSet });
     }
   } catch (error) {
@@ -170,24 +242,19 @@ export const createRackSet = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user.userId;
-    const { name, object_name, description, racks, rack_items } = req.body;
+    const { name, object_name, description, rack_items } = req.body;
 
     // Валідація
-    if (!name || (!racks || !rack_items) || (!Array.isArray(racks) && !Array.isArray(rack_items))) {
+    if (!name || !rack_items || !Array.isArray(rack_items)) {
       return res.status(400).json({
-        error: 'Name and racks array or rack_items array are required',
+        error: 'Name and rack_items array are required',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    // Визначаємо масив стелажів для збереження
-    // rack_items - нова структура [{rackConfigId, quantity}]
-    // racks - стара структура з повними даними стелажів
-    const itemsArray = rack_items || racks;
-    
-    if (itemsArray.length === 0) {
+    if (rack_items.length === 0) {
       return res.status(400).json({
-        error: 'Racks array cannot be empty',
+        error: 'Rack items array cannot be empty',
         code: 'VALIDATION_ERROR'
       });
     }
@@ -199,36 +266,28 @@ export const createRackSet = async (req, res, next) => {
     // Розрахунок загальної вартості (snapshot)
     let totalCostSnapshot = 0;
 
-    if (priceData && itemsArray.length > 0) {
-      const racksWithPrices = await calculateRackSetPrices(itemsArray, req.user, priceData);
+    if (priceData && rack_items.length > 0) {
+      // Отримати повні дані для кожного стелажа та розрахувати ціни
+      const racksWithPrices = (await Promise.all(rack_items.map(async (item) => {
+        const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+        return rackData ? { ...rackData, quantity: item.quantity } : null;
+      }))).filter(Boolean);
+
       totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
     }
-
-    // Підготовка даних для збереження
-    // Зберігаємо в rack_items_new для нової структури
-    const rackItemsNew = itemsArray.map(item => ({
-      rackConfigId: item.rackConfigId || item.id,
-      quantity: item.quantity || 1,
-    }));
-
-    // Для збереження в поле racks використовуємо повні дані стелажів
-    // Якщо передано racks (старий формат) - використовуємо його
-    // Якщо передано тільки rack_items - розширюємо його повними даними з racks
-    const racksDataToSave = racks || itemsArray;
 
     // Створення комплекту
     const result = db.prepare(`
       INSERT INTO rack_sets (
         user_id, name, object_name, description,
-        racks, rack_items_new, total_cost_snapshot
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        rack_items, total_cost_snapshot
+      ) VALUES (?, ?, ?, ?, ?, ?)
     `).run(
       userId,
       name,
       object_name || null,
       description || null,
-      JSON.stringify(racksDataToSave), // зберігаємо повні дані стелажів для експорту
-      JSON.stringify(rackItemsNew), // нова структура
+      JSON.stringify(rack_items),
       totalCostSnapshot
     );
 
@@ -240,11 +299,11 @@ export const createRackSet = async (req, res, next) => {
       action: AUDIT_ACTIONS.CREATE,
       entityType: ENTITY_TYPES.RACK_SET,
       entityId: rackSetId,
-      newValue: { 
-        name, 
-        object_name, 
+      newValue: {
+        name,
+        object_name,
         total_cost_snapshot: totalCostSnapshot,
-        racks_count: itemsArray.length 
+        racks_count: rack_items.length
       },
       ipAddress: req.ip,
       userAgent: req.get('user-agent')
@@ -258,7 +317,7 @@ export const createRackSet = async (req, res, next) => {
         object_name: object_name || null,
         description: description || null,
         total_cost_snapshot: totalCostSnapshot,
-        racks_count: itemsArray.length
+        racks_count: rack_items.length
       }
     });
   } catch (error) {
@@ -275,11 +334,11 @@ export const updateRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
-    const { name, object_name, description, racks, rack_items } = req.body;
+    const { name, object_name, description, rack_items } = req.body;
 
     // Перевірка чи існує комплект
     const existing = db.prepare(`
-      SELECT id, user_id, racks, rack_items_new, total_cost_snapshot
+      SELECT id, user_id, rack_items, total_cost_snapshot
       FROM rack_sets
       WHERE id = ? AND user_id = ?
     `).get(id, userId);
@@ -307,62 +366,25 @@ export const updateRackSet = async (req, res, next) => {
       updates.push('description = ?');
       values.push(description);
     }
-    
-    // Оновлення нової структури rack_items
+
+    // Оновлення rack_items та перерахунок total_cost_snapshot
     if (rack_items !== undefined) {
-      updates.push('rack_items_new = ?');
+      updates.push('rack_items = ?');
       values.push(JSON.stringify(rack_items));
 
       // Перерахунок total_cost_snapshot з актуального прайсу
       const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
       if (priceRecord && rack_items.length > 0) {
         const priceData = JSON.parse(priceRecord.data);
-        const racksWithPrices = await calculateRackSetPrices(rack_items, req.user, priceData);
+        const racksWithPrices = (await Promise.all(rack_items.map(async (item) => {
+          const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+          return rackData ? { ...rackData, quantity: item.quantity } : null;
+        }))).filter(Boolean);
+
         const totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
         updates.push('total_cost_snapshot = ?');
         values.push(totalCostSnapshot);
       }
-    }
-
-    // Оновлення старої структури racks (для зворотної сумісності та експорту)
-    if (racks !== undefined) {
-      updates.push('racks = ?');
-      values.push(JSON.stringify(racks));
-
-      // Перерахунок загальної вартості
-      const totalCost = racks.reduce((sum, rack) => {
-        const rackTotal = rack.totalCost || rack.total_cost || 0;
-        const quantity = rack.quantity || 1;
-        return sum + (rackTotal * quantity);
-      }, 0);
-      updates.push('total_cost_snapshot = ?');
-      values.push(totalCost);
-    } else if (rack_items !== undefined) {
-      // Якщо оновлюється rack_items без racks, оновлюємо і racks для експорту
-      // Розширюємо rack_items повними даними з існуючих racks
-      const existingRacks = JSON.parse(existing.racks);
-      
-      // Створюємо нові racks з повними даними, зберігаючи кількість з rack_items
-      const updatedRacks = rack_items.map(rackItem => {
-        // Шукаємо існуючий стелаж з таким rackConfigId
-        const existingRack = existingRacks.find(r => 
-          r.rackConfigId === rackItem.rackConfigId || r.id === rackItem.rackConfigId
-        );
-        
-        // Якщо знайдено - повертаємо існуючий з новою кількістю
-        if (existingRack) {
-          return {
-            ...existingRack,
-            quantity: rackItem.quantity || existingRack.quantity || 1
-          };
-        }
-        
-        // Якщо не знайдено - повертаємо rackItem з мінімальними даними
-        return rackItem;
-      });
-      
-      updates.push('racks = ?');
-      values.push(JSON.stringify(updatedRacks));
     }
 
     if (updates.length === 0) {
@@ -389,7 +411,7 @@ export const updateRackSet = async (req, res, next) => {
       action: AUDIT_ACTIONS.UPDATE,
       entityType: ENTITY_TYPES.RACK_SET,
       entityId: id,
-      newValue: { name, object_name, description, racks },
+      newValue: { name, object_name, description, rack_items },
       ipAddress: req.ip,
       userAgent: req.get('user-agent')
     });
@@ -468,7 +490,7 @@ export const createRackSetRevision = async (req, res, next) => {
 
     // Отримання поточного стану комплекту
     const rackSet = db.prepare(`
-      SELECT id, name, racks, total_cost
+      SELECT id, name, rack_items, total_cost_snapshot
       FROM rack_sets
       WHERE id = ? AND user_id = ?
     `).get(id, userId);
@@ -480,11 +502,11 @@ export const createRackSetRevision = async (req, res, next) => {
       });
     }
 
-    // Створення ревізії
+    // Створення ревізії з rack_items snapshot
     const result = db.prepare(`
       INSERT INTO rack_set_revisions (rack_set_id, racks_snapshot, total_cost_snapshot, comment)
       VALUES (?, ?, ?, ?)
-    `).run(id, rackSet.racks, rackSet.total_cost, comment || null);
+    `).run(id, rackSet.rack_items, rackSet.total_cost_snapshot, comment || null);
 
     const revisionId = result.lastInsertRowid;
 

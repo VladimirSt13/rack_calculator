@@ -80,11 +80,10 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
         rackConfigId: rack.rackConfigId!,
         quantity: rack.quantity || 1,
       }));
-    
+
     createMutation.mutate({
       ...data,
-      rack_items: rackItems, // нова структура
-      racks, // залишаємо для зворотної сумісності
+      rack_items: rackItems, // тільки нова структура
     });
   };
 
@@ -96,7 +95,15 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
 
     setIsExporting(true);
     try {
-      const blob = await rackSetsApi.exportNew(racks, includePrices);
+      // Формуємо rack_items для експорту
+      const rackItems = racks
+        .filter(rack => rack.rackConfigId)
+        .map(rack => ({
+          rackConfigId: rack.rackConfigId!,
+          quantity: rack.quantity || 1,
+        }));
+
+      const blob = await rackSetsApi.exportNew(rackItems, includePrices);
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;

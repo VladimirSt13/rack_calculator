@@ -1,6 +1,72 @@
 import ExcelJS from 'exceljs';
 import { getDb } from '../db/index.js';
-import { calculateRackSetPrices } from '../services/pricingService.js';
+
+/**
+ * Отримати повні дані стелажа з rack_configurations
+ */
+const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
+  const config = db.prepare(`
+    SELECT * FROM rack_configurations WHERE id = ?
+  `).get(rackConfigId);
+
+  if (!config || !priceData) return null;
+
+  // Парсинг JSON полів
+  const rackConfig = {
+    floors: config.floors,
+    rows: config.rows,
+    beamsPerRow: config.beams_per_row,
+    supports: config.supports || null,  // Простий рядок, не JSON
+    verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+    spans: config.spans ? JSON.parse(config.spans) : null,
+  };
+
+  // Імпортуємо функцію розрахунку
+  const rackCalculator = await import('../../../shared/rackCalculator.js');
+  const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
+
+  const components = calculateRackComponents(rackConfig, priceData);
+  const totalCost = calculateTotalCost(components);
+  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
+  const zeroPrice = totalCost * 1.44;
+
+  // Формуємо ціни з урахуванням дозволів користувача
+  const permissions = user?.permissions || { price_types: [] };
+  const prices = [];
+
+  if (permissions.price_types?.includes('базова')) {
+    prices.push({ type: 'базова', label: 'Базова ціна', value: Math.round(totalCost * 100) / 100 });
+  }
+  if (permissions.price_types?.includes('без_ізоляторів')) {
+    prices.push({ type: 'без_ізоляторів', label: 'Без ізоляторів', value: Math.round(totalWithoutIsolators * 100) / 100 });
+  }
+  if (permissions.price_types?.includes('нульова')) {
+    prices.push({ type: 'нульова', label: 'Нульова ціна', value: Math.round(zeroPrice * 100) / 100 });
+  }
+
+  // Визначаємо основну ціну для розрахунку totalCost
+  // Якщо є дозвіл на "нульова" - використовуємо її, інакше "без ізоляторів" або "базова"
+  // Якщо немає дозволів на ціни - повертаємо 0
+  let mainTotalCost = 0;
+  if (permissions.price_types?.includes('нульова')) {
+    mainTotalCost = zeroPrice;
+  } else if (permissions.price_types?.includes('без_ізоляторів')) {
+    mainTotalCost = totalWithoutIsolators;
+  } else if (permissions.price_types?.includes('базова')) {
+    mainTotalCost = totalCost;
+  } else {
+    mainTotalCost = 0;  // Немає дозволів на ціни
+  }
+
+  return {
+    rackConfigId: config.id,
+    name: generateRackName(rackConfig),
+    config: rackConfig,
+    components,
+    prices,
+    totalCost: mainTotalCost,
+  };
+};
 
 /**
  * Форматування числа з комою як розділовим знаком
@@ -292,17 +358,17 @@ export const exportRackSet = async (req, res, next) => {
     const isAdmin = userRole === 'admin';
 
     // Отримати комплект з БД
-    // Для адміністраторів - будь-який комплект, для інших - тільки свої
+    // Для адміністраторів - будь-який комплект, для інших - тільки свій
     let rackSet;
     if (isAdmin) {
       rackSet = db.prepare(`
-        SELECT id, name, object_name, description, racks, total_cost, created_at
+        SELECT id, name, object_name, description, rack_items, total_cost_snapshot, created_at
         FROM rack_sets
         WHERE id = ?
       `).get(id);
     } else {
       rackSet = db.prepare(`
-        SELECT id, name, object_name, description, racks, total_cost, created_at
+        SELECT id, name, object_name, description, rack_items, total_cost_snapshot, created_at
         FROM rack_sets
         WHERE id = ? AND user_id = ?
       `).get(id, userId);
@@ -312,13 +378,16 @@ export const exportRackSet = async (req, res, next) => {
       return res.status(404).json({ error: 'Rack set not found' });
     }
 
-    const racksData = JSON.parse(rackSet.racks);
-
-    // Розрахувати актуальні ціни для кожного стелажа
+    // Отримати актуальний прайс
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    const racks = await calculateRackSetPrices(racksData, req.user, priceData);
+    // Отримати повні дані для кожного стелажа
+    const rackItems = rackSet.rack_items ? JSON.parse(rackSet.rack_items) : [];
+    const racks = (await Promise.all(rackItems.map(async (item) => {
+      const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+      return rackData ? { ...rackData, quantity: item.quantity } : null;
+    }))).filter(Boolean);
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
@@ -356,11 +425,11 @@ export default {
  */
 export const exportNewRackSet = async (req, res, next) => {
   try {
-    const { racks, includePrices = false } = req.body;
+    const { rack_items, includePrices = false } = req.body;
     const showPrices = includePrices === true;
 
-    if (!racks || !Array.isArray(racks) || racks.length === 0) {
-      return res.status(400).json({ error: 'Racks array is required' });
+    if (!rack_items || !Array.isArray(rack_items) || rack_items.length === 0) {
+      return res.status(400).json({ error: 'Rack items array is required' });
     }
 
     // Отримати актуальний прайс для розрахунку цін і компонентів
@@ -368,10 +437,11 @@ export const exportNewRackSet = async (req, res, next) => {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    // Розрахувати ціни і компоненти для кожного стелажа, якщо їх немає
-    const racksWithPrices = priceData
-      ? await calculateRackSetPrices(racks, req.user, priceData)
-      : racks;
+    // Отримати повні дані для кожного стелажа
+    const racks = (await Promise.all(rack_items.map(async (item) => {
+      const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
+      return rackData ? { ...rackData, quantity: item.quantity } : null;
+    }))).filter(Boolean);
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
@@ -381,9 +451,9 @@ export const exportNewRackSet = async (req, res, next) => {
     workbook.modified = new Date();
 
     // Створити worksheet з даними
-    createRackSetWorksheet(workbook, 'Новий комплект стелажів', racksWithPrices, showPrices, {
+    createRackSetWorksheet(workbook, 'Новий комплект стелажів', racks, showPrices, {
       date: new Date(),
-      total_quantity: racksWithPrices.reduce((sum, r) => sum + (r.quantity || 1), 0)
+      total_quantity: racks.reduce((sum, r) => sum + (r.quantity || 1), 0)
     });
 
     // Генерация файла и отправка клиенту
