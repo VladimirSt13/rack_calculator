@@ -61,8 +61,9 @@ export const RackSetModal: React.FC<RackSetModalProps> = ({
   const createMutation = useMutation({
     mutationFn: rackSetsApi.create,
     onSuccess: () => {
-      // Інвалідація кешу для оновлення списку комплектів
+      // Інвалідація кешу для оновлення обох списків комплектів
       queryClient.invalidateQueries({ queryKey: ['rackSets'] });
+      queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       toast.success('Комплект стелажів збережено');
       onClose();
     },
