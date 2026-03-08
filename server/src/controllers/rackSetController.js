@@ -1,32 +1,6 @@
 import { getDb } from '../db/index.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
 import { calculateRackSetPrices, calculateRackSetTotal } from '../services/pricingService.js';
-import { getUserPriceTypes } from '../helpers/roles.js';
-
-/**
- * Розрахувати ціни для стелажів на основі актуального прайсу
- */
-const calculateRackPrices = (rack, priceData, userPermissions) => {
-  const components = calculateRackComponents(rack.form, priceData);
-  const totalCost = calculateTotalCost(components);
-  
-  // Формуємо масив цін
-  const prices = [
-    { type: 'базова', label: 'Базова', value: totalCost },
-    { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 }, // приклад
-    { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-  ];
-
-  // Фільтруємо за дозволами користувача
-  const filteredPrices = filterPricesByPermissions(prices, userPermissions);
-
-  return {
-    ...rack,
-    components,
-    prices: filteredPrices,
-    totalCost,
-  };
-};
 
 /**
  * GET /api/rack-sets
@@ -36,7 +10,6 @@ export const getRackSets = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user.userId;
-    const userPermissions = await getUserPricePermissions(req.user);
 
     const rackSets = db.prepare(`
       SELECT
@@ -55,67 +28,22 @@ export const getRackSets = async (req, res, next) => {
 
     // Отримати актуальний прайс для розрахунку
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    
-    if (priceRecord) {
-      const priceData = JSON.parse(priceRecord.data);
-      
-      // Перерахувати total_cost для кожного комплекту
+    const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
+
+    if (priceData) {
+      // Перерахувати total_cost та racks для кожного комплекту
       const rackSetsWithPrices = rackSets.map(rackSet => {
         const racks = db.prepare('SELECT racks FROM rack_sets WHERE id = ?').get(rackSet.id);
         const racksData = JSON.parse(racks.racks);
 
-        // Розрахувати актуальні ціни для кожного стелажа
-        const racksWithPrices = racksData.map(rack => {
-          // Нова структура: { rackConfigId, quantity }
-          if (rack.rackConfigId) {
-            const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
-            if (config) {
-              const rackConfig = {
-                floors: config.floors,
-                rows: config.rows,
-                beamsPerRow: config.beams_per_row,
-                supports: config.supports || null,
-                verticalSupports: config.vertical_supports || null,
-                spans: config.spans ? JSON.parse(config.spans) : null,
-              };
-              const components = calculateRackComponents(rackConfig, priceData);
-              const totalCost = calculateTotalCost(components);
-              
-              const prices = [
-                { type: 'базова', label: 'Базова', value: totalCost },
-                { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-                { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-              ];
-              
-              return {
-                ...rack,
-                rackConfigId: rack.rackConfigId,
-                config: rackConfig,
-                components,
-                prices: filterPricesByPermissions(prices, userPermissions),
-                totalCost,
-                name: generateRackName(rackConfig),
-              };
-            }
-          }
-          // Стара структура: { form, quantity }
-          else if (rack.form) {
-            return calculateRackPrices(rack, priceData, userPermissions);
-          }
-          // Дуже стара структура: повертаємо як є
-          else {
-            return rack;
-          }
-        });
-
-        const currentTotal = racksWithPrices.reduce(
-          (sum, rack) => sum + ((rack.totalCost || 0) * (rack.quantity || 1)), 0
-        );
+        // Розрахувати ціни для всіх стелажів
+        const racksWithPrices = calculateRackSetPrices(racksData, req.user, priceData);
+        const currentTotal = calculateRackSetTotal(racksWithPrices);
 
         return {
           ...rackSet,
-          racks: racksWithPrices, // повертаємо з розрахованими даними
-          total_cost: currentTotal, // актуальна вартість
+          racks: racksWithPrices,
+          total_cost: currentTotal,
           calculated_at: new Date().toISOString(),
         };
       });
@@ -138,7 +66,6 @@ export const getRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
-    const userPermissions = await getUserPricePermissions(req.user);
 
     const rackSet = db.prepare(`
       SELECT
@@ -167,64 +94,20 @@ export const getRackSet = async (req, res, next) => {
 
     // Отримати актуальний прайс
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
 
-    if (priceRecord) {
-      const priceData = JSON.parse(priceRecord.data);
-
+    if (priceData) {
       // Розрахувати ціни для кожного стелажа
-      const racksWithPrices = racksData.map(rack => {
-        // Перевіряємо структуру даних
-        // Нова структура: { rackConfigId, quantity }
-        if (rack.rackConfigId) {
-          const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
-          if (config) {
-            const rackConfig = {
-              floors: config.floors,
-              rows: config.rows,
-              beamsPerRow: config.beams_per_row,
-              supports: config.supports ? JSON.parse(config.supports) : null,
-              verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
-              spans: config.spans ? JSON.parse(config.spans) : null,
-            };
-            const components = calculateRackComponents(rackConfig, priceData);
-            const totalCost = calculateTotalCost(components);
-            
-            const prices = [
-              { type: 'базова', label: 'Базова', value: totalCost },
-              { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-              { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-            ];
-            
-            return {
-              ...rack,
-              rackConfigId: rack.rackConfigId,
-              config: rackConfig,
-              components,
-              prices: filterPricesByPermissions(prices, userPermissions),
-              totalCost,
-            };
-          }
-        }
-        // Стара структура: { form, quantity }
-        else if (rack.form) {
-          return calculateRackPrices(rack, priceData, userPermissions);
-        }
-        // Дуже стара структура: повертаємо як є
-        else {
-          return rack;
-        }
-      });
+      const racksWithPrices = calculateRackSetPrices(racksData, req.user, priceData);
 
       // Розрахувати актуальну загальну вартість
-      const currentTotal = racksWithPrices.reduce(
-        (sum, rack) => sum + ((rack.totalCost || 0) * (rack.quantity || 1)), 0
-      );
+      const currentTotal = calculateRackSetTotal(racksWithPrices);
 
       res.json({
         rackSet: {
           ...rackSet,
           racks: racksWithPrices,
-          total_cost: currentTotal, // актуальна вартість
+          total_cost: currentTotal,
           calculated_at: new Date().toISOString(),
         }
       });
@@ -266,36 +149,13 @@ export const createRackSet = async (req, res, next) => {
     // Отримати актуальний прайс для розрахунку snapshot
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
-    const userPermissions = await getUserPricePermissions(req.user);
 
     // Розрахунок загальної вартості (snapshot)
     let totalCostSnapshot = 0;
-    
-    if (priceData) {
-      totalCostSnapshot = itemsArray.reduce((sum, item) => {
-        // Нова структура: { rackConfigId, quantity }
-        if (item.rackConfigId) {
-          const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(item.rackConfigId);
-          if (config) {
-            const rackConfig = {
-              floors: config.floors,
-              rows: config.rows,
-              beamsPerRow: config.beams_per_row,
-              supports: config.supports ? JSON.parse(config.supports) : null,
-              verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
-              spans: config.spans ? JSON.parse(config.spans) : null,
-            };
-            const components = calculateRackComponents(rackConfig, priceData);
-            const rackTotal = calculateTotalCost(components);
-            return sum + (rackTotal * (item.quantity || 1));
-          }
-        } 
-        // Стара структура: { totalCost, quantity }
-        else {
-          const rackTotal = item.totalCost || item.total_cost || 0;
-          return sum + (rackTotal * (item.quantity || 1));
-        }
-      }, 0);
+
+    if (priceData && itemsArray.length > 0) {
+      const racksWithPrices = calculateRackSetPrices(itemsArray, req.user, priceData);
+      totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
     }
 
     // Підготовка даних для збереження
@@ -401,30 +261,13 @@ export const updateRackSet = async (req, res, next) => {
     if (rack_items !== undefined) {
       updates.push('rack_items_new = ?');
       values.push(JSON.stringify(rack_items));
-      
+
       // Перерахунок total_cost_snapshot з актуального прайсу
       const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-      if (priceRecord) {
+      if (priceRecord && rack_items.length > 0) {
         const priceData = JSON.parse(priceRecord.data);
-        const totalCostSnapshot = rack_items.reduce((sum, item) => {
-          if (item.rackConfigId) {
-            const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(item.rackConfigId);
-            if (config) {
-              const rackConfig = {
-                floors: config.floors,
-                rows: config.rows,
-                beamsPerRow: config.beams_per_row,
-                supports: config.supports || null,
-                verticalSupports: config.vertical_supports || null,
-                spans: config.spans ? JSON.parse(config.spans) : null,
-              };
-              const components = calculateRackComponents(rackConfig, priceData);
-              const rackTotal = calculateTotalCost(components);
-              return sum + (rackTotal * (item.quantity || 1));
-            }
-          }
-          return sum;
-        }, 0);
+        const racksWithPrices = calculateRackSetPrices(rack_items, req.user, priceData);
+        const totalCostSnapshot = calculateRackSetTotal(racksWithPrices);
         updates.push('total_cost_snapshot = ?');
         values.push(totalCostSnapshot);
       }
