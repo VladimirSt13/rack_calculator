@@ -284,7 +284,7 @@ export const exportRackSet = async (req, res, next) => {
 
     const racks = racksData.map(rack => {
       // Нова структура: { rackConfigId, quantity }
-      if (rack.rackConfigId) {
+      if (rack.rackConfigId && priceData) {
         const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
         if (config) {
           const rackConfig = {
@@ -297,13 +297,13 @@ export const exportRackSet = async (req, res, next) => {
           };
           const components = calculateRackComponents(rackConfig, priceData);
           const totalCost = calculateTotalCost(components);
-          
+
           const prices = [
             { type: 'базова', label: 'Базова', value: totalCost },
             { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
             { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
           ];
-          
+
           return {
             ...rack,
             rackConfigId: rack.rackConfigId,
@@ -315,11 +315,26 @@ export const exportRackSet = async (req, res, next) => {
           };
         }
       }
-      // Стара структура: { form, quantity }
-      else if (rack.form) {
-        return rack;
+      // Стара структура: { form, quantity } - розрахувати ціни
+      else if (rack.form && priceData) {
+        const components = calculateRackComponents(rack.form, priceData);
+        const totalCost = calculateTotalCost(components);
+
+        const prices = [
+          { type: 'базова', label: 'Базова', value: totalCost },
+          { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
+          { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
+        ];
+
+        return {
+          ...rack,
+          components,
+          prices: filterPriceArrayByPermissions(prices, userPermissions),
+          totalCost,
+          name: rack.name || generateRackName(rack.form),
+        };
       }
-      // Дуже стара структура
+      // Дуже стара структура - повертаємо як є
       else {
         return rack;
       }
