@@ -11,10 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/Table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
-import { Loader2, Package, Download, Edit, Trash2 } from 'lucide-react';
+import { Loader2, Package, Download, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
+import { Label } from '@/shared/components/Label';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/authStore';
 
@@ -22,6 +30,7 @@ export const MyRackSetsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [viewingSet, setViewingSet] = useState<RackSet | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [setToDelete, setSetToDelete] = useState<RackSet | null>(null);
   const [filters, setFilters] = useState({
@@ -64,10 +73,9 @@ export const MyRackSetsPage: React.FC = () => {
     exportMutation.mutate(id);
   };
 
-  // Відкрити комплект в редакторі
-  const handleEditInCalculator = (rackSet: RackSet) => {
-    localStorage.setItem('rackSetToEdit', JSON.stringify(rackSet));
-    navigate('/rack', { state: { editSetId: rackSet.id } });
+  // Відкрити перегляд комплекту
+  const handleViewSet = (rackSet: RackSet) => {
+    setViewingSet(rackSet);
   };
 
   const deleteMutation = useMutation({
@@ -200,11 +208,11 @@ export const MyRackSetsPage: React.FC = () => {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <IconButton
-                          icon={Edit}
+                          icon={Eye}
                           variant="icon"
-                          onClick={() => handleEditInCalculator(rackSet)}
-                          aria-label="Редагувати"
-                          title="Відкрити в калькуляторі"
+                          onClick={() => handleViewSet(rackSet)}
+                          aria-label="Переглянути"
+                          title="Перегляд комплекту"
                         />
                         <IconButton
                           icon={Download}
@@ -239,6 +247,100 @@ export const MyRackSetsPage: React.FC = () => {
           title="Видалити комплект?"
           description={`Ви дійсно хочете видалити комплект "${setToDelete?.name}"? Цю дію не можна скасувати.`}
         />
+      )}
+
+      {/* Діалог перегляду */}
+      {viewingSet && (
+        <Dialog open onOpenChange={() => setViewingSet(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Комплект стелажів: {viewingSet.name}</DialogTitle>
+              <DialogDescription>
+                Детальна інформація про комплект
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Основна інформація */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Назва</Label>
+                  <p className="text-sm font-medium">{viewingSet.name}</p>
+                </div>
+                <div>
+                  <Label>Об'єкт</Label>
+                  <p className="text-sm">{viewingSet.object_name || '—'}</p>
+                </div>
+              </div>
+
+              {viewingSet.description && (
+                <div>
+                  <Label>Опис</Label>
+                  <p className="text-sm">{viewingSet.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Кількість стелажів</Label>
+                  <p className="text-sm">
+                    {viewingSet.racks?.reduce((sum, r) => sum + (r.quantity || 1), 0) || 0} од.
+                  </p>
+                </div>
+                <div>
+                  <Label>Загальна вартість</Label>
+                  <p className="text-lg font-bold text-primary">
+                    {(viewingSet.total_cost || 0).toFixed(2)} ₴
+                  </p>
+                </div>
+              </div>
+
+              {/* Список стелажів */}
+              {viewingSet.racks && viewingSet.racks.length > 0 && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <h4 className="font-semibold mb-3 text-sm uppercase tracking-wider text-muted-foreground">
+                    Склад комплекту
+                  </h4>
+
+                  <div className="space-y-3">
+                    {viewingSet.racks.map((rack, index) => (
+                      <div key={rack.setId || rack.rackConfigId || index} className="border rounded-md bg-background p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{rack.name || `Стелаж ${rack.form?.floors || 0}х${rack.form?.rows || 0}х${rack.form?.beamsPerRow || 0}`}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Кількість:{' '}
+                              <span className="font-medium">
+                                {rack.quantity || 1} од.
+                              </span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">
+                              Вартість:
+                            </p>
+                            <p className="font-semibold">
+                              {(rack.prices?.find((p) => p.type === 'нульова' || p.type === 'zero')?.value || 0) * (rack.quantity || 1)} ₴
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewingSet(null)}
+                >
+                  Закрити
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
