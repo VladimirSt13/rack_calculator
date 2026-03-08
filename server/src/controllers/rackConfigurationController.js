@@ -11,8 +11,8 @@ export const findOrCreateConfiguration = async (req, res, next) => {
     const config = req.body;
 
     // Серіалізація для порівняння JSON
-    const supports = config.supports ? JSON.stringify(config.supports) : null;
-    const verticalSupports = config.verticalSupports ? JSON.stringify(config.verticalSupports) : null;
+    const supports = config.supports || null;  // Простий рядок, не JSON
+    const verticalSupports = config.verticalSupports || null;  // Простий рядок, не JSON
     const spans = config.spans ? JSON.stringify(config.spans) : null;
 
     // 1. Спроба знайти існуючу конфігурацію
