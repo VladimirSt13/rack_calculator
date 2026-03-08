@@ -1,5 +1,5 @@
 import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../shared/rackCalculator.js';
+import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
 import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpers/roles.js';
 
 /**
