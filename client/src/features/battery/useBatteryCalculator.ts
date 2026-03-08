@@ -110,6 +110,7 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
           label: p.label,
           value: p.value,
         })),
+        components: variant.components || {},  // Додаємо компоненти
         rackConfigId: undefined,
       }));
 

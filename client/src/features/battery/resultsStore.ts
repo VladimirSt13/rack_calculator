@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import type { ComponentItem } from '@rack-calculator/shared';
+
 export interface PriceInfo {
   type: string;
   label: string;
@@ -19,6 +21,7 @@ export interface BatteryVariant {
   combination: number[];
   beams: number;
   prices?: PriceInfo[];
+  components?: Record<string, ComponentItem | ComponentItem[]>;  // Компоненти стелажа
   rackConfigId?: number;  // ID конфігурації в БД (нова інтеграція)
 }
 

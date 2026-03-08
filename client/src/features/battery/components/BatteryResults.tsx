@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { useBatteryResultsStore, type BatteryVariant } from '@/features/battery/resultsStore';
 import { useBatterySetStore } from '@/features/battery/setStore';
 import { useBatteryFormStore } from '@/features/battery/formStore';
@@ -14,8 +14,14 @@ import {
   EmptyState,
   ResultsSkeleton,
   PriceDisplay,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
 } from '@/shared/components';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { Plus, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import type { ComponentItem } from '@rack-calculator/shared';
 
 /**
  * Battery Results - відображення результатів підбору
@@ -40,6 +46,7 @@ interface SpansTableProps {
 const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false }) => {
   const { variants } = useBatteryResultsStore();
   const { addRack } = useBatterySetStore();
+  const [showComponents, setShowComponents] = useState(false);
 
   const hasVariants = variants && variants.length > 0;
   const showSkeleton = isLoading;
@@ -52,6 +59,9 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
     return <EmptyState />;
   }
 
+  // Підрахунок загальних компонентів для всіх доданих стелажів
+  const selectedVariant = variants[0]; // Беремо перший варіант для прикладу
+
   return (
     <div className='space-y-6'>
       {/* Пreamble - короткі вхідні дані */}
@@ -62,6 +72,15 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
 
       {/* Таблиця варіантів */}
       <SpansTable variants={variants} onAdd={addRack} />
+
+      {/* Склад комплекту (розгорнутий) */}
+      {selectedVariant?.components && (
+        <ComponentsCard
+          components={selectedVariant.components}
+          isOpen={showComponents}
+          onToggle={() => setShowComponents(!showComponents)}
+        />
+      )}
     </div>
   );
 });
@@ -172,6 +191,20 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
     return priceItem?.value || 0;
   };
 
+  // Формування назви: (прольот+прольот / висота / н бал.)
+  const formatName = (variant: BatteryVariant) => {
+    const combinationStr = variant.combination.join('+');
+    const beamsCount = variant.combination.length;
+    
+    // Якщо багатоповерховий - додаємо висоту
+    if (variant.floors > 1) {
+      return `(${combinationStr} / ${variant.height} / ${beamsCount} бал.)`;
+    }
+    
+    // Якщо одноповерховий - без висоти
+    return `(${combinationStr} / ${beamsCount} бал.)`;
+  };
+
   return (
     <div className='space-y-3'>
       <h3 className='text-sm font-semibold'>Варіанти стелажів</h3>
@@ -188,10 +221,7 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
           <TableBody>
             {variants.map((variant, index) => {
               const zeroPrice = getZeroPrice(variant);
-              // Формування назви з комбінацією та кількістю балок
-              const combinationStr = variant.combination.join('+');
-              const beamsCount = variant.combination.length;
-              const displayName = `${variant.name} (${combinationStr} - ${beamsCount} бал.)`;
+              const formattedName = formatName(variant);
 
               return (
                 <TableRow
@@ -199,7 +229,7 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
                   className='h-12 hover:bg-muted/30 transition-colors'
                 >
                   <TableCell className='max-w-[300px]'>
-                    <p className='text-sm font-medium font-mono'>{displayName}</p>
+                    <p className='text-sm font-medium font-mono'>{formattedName}</p>
                   </TableCell>
                   <TableCell className='text-right'>
                     <PriceDisplay value={zeroPrice} className='font-medium tabular-nums' />
@@ -226,5 +256,111 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
 });
 
 SpansTable.displayName = 'SpansTable';
+
+/**
+ * ComponentsCard - картка з компонентами стелажа
+ */
+interface ComponentsCardProps {
+  components: Record<string, ComponentItem | ComponentItem[]>;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+const ComponentsCard: React.FC<ComponentsCardProps> = memo(({ components, isOpen, onToggle }) => {
+  // Перетворення компонентів в плоский масив
+  const allComponents: (ComponentItem & { category: string })[] = [];
+  
+  Object.entries(components).forEach(([category, items]) => {
+    const itemsArray = Array.isArray(items) ? items : [items];
+    itemsArray.forEach((item) => {
+      if (item && item.name) {
+        allComponents.push({ category, ...item });
+      }
+    });
+  });
+
+  if (allComponents.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className='flex items-center justify-between'>
+          <CardTitle className='text-base'>Склад комплекту</CardTitle>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={onToggle}
+            className='h-8'
+          >
+            {isOpen ? (
+              <>
+                <ChevronUp className='w-4 h-4 mr-1' />
+                Згорнути
+              </>
+            ) : (
+              <>
+                <ChevronDown className='w-4 h-4 mr-1' />
+                Розгорнути
+              </>
+            )}
+          </Button>
+        </div>
+      </CardHeader>
+      {isOpen && (
+        <CardContent>
+          <div className='rounded-md border overflow-hidden'>
+            <Table>
+              <TableHeader>
+                <TableRow className='bg-muted/50'>
+                  <TableHead className='h-11 font-medium'>№</TableHead>
+                  <TableHead className='h-11 font-medium'>Назва</TableHead>
+                  <TableHead className='h-11 font-medium text-right'>К-сть</TableHead>
+                  <TableHead className='h-11 font-medium text-right'>Ціна</TableHead>
+                  <TableHead className='h-11 font-medium text-right'>Сума</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allComponents.map((component, index) => (
+                  <TableRow key={`${component.category}-${index}`} className='h-12'>
+                    <TableCell className='text-sm text-muted-foreground w-[40px]'>
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className='font-medium'>
+                      <div className='space-y-0.5'>
+                        <p className='text-sm'>{component.name}</p>
+                        {component.category !== 'other' && (
+                          <p className='text-xs text-muted-foreground capitalize'>
+                            {component.category === 'supports' && 'Опори'}
+                            {component.category === 'beams' && 'Балки'}
+                            {component.category === 'vertical_supports' && 'Верт. стійки'}
+                            {component.category === 'braces' && 'Розкоси'}
+                            {component.category === 'isolators' && 'Ізолятори'}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className='text-right'>
+                      <span className='text-sm font-mono tabular-nums'>
+                        {component.amount} шт
+                      </span>
+                    </TableCell>
+                    <TableCell className='text-right'>
+                      <PriceDisplay value={component.price} className='text-sm font-mono' />
+                    </TableCell>
+                    <TableCell className='text-right'>
+                      <PriceDisplay value={component.total} className='text-sm font-mono font-medium' />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+});
+
+ComponentsCard.displayName = 'ComponentsCard';
 
 export default BatteryResults;
