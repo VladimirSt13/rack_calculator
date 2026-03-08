@@ -55,7 +55,7 @@ export const calculateRackPrices = async (rackConfig, user, priceData = null) =>
 
 /**
  * Розрахувати ціни для списку стелажів (комплектів)
- * 
+ *
  * @param {Array} racksData - Масив стелажів з БД
  * @param {Object} user - Користувач з правами доступу
  * @param {Object} priceData - Дані прайсу (опціонально)
@@ -63,13 +63,13 @@ export const calculateRackPrices = async (rackConfig, user, priceData = null) =>
  */
 export const calculateRackSetPrices = async (racksData, user, priceData = null) => {
   const db = await getDb();
-  
+
   // Отримати актуальний прайс, якщо не передано
   if (!priceData) {
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
     priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
   }
-  
+
   // Розрахувати ціни для кожного стелажа
   return racksData.map(rack => {
     // Нова структура: { rackConfigId, quantity }
@@ -95,22 +95,20 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
         };
       }
     }
-    
+
     // Стара структура: { form, quantity }
-    else if (rack.form && priceData) {
+    if (rack.form && priceData) {
       const prices = calculateRackPrices(rack.form, user, priceData);
-      
+
       return {
         ...rack,
         ...prices,
         name: rack.name || prices.name,
       };
     }
-    
-    // Дуже стара структура - повертаємо як є
-    else {
-      return rack;
-    }
+
+    // Дуже стара структура або немає priceData - повертаємо як є
+    return rack;
   });
 };
 
