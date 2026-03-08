@@ -98,7 +98,8 @@ export const useBatteryCalculator = ({ priceData }: UseBatteryCalculatorProps) =
         name: variant.name || `Варіант ${index + 1}`,
         width: variant.width,
         height: variant.height,
-        length: variant.length,
+        length: variant.element?.length || Number(length),  // Довжина елемента з форми
+        totalLength: variant.length,  // Розрахункова довжина стелажа
         floors: variant.floors,
         rows: variant.rows,
         supportType: variant.supportType,

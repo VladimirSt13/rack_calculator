@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
-import { useBatteryResultsStore, type BatteryVariant, type PriceInfo } from '@/features/battery/resultsStore';
+import { useBatteryResultsStore, type BatteryVariant } from '@/features/battery/resultsStore';
 import { useBatterySetStore } from '@/features/battery/setStore';
+import { useBatteryFormStore } from '@/features/battery/formStore';
 import {
   Table,
   TableHeader,
@@ -24,6 +25,10 @@ interface BatteryResultsProps {
 }
 
 interface PreambleProps {
+  variants: BatteryVariant[];
+}
+
+interface BatteryElementProps {
   variants: BatteryVariant[];
 }
 
@@ -55,7 +60,7 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
       {/* Акумулятор - параметри елемента */}
       <BatteryElement variants={variants} />
 
-      {/* Таблиця варіантів прольотів */}
+      {/* Таблиця варіантів */}
       <SpansTable variants={variants} onAdd={addRack} />
     </div>
   );
@@ -67,15 +72,18 @@ BatteryResults.displayName = 'BatteryResults';
  * Пreamble - короткі вхідні дані
  */
 const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
-  // Унікальні параметри стелажа
-  const firstVariant = variants[0];
-
   // Кількість варіантів
   const variantsCount = variants.length;
 
-  // Мінімальна та максимальна вартість (тільки нульова ціна)
-  const minTotal = 0; // Нульова ціна
-  const maxTotal = 0; // Нульова ціна
+  // Розрахунок мін/макс вартості (нульова ціна)
+  const prices = variants
+    .flatMap((v) => v.prices || [])
+    .filter((p) => p.type === 'нульова' || p.type === 'zero');
+  
+  const minTotal = prices.length > 0 ? Math.min(...prices.map((p) => p.value)) : 0;
+  const maxTotal = prices.length > 0 ? Math.max(...prices.map((p) => p.value)) : 0;
+
+  const firstVariant = variants[0];
 
   return (
     <div className='space-y-3'>
@@ -90,8 +98,10 @@ const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
           <p className='text-lg font-semibold tabular-nums'>{variantsCount}</p>
         </div>
         <div className='space-y-1'>
-          <p className='text-xs text-muted-foreground'>Стелажів</p>
-          <p className='text-lg font-semibold tabular-nums'>{firstVariant?.rows} рядн., {firstVariant?.floors} пов.</p>
+          <p className='text-xs text-muted-foreground'>Конфігурація</p>
+          <p className='text-lg font-semibold tabular-nums'>
+            {firstVariant?.rows} рядн.{firstVariant?.floors > 1 ? `, ${firstVariant?.floors} пов.` : ''}
+          </p>
         </div>
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Мін. вартість</p>
@@ -109,12 +119,13 @@ const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
 Preamble.displayName = 'Preamble';
 
 /**
- * BatteryElement - параметри елемента, кількість, початкові параметри стелажа
+ * BatteryElement - параметри акумулятора з форми
  */
-const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
+const BatteryElement: React.FC<BatteryElementProps> = memo(({ variants }) => {
+  const formState = useBatteryFormStore();
   const firstVariant = variants[0];
 
-  if (!firstVariant) return null;
+  if (!firstVariant || !formState) return null;
 
   return (
     <div className='space-y-3'>
@@ -122,34 +133,14 @@ const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
       <Separator />
       <div className='grid grid-cols-2 gap-4'>
         <div className='space-y-1'>
-          <p className='text-xs text-muted-foreground'>Розміри елемента</p>
+          <p className='text-xs text-muted-foreground'>Розміри елемента (Д×Ш×В)</p>
           <p className='text-sm font-medium tabular-nums'>
-            {firstVariant.length} × {firstVariant.width} × {firstVariant.height} мм
+            {formState.length} × {formState.width} × {formState.height} мм
           </p>
         </div>
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Кількість</p>
-          <p className='text-sm font-medium tabular-nums'>-</p>
-        </div>
-      </div>
-
-      <div className='pt-2'>
-        <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2'>
-          Початкові параметри стелажа
-        </h4>
-        <div className='grid grid-cols-3 gap-4'>
-          <div className='space-y-1'>
-            <p className='text-xs text-muted-foreground'>Ширина</p>
-            <p className='text-sm font-medium tabular-nums'>{firstVariant.width} мм</p>
-          </div>
-          <div className='space-y-1'>
-            <p className='text-xs text-muted-foreground'>Висота</p>
-            <p className='text-sm font-medium tabular-nums'>{firstVariant.height} мм</p>
-          </div>
-          <div className='space-y-1'>
-            <p className='text-xs text-muted-foreground'>Довжина</p>
-            <p className='text-sm font-medium tabular-nums'>{firstVariant.length} мм</p>
-          </div>
+          <p className='text-sm font-medium tabular-nums'>{formState.count} од.</p>
         </div>
       </div>
 
@@ -158,7 +149,7 @@ const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
           Розрахункова довжина стелажа
         </h4>
         <p className='text-base font-semibold tabular-nums text-primary'>
-          {firstVariant.length} мм
+          {firstVariant.totalLength || firstVariant.length} мм
         </p>
       </div>
     </div>
@@ -168,79 +159,65 @@ const BatteryElement: React.FC<PreambleProps> = memo(({ variants }) => {
 BatteryElement.displayName = 'BatteryElement';
 
 /**
- * SpansTable - таблиця варіантів прольотів з кнопкою додавання
+ * SpansTable - таблиця варіантів з кнопкою додавання
  */
 const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
   if (variants.length === 0) {
     return <EmptyState />;
   }
 
+  // Отримати нульову ціну
+  const getZeroPrice = (variant: BatteryVariant) => {
+    const priceItem = variant.prices?.find((p) => p.type === 'нульова' || p.type === 'zero');
+    return priceItem?.value || 0;
+  };
+
   return (
     <div className='space-y-3'>
-      <h3 className='text-sm font-semibold'>Варіанти прольотів</h3>
+      <h3 className='text-sm font-semibold'>Варіанти стелажів</h3>
       <Separator />
       <div className='rounded-md border overflow-hidden'>
         <Table>
           <TableHeader>
             <TableRow className='bg-muted/50'>
-              <TableHead className='h-11 font-medium'>Абревіатура стелажа</TableHead>
-              <TableHead className='h-11 font-medium text-right'>Прольоти</TableHead>
-              <TableHead className='h-11 font-medium text-right'>Балок</TableHead>
-              <TableHead className='h-11 font-medium text-right'>Вартість, ₴</TableHead>
+              <TableHead className='h-11 font-medium'>Назва</TableHead>
+              <TableHead className='h-11 font-medium text-right'>Нульова ціна, ₴</TableHead>
               <TableHead className='h-11 w-[44px]' />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {variants.map((variant, index) => (
-              <TableRow
-                key={`${variant._index}-${index}`}
-                className='h-12 hover:bg-muted/30 transition-colors'
-              >
-                <TableCell className='max-w-[200px]'>
-                  <div className='space-y-0.5'>
-                    <p className='text-sm font-medium leading-none font-mono'>{variant.name}</p>
-                    <p className='text-xs text-muted-foreground tabular-nums'>
-                      {variant.width} × {variant.height} мм
-                    </p>
-                  </div>
-                </TableCell>
-                <TableCell className='text-right'>
-                  <span className='text-sm font-mono tabular-nums'>
-                    {variant.combination.join('+')} мм
-                  </span>
-                </TableCell>
-                <TableCell className='text-right'>
-                  <span className='text-sm font-mono tabular-nums'>
-                    {variant.beams} шт
-                  </span>
-                </TableCell>
-                <TableCell className='text-right'>
-                  <div className='space-y-1'>
-                    {variant.prices?.map((price: PriceInfo) => (
-                      <div key={price.type} className='text-right'>
-                        <span className='text-xs text-muted-foreground'>{price.label}: </span>
-                        <span className='text-sm font-medium tabular-nums'>
-                          {price.value.toLocaleString('uk-UA', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })} ₴
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className='p-0'>
-                  <div className='flex items-center justify-center h-full'>
-                    <IconButton
-                      icon={Plus}
-                      variant='icon'
-                      onClick={() => onAdd(variant, 1)}
-                      aria-label={`Додати ${variant.name}`}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {variants.map((variant, index) => {
+              const zeroPrice = getZeroPrice(variant);
+              // Формування назви з комбінацією та кількістю балок
+              const combinationStr = variant.combination.join('+');
+              const beamsCount = variant.combination.length;
+              const displayName = `${variant.name} (${combinationStr} - ${beamsCount} бал.)`;
+
+              return (
+                <TableRow
+                  key={`${variant._index}-${index}`}
+                  className='h-12 hover:bg-muted/30 transition-colors'
+                >
+                  <TableCell className='max-w-[300px]'>
+                    <p className='text-sm font-medium font-mono'>{displayName}</p>
+                  </TableCell>
+                  <TableCell className='text-right'>
+                    <PriceDisplay value={zeroPrice} className='font-medium tabular-nums' />
+                  </TableCell>
+                  <TableCell className='p-0'>
+                    <div className='flex items-center justify-center h-full'>
+                      <IconButton
+                        icon={Plus}
+                        variant='icon'
+                        onClick={() => onAdd(variant, 1)}
+                        aria-label={`Додати ${variant.name}`}
+                        title='Додати в комплект'
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

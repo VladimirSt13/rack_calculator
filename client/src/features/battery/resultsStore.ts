@@ -12,6 +12,7 @@ export interface BatteryVariant {
   width: number;
   height: number;
   length: number;
+  totalLength?: number;  // Розрахункова довжина стелажа
   floors: number;
   rows: number;
   supportType: string;
