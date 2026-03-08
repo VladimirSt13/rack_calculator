@@ -1,5 +1,5 @@
 import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost } from '../../../shared/rackCalculator.js';
+import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
 import { filterPricesByPermissions, getUserPricePermissions } from '../helpers/roles.js';
 
 /**
@@ -88,7 +88,7 @@ export const findOrCreateConfiguration = async (req, res, next) => {
     // 4. Відповідь
     res.json({
       rackConfigId: configId,
-      name: `Стелаж ${config.floors}х${config.rows}х${config.beamsPerRow}`,
+      name: generateRackName(config),
       config: {
         floors: config.floors,
         rows: config.rows,
