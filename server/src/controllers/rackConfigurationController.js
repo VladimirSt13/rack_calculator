@@ -1,6 +1,5 @@
 import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost, generateRackName } from '../../../shared/rackCalculator.js';
-import { filterPricesByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+import { calculateRackPrices } from '../services/pricingService.js';
 
 /**
  * GET /api/rack-configurations/find-or-create
@@ -64,41 +63,33 @@ export const findOrCreateConfiguration = async (req, res, next) => {
 
     // 2. Отримати актуальний прайс для розрахунку
     const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    
+
     if (!priceRecord) {
       return res.status(404).json({ error: 'Price data not found' });
     }
 
     const priceData = JSON.parse(priceRecord.data);
-    const userPermissions = await getUserPricePermissions(req.user);
 
-    // 3. Розрахувати компоненти та ціни
-    const components = calculateRackComponents(config, priceData);
-    const totalCost = calculateTotalCost(components);
+    // 3. Підготувати конфігурацію для розрахунку
+    const rackConfig = {
+      floors: config.floors,
+      rows: config.rows,
+      beamsPerRow: config.beamsPerRow,
+      supports: config.supports,
+      verticalSupports: config.verticalSupports,
+      spans: config.spans,
+    };
 
-    // Формуємо масив цін
-    const prices = [
-      { type: 'базова', label: 'Базова', value: totalCost },
-      { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-      { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-    ];
+    // 4. Розрахувати ціни з урахуванням дозволів
+    const { components, prices, totalCost, name } = await calculateRackPrices(rackConfig, req.user, priceData);
 
-    const filteredPrices = filterPricesByPermissions(prices, userPermissions);
-
-    // 4. Відповідь
+    // 5. Відповідь
     res.json({
       rackConfigId: configId,
-      name: generateRackName(config),
-      config: {
-        floors: config.floors,
-        rows: config.rows,
-        beamsPerRow: config.beamsPerRow,
-        supports: config.supports,
-        verticalSupports: config.verticalSupports,
-        spans: config.spans,
-      },
+      name,
+      config: rackConfig,
       components,
-      prices: filteredPrices,
+      prices,
       totalCost,
     });
   } catch (error) {
@@ -160,7 +151,6 @@ export const calculatePricesForConfiguration = async (req, res, next) => {
     }
 
     const priceData = JSON.parse(priceRecord.data);
-    const userPermissions = await getUserPricePermissions(req.user);
 
     // Підготувати конфігурацію для розрахунку
     const rackConfig = {
@@ -172,24 +162,15 @@ export const calculatePricesForConfiguration = async (req, res, next) => {
       spans: config.spans ? JSON.parse(config.spans) : null,
     };
 
-    // Розрахувати компоненти та ціни
-    const components = calculateRackComponents(rackConfig, priceData);
-    const totalCost = calculateTotalCost(components) * quantity;
-
-    const prices = [
-      { type: 'базова', label: 'Базова', value: totalCost },
-      { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 },
-      { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
-    ];
-
-    const filteredPrices = filterPricesByPermissions(prices, userPermissions);
+    // Розрахувати ціни з урахуванням дозволів
+    const { components, prices, totalCost } = await calculateRackPrices(rackConfig, req.user, priceData);
 
     res.json({
       rackConfigId: id,
       quantity,
       components,
-      prices: filteredPrices,
-      totalCost: totalCost,
+      prices,
+      totalCost: totalCost * quantity,
       calculated_at: new Date().toISOString(),
     });
   } catch (error) {
