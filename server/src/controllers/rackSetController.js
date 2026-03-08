@@ -346,11 +346,11 @@ export const updateRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
-    const { name, object_name, description, racks } = req.body;
+    const { name, object_name, description, racks, rack_items } = req.body;
 
     // Перевірка чи існує комплект
     const existing = db.prepare(`
-      SELECT id, user_id, racks, total_cost
+      SELECT id, user_id, racks, rack_items_new, total_cost_snapshot
       FROM rack_sets
       WHERE id = ? AND user_id = ?
     `).get(id, userId);
@@ -378,17 +378,52 @@ export const updateRackSet = async (req, res, next) => {
       updates.push('description = ?');
       values.push(description);
     }
+    
+    // Оновлення нової структури rack_items
+    if (rack_items !== undefined) {
+      updates.push('rack_items_new = ?');
+      values.push(JSON.stringify(rack_items));
+      
+      // Перерахунок total_cost_snapshot з актуального прайсу
+      const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+      if (priceRecord) {
+        const priceData = JSON.parse(priceRecord.data);
+        const totalCostSnapshot = rack_items.reduce((sum, item) => {
+          if (item.rackConfigId) {
+            const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(item.rackConfigId);
+            if (config) {
+              const rackConfig = {
+                floors: config.floors,
+                rows: config.rows,
+                beamsPerRow: config.beams_per_row,
+                supports: config.supports ? JSON.parse(config.supports) : null,
+                verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+                spans: config.spans ? JSON.parse(config.spans) : null,
+              };
+              const components = calculateRackComponents(rackConfig, priceData);
+              const rackTotal = calculateTotalCost(components);
+              return sum + (rackTotal * (item.quantity || 1));
+            }
+          }
+          return sum;
+        }, 0);
+        updates.push('total_cost_snapshot = ?');
+        values.push(totalCostSnapshot);
+      }
+    }
+    
+    // Оновлення старої структури racks (для зворотної сумісності)
     if (racks !== undefined) {
       updates.push('racks = ?');
       values.push(JSON.stringify(racks));
-      
+
       // Перерахунок загальної вартості
       const totalCost = racks.reduce((sum, rack) => {
         const rackTotal = rack.totalCost || rack.total_cost || 0;
         const quantity = rack.quantity || 1;
         return sum + (rackTotal * quantity);
       }, 0);
-      updates.push('total_cost = ?');
+      updates.push('total_cost_snapshot = ?');
       values.push(totalCost);
     }
 
