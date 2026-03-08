@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
 import { RackItemDisplay } from '@/shared/components/RackItemDisplay';
@@ -24,6 +25,7 @@ import { Loader2, Package, Download, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
+import { Checkbox } from '@/shared/components/Checkbox';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/authStore';
 
@@ -34,6 +36,9 @@ export const MyRackSetsPage: React.FC = () => {
   const [viewingSet, setViewingSet] = useState<RackSet | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [setToDelete, setSetToDelete] = useState<RackSet | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [rackSetToExport, setRackSetToExport] = useState<RackSet | null>(null);
+  const [includePrices, setIncludePrices] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
   });
@@ -45,8 +50,8 @@ export const MyRackSetsPage: React.FC = () => {
 
   // Мутація для експорту
   const exportMutation = useMutation({
-    mutationFn: (id: number) => rackSetsApi.export(id),
-    onSuccess: (data, id) => {
+    mutationFn: ({ id, includePrices }: { id: number; includePrices: boolean }) => rackSetsApi.export(id, includePrices),
+    onSuccess: (data, variables) => {
       const blob = new Blob([data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
@@ -54,9 +59,10 @@ export const MyRackSetsPage: React.FC = () => {
       const link = document.createElement('a');
       link.href = url;
 
-      const rackSet = data?.rackSets?.find((s: any) => s.id === id);
-      const fileName = rackSet?.name || `rack-set-${id}`;
-      link.download = `${fileName}.xlsx`;
+      const fileName = variables.includePrices
+        ? `${rackSetToExport?.name}_з_цінами.xlsx`
+        : `${rackSetToExport?.name}.xlsx`;
+      link.download = fileName;
 
       document.body.appendChild(link);
       link.click();
@@ -70,8 +76,18 @@ export const MyRackSetsPage: React.FC = () => {
     },
   });
 
-  const handleExport = (id: number) => {
-    exportMutation.mutate(id);
+  const handleExport = (rackSet: RackSet) => {
+    setRackSetToExport(rackSet);
+    setIncludePrices(false);
+    setIsExportOpen(true);
+  };
+
+  const handleConfirmExport = () => {
+    if (rackSetToExport) {
+      exportMutation.mutate({ id: rackSetToExport.id, includePrices });
+      setIsExportOpen(false);
+      setRackSetToExport(null);
+    }
   };
 
   // Відкрити перегляд комплекту
@@ -218,7 +234,7 @@ export const MyRackSetsPage: React.FC = () => {
                         <IconButton
                           icon={Download}
                           variant="icon"
-                          onClick={() => handleExport(rackSet.id)}
+                          onClick={() => handleExport(rackSet)}
                           aria-label="Експортувати"
                           disabled={exportMutation.isPending}
                         />
@@ -248,6 +264,62 @@ export const MyRackSetsPage: React.FC = () => {
           title="Видалити комплект?"
           description={`Ви дійсно хочете видалити комплект "${setToDelete?.name}"? Цю дію не можна скасувати.`}
         />
+      )}
+
+      {/* Діалог експорту */}
+      {isExportOpen && (
+        <Dialog open onOpenChange={setIsExportOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Експорт комплекту</DialogTitle>
+              <DialogDescription>
+                Оберіть опції експорту для "{rackSetToExport?.name}"
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="includePrices"
+                  checked={includePrices}
+                  onCheckedChange={(checked) => setIncludePrices(checked as boolean)}
+                />
+                <Label htmlFor="includePrices" className="text-sm font-medium cursor-pointer">
+                  Додати ціни в експорт
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Якщо відмітити, експорт буде містити стовпці з цінами на стелажі
+              </p>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsExportOpen(false)}
+                disabled={exportMutation.isPending}
+              >
+                Скасувати
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmExport}
+                disabled={exportMutation.isPending}
+              >
+                {exportMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Експорт...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Експортувати
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Діалог перегляду */}
