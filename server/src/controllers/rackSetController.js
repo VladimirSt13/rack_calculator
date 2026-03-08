@@ -1,5 +1,32 @@
 import { getDb } from '../db/index.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
+import { calculateRackComponents, calculateTotalCost } from '../../../shared/rackCalculator.js';
+import { filterPricesByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+
+/**
+ * Розрахувати ціни для стелажів на основі актуального прайсу
+ */
+const calculateRackPrices = (rack, priceData, userPermissions) => {
+  const components = calculateRackComponents(rack.form, priceData);
+  const totalCost = calculateTotalCost(components);
+  
+  // Формуємо масив цін
+  const prices = [
+    { type: 'базова', label: 'Базова', value: totalCost },
+    { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalCost * 0.9 }, // приклад
+    { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
+  ];
+
+  // Фільтруємо за дозволами користувача
+  const filteredPrices = filterPricesByPermissions(prices, userPermissions);
+
+  return {
+    ...rack,
+    components,
+    prices: filteredPrices,
+    totalCost,
+  };
+};
 
 /**
  * GET /api/rack-sets
@@ -9,9 +36,10 @@ export const getRackSets = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user.userId;
+    const userPermissions = getUserPricePermissions(req.user);
 
     const rackSets = db.prepare(`
-      SELECT 
+      SELECT
         id,
         user_id,
         name,
@@ -25,7 +53,33 @@ export const getRackSets = async (req, res, next) => {
       ORDER BY created_at DESC
     `).all(userId);
 
-    res.json({ rackSets });
+    // Отримати актуальний прайс для розрахунку
+    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    
+    if (priceRecord) {
+      const priceData = JSON.parse(priceRecord.data);
+      
+      // Перерахувати total_cost для кожного комплекту
+      const rackSetsWithPrices = rackSets.map(rackSet => {
+        const racks = db.prepare('SELECT racks FROM rack_sets WHERE id = ?').get(rackSet.id);
+        const racksData = JSON.parse(racks.racks);
+        
+        const currentTotal = racksData.reduce((sum, rack) => {
+          const calculated = calculateRackPrices(rack, priceData, userPermissions);
+          return sum + (calculated.totalCost * (rack.quantity || 1));
+        }, 0);
+
+        return {
+          ...rackSet,
+          total_cost: currentTotal, // актуальна вартість
+          calculated_at: new Date().toISOString(),
+        };
+      });
+
+      res.json({ rackSets: rackSetsWithPrices });
+    } else {
+      res.json({ rackSets });
+    }
   } catch (error) {
     next(error);
   }
@@ -40,9 +94,10 @@ export const getRackSet = async (req, res, next) => {
     const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
+    const userPermissions = getUserPricePermissions(req.user);
 
     const rackSet = db.prepare(`
-      SELECT 
+      SELECT
         id,
         user_id,
         name,
@@ -64,9 +119,36 @@ export const getRackSet = async (req, res, next) => {
     }
 
     // Парсинг JSON даних
-    rackSet.racks = JSON.parse(rackSet.racks);
+    const racksData = JSON.parse(rackSet.racks);
 
-    res.json({ rackSet });
+    // Отримати актуальний прайс
+    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    
+    if (priceRecord) {
+      const priceData = JSON.parse(priceRecord.data);
+      
+      // Розрахувати ціни для кожного стелажа
+      const racksWithPrices = racksData.map(rack => 
+        calculateRackPrices(rack, priceData, userPermissions)
+      );
+
+      // Розрахувати актуальну загальну вартість
+      const currentTotal = racksWithPrices.reduce(
+        (sum, rack) => sum + (rack.totalCost * (rack.quantity || 1)), 0
+      );
+
+      res.json({
+        rackSet: {
+          ...rackSet,
+          racks: racksWithPrices,
+          total_cost: currentTotal, // актуальна вартість
+          calculated_at: new Date().toISOString(),
+        }
+      });
+    } else {
+      rackSet.racks = racksData;
+      res.json({ rackSet });
+    }
   } catch (error) {
     next(error);
   }
