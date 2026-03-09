@@ -216,19 +216,6 @@ export const findBestRackForBattery = async (req, res, next) => {
     const maxSpan = Math.max(...spanObjects.map((s) => s.length));
     const optimizedVariants = optimizeRacks(spanCombinations, requiredLength, maxSpan, 5, price);
 
-    // Формування відповіді
-    const variants = optimizedVariants.map((v, index) => ({
-      span: v.combination[0],  // Перший проліт для сумісності
-      spansCount: v.combination.length,
-      totalLength: v.totalLength,
-      combination: v.combination,
-      beams: v.beams,
-      batteriesPerRow,
-      excessLength: Math.round(v.overLength * 100) / 100,
-      isBest: index === 0,  // Перший - найкращий
-      index,
-    }));
-
     // Розрахунок конфігурації для найкращого варіанту
     const bestVariant = optimizedVariants[0];
     const rackConfig = {
@@ -241,30 +228,63 @@ export const findBestRackForBattery = async (req, res, next) => {
     };
 
     // Розрахунок цін для найкращого варіанту
-    const { components, prices, totalCost } = calculateRackPricesWithPermissions(rackConfig, price, req.user);
+    const { components: bestComponents, prices: bestPrices, totalCost: bestTotalCost } = calculateRackPricesWithPermissions(rackConfig, price, req.user);
 
-    // Знайти або створити конфігурацію в БД
+    // Знайти або створити конфігурацію в БД для найкращого варіанту
     const rackConfigId = findOrCreateRackConfiguration(db, rackConfig);
+
+    // Перевірка дозволів на показ компонентів
+    const userPermissions = req.user?.permissions || { price_types: [] };
+    const showComponents = userPermissions.price_types?.includes('базова');
+
+    // Формування варіантів для відповіді з цінами
+    const variantsWithPrices = optimizedVariants.map((v, index) => {
+      // Конфігурація для кожного варіанту
+      const variantConfig = {
+        floors: floors,
+        rows: rows,
+        beamsPerRow: v.beams,
+        supports: config?.supports || 'C80',
+        verticalSupports: config?.verticalSupports || null,
+        spansArray: v.combination,
+      };
+
+      // Розрахунок цін для варіанту
+      const variantPrices = calculateRackPricesWithPermissions(variantConfig, price, req.user);
+
+      return {
+        span: v.combination[0],
+        spansCount: v.combination.length,
+        totalLength: v.totalLength,
+        combination: v.combination,
+        beams: v.beams,
+        batteriesPerRow,
+        excessLength: Math.round(v.overLength * 100) / 100,
+        isBest: index === 0,
+        index,
+        // Ціни (тільки дозволені)
+        prices: variantPrices.prices,
+        totalCost: variantPrices.totalCost,
+        // Компоненти (тільки якщо є дозвіл на базові ціни)
+        components: showComponents ? variantPrices.components : {},
+      };
+    });
 
     res.json({
       rackConfigId,
       requiredLength: Math.round(requiredLength),
       batteriesPerRow,
-      variants: variants.map((v, index) => ({
-        ...v,
-        isBest: v.span === bestMatch.span,
-        index,
-      })),
+      variants: variantsWithPrices,
       bestMatch: {
         rackConfigId,
-        span: bestMatch.span,
-        spansCount: bestMatch.spansCount,
-        totalLength: bestMatch.totalLength,
-        combination: bestMatch.combination,
+        span: bestVariant?.combination?.[0],
+        spansCount: bestVariant?.combination?.length,
+        totalLength: bestVariant?.totalLength,
+        combination: bestVariant?.combination,
         config: rackConfig,
-        components,
-        prices,
-        totalCost,
+        components: showComponents ? bestComponents : {},
+        prices: bestPrices,
+        totalCost: bestTotalCost,
         name: generateBatteryRackName({
           floors: rackConfig.floors,
           rows: rackConfig.rows,
