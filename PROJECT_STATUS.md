@@ -1,17 +1,18 @@
 # 📊 Проект: Rack Calculator v2.0 - Статус
 
 **Останнє оновлення:** 9 березня 2026
-**Статус:** Phase 1 завершено, Phase 2 завершено на 100%, Нормалізація БД завершена
+**Статус:** Phase 1 завершено, Phase 2 завершено на 100%, Battery Page реалізовано
 
 ---
 
 ## ✅ Виконані етапи (Phase 1)
 
 ### ✅ Етап 1: Міграції БД
-- 13 міграцій створено та виконано
+- 14 міграцій створено та виконано
 - Refresh tokens, email verification
 - Roles & permissions в БД
 - Rack configurations (нормалізація)
+- Braces field для розкосів
 
 ### ✅ Етап 2: Авторизація (Server)
 - Реєстрація з перевіркою домену @accu-energo.com.ua
@@ -27,7 +28,7 @@
 
 ### ✅ Етап 4: Обчислення на сервері
 - Rack controller
-- Battery controller
+- Battery controller (повний алгоритм з legacy)
 - Фільтрація цін за ролями
 
 ### ✅ Етап 5: Ролі та дозволи
@@ -35,6 +36,7 @@
 - Ролі: admin, manager, user
 - API для управління ролями
 - Зберігання permissions в БД
+- Компоненти без цін для user/manager
 
 ### ✅ Етап 6: Адмін-панель (базова)
 - AdminDashboard
@@ -100,33 +102,40 @@
 
 ---
 
-## ✅ Нормалізація БД (9 березня 2026)
+## ✅ Battery Page - ЗАВЕРШЕНО (9 березня 2026)
 
-### ✅ Міграція 012: Видалення поля racks
-- [x] Видалено поле `racks` з `rack_sets`
-- [x] Залишено тільки `rack_items` для посилання на конфігурації
-- [x] Міграція даних зі старих комплектів
+### ✅ Алгоритм розрахунку (з legacy)
+- [x] Розрахунок batteriesPerRow: quantity / (rows × floors)
+- [x] Розрахунок requiredLength: (count × length) + (count-1) × gap
+- [x] Генерація комбінацій прольотів (calcRackSpans)
+- [x] Перевірка ваги акумуляторів (checkSpanWeight)
+- [x] Оптимізація варіантів (optimizeRacks)
+- [x] Вибір TOP-5 за критеріями: балки, прольоти, симетрія, ціна
 
-### ✅ Міграція 013: Перейменування rack_items_new → rack_items
-- [x] Перейменовано колонку `rack_items_new` на `rack_items`
-- [x] Оновлено всі контролери
-- [x] Оновлено клієнтський API
+### ✅ Збереження в БД
+- [x] Таблиця rack_configurations (floors, rows, beams_per_row, supports, spans, braces)
+- [x] findOrCreateRackConfiguration - знайти або створити конфігурацію
+- [x] Автоматичний розрахунок braces типу (D600/D1000/D1500)
+- [x] Міграція 014: додавання поля braces
 
-### ✅ Оновлення контролерів
-- [x] `rackSetController.js` - робота з `rack_configurations`
-- [x] `exportController.js` - робота з `rack_configurations`
-- [x] Виправлено імпорт з `shared/rackCalculator.ts`
-- [x] Виправлено парсинг `supports` (простий рядок, не JSON)
+### ✅ Відображення результатів
+- [x] BatteryResults.tsx - таблиця варіантів
+- [x] Формат назви: L1A2-1000/430 (600+600 / 2 балки)
+- [x] Відображення requiredLength (розрахункова довжина)
+- [x] Компоненти стелажа (з дозволеними цінами)
+- [x] BatterySetModal - модальне вікно комплекту
+- [x] Експорт Battery комплектів в Excel
 
-### ✅ Виправлення розрахунку цін
-- [x] `pricingService.js` - `totalWithoutIsolators` через `calculateTotalWithoutIsolators`
-- [x] Видалено неправильну формулу `totalCost * 0.9`
-- [x] Тепер "Без ізоляторів" = базова мінус вартість ізоляторів
+### ✅ Ролі та дозволи
+- [x] Admin: всі ціни + компоненти з цінами
+- [x] Manager: нульова ціна + компоненти без цін
+- [x] User: немає доступу (або 0 цін)
 
-### ✅ Ролі та відображення цін
-- [x] Admin: показує всі ціни, totalCost = нульова
-- [x] Manager: показує нульову ціну, totalCost = нульова
-- [x] User: не показує ціни, totalCost = 0
+### ✅ User Menu та Profile
+- [x] UserMenu.tsx - випадаюче меню
+- [x] ProfilePage.tsx - зміна пароля
+- [x] DropdownMenu компонент (Radix UI)
+- [x] Інтеграція в Header
 
 ---
 
@@ -135,22 +144,34 @@
 ### ✅ Виправлення експорту комплектів (8 березня 2026)
 **Проблема:** При експорті комплекту стелажів в Excel не потрапляли стеллажі.
 
-**Причина:** При збереженні комплекту в БД в поле `racks` зберігалися тільки `{rackConfigId, quantity}` без повних даних (`components`, `prices`, `form`).
-
 **Виправлення:**
-- [x] `rackSetController.js`: збереження повних даних в `racks` при створенні/оновленні
-- [x] `pricingService.js`: використання існуючих даних якщо вони вже розраховані
-- [x] `exportController.js`: підтримка експорту для адміністраторів
-- [x] `rackSetController.js`: підтримка адміністраторів в `getRackSets`, `getRackSet`
-
-**Документація:** [EXPORT_FIX.md](./EXPORT_FIX.md)
+- [x] `rackSetController.js`: збереження повних даних в `racks`
+- [x] `pricingService.js`: використання існуючих даних
+- [x] `exportController.js`: підтримка адміністраторів
 
 ### ✅ Виправлення розрахунку "Без ізоляторів" (9 березня 2026)
-**Проблема:** Ціна "Без ізоляторів" розраховувалася як `totalCost * 0.9` (знижка 10%), а не як виключення вартості ізоляторів.
+**Проблема:** Ціна "Без ізоляторів" = `totalCost * 0.9` (знижка 10%).
 
 **Виправлення:**
-- [x] `pricingService.js`: використання `calculateTotalWithoutIsolators(components)`
-- [x] Тепер правильна формула: базова ціна мінус вартість ізоляторів
+- [x] `pricingService.js`: `calculateTotalWithoutIsolators(components)`
+- [x] Тепер: базова мінус вартість ізоляторів
+
+### ✅ Виправлення Battery Page (9 березня 2026)
+**Проблеми:**
+- [x] Не передавався `gap` на сервер
+- [x] Показував totalLength замість requiredLength
+- [x] Неправильна формула довжини (віднімання замість додавання)
+
+**Виправлення:**
+- [x] Додано `gap` в batteryDimensions
+- [x] Додано `requiredLength` в response
+- [x] Формула: `(count × length) + (count-1) × gap`
+
+### ✅ Нормалізація БД (9 березня 2026)
+- [x] Міграція 012: видалення поля `racks`
+- [x] Міграція 013: перейменування `rack_items_new` → `rack_items`
+- [x] Міграція 014: додавання поля `braces`
+- [x] Оновлено контролери для роботи з `rack_configurations`
 
 ---
 
@@ -160,8 +181,8 @@
 |-------|--------|------|--------|
 | admin@vs.com | P@ssw0rd13 | admin | Всі сторінки, всі ціни |
 | V.Stognij@accu-energo.com.ua | P@ssw0rd13 | admin | Всі сторінки, всі ціни |
-| manager@test.com | 123456 | manager | Тільки Battery, нульова ціна |
-| user@test.com | 123456 | user | Access Denied, без цін |
+| manager@test.com | 123456 | manager | Battery, нульова ціна |
+| user@test.com | 123456 | user | Access Denied |
 
 ---
 
@@ -229,7 +250,8 @@ npm run install:all      # Встановити все
 ### Загальна
 - [MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md)
 - [CONVENTIONS.md](./CONVENTIONS.md)
-- [EXPORT_FIX.md](./EXPORT_FIX.md) - Виправлення експорту
+- [EXPORT_FIX.md](./EXPORT_FIX.md)
+- [DB_NORMALIZATION_AUDIT.md](./DB_NORMALIZATION_AUDIT.md)
 
 ---
 
@@ -237,10 +259,10 @@ npm run install:all      # Встановити все
 
 | Показник | Значення |
 |----------|----------|
-| **Міграцій БД** | 13 |
+| **Міграцій БД** | 14 |
 | **Таблиць в БД** | 15 |
-| **API endpoints** | 35+ |
-| **Сторінок** | 18+ |
+| **API endpoints** | 40+ |
+| **Сторінок** | 20+ |
 | **Користувачів** | 5 |
-| **Комплектів** | 18 конфігурацій |
+| **Комплектів** | 18+ конфігурацій |
 | **Аудит записів** | 149+ |
