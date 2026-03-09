@@ -8,22 +8,36 @@ export interface PriceInfo {
   value: number;
 }
 
-export interface BatteryVariant {
-  _index: number;
-  name: string;
-  width: number;
-  height: number;
-  length: number;
-  totalLength?: number;  // Розрахункова довжина стелажа
+export interface RackConfig {
   floors: number;
   rows: number;
-  supportType: string;
+  beamsPerRow: number;
+  supports?: string | null;
+  verticalSupports?: string | null;
+  spans?: number[] | null;
+  braces?: string | null;
+}
+
+export interface BatteryVariant {
+  _index?: number;
+  rackConfigId?: number;
+  name: string;
+  config: RackConfig;
+  components: Record<string, ComponentItem | ComponentItem[]>;
+  prices: PriceInfo[];
+  totalCost: number;
+  // Додаткові поля для UI
+  span?: number;
+  spansCount?: number;
+  totalLength?: number;
   combination: number[];
   beams: number;
-  batteriesPerRow?: number;  // Кількість акумуляторів в ряду
-  prices?: PriceInfo[];
-  components?: Record<string, ComponentItem | ComponentItem[]>;  // Компоненти стелажа
-  rackConfigId?: number;  // ID конфігурації в БД (нова інтеграція)
+  batteriesPerRow?: number;
+  excessLength?: number;
+  isBest?: boolean;
+  index?: number;
+  quantity?: number;  // Для комплектів
+  setId?: number;     // Для комплектів
 }
 
 export interface BatteryResultsState {

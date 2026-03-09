@@ -285,6 +285,20 @@ export const findBestRackForBattery = async (req, res, next) => {
       }
 
       return {
+        rackConfigId: index === 0 ? rackConfigId : undefined,
+        name: generateBatteryRackName({
+          floors: variantConfig.floors,
+          rows: variantConfig.rows,
+          supportType: variantConfig.supports?.includes('C') ? 'step' : 'edge',
+          rackWidth: batteryDimensions.width,
+          rackLength: batteryLength,
+          spans: variantConfig.spansArray,
+        }),
+        config: variantConfig,
+        components: showPricesInComponents ? variantPrices.components : componentsWithPrices,
+        prices: variantPrices.prices,
+        totalCost: variantPrices.totalCost,
+        // Додаткові поля для UI
         span: v.combination[0],
         spansCount: v.combination.length,
         totalLength: v.totalLength,
@@ -294,11 +308,6 @@ export const findBestRackForBattery = async (req, res, next) => {
         excessLength: Math.round(v.overLength * 100) / 100,
         isBest: index === 0,
         index,
-        // Ціни (тільки дозволені)
-        prices: variantPrices.prices,
-        totalCost: variantPrices.totalCost,
-        // Компоненти (завжди, але ціни тільки з дозволом)
-        components: componentsWithPrices,
       };
     });
 

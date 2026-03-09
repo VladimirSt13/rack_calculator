@@ -119,7 +119,7 @@ const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
         <div className='space-y-1'>
           <p className='text-xs text-muted-foreground'>Конфігурація</p>
           <p className='text-lg font-semibold tabular-nums'>
-            {firstVariant?.rows} рядн.{firstVariant?.floors > 1 ? `, ${firstVariant?.floors} пов.` : ''}
+            {firstVariant?.config.rows} рядн.{firstVariant?.config.floors > 1 ? `, ${firstVariant?.config.floors} пов.` : ''}
           </p>
         </div>
         <div className='space-y-1'>
@@ -194,12 +194,12 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
   // Формування назви: Стелаж ... L1A2C-1000/430 (комбінація / висота / н бал.)
   const formatName = (variant: BatteryVariant) => {
     const combinationStr = variant.combination.join('+');
-    const beamsCount = variant.beams || variant.combination.length;  // Кількість балок в ряду
+    const beamsCount = variant.beams;
     const beamsLabel = beamsCount === 1 ? 'балка' : beamsCount <= 4 ? 'балки' : 'балок';
     
     // Якщо багатоповерховий - додаємо висоту
-    if (variant.floors > 1) {
-      return `${variant.name} (${combinationStr} / ${variant.height} / ${beamsCount} ${beamsLabel})`;
+    if (variant.config.floors > 1) {
+      return `${variant.name} (${combinationStr} / ${variant.config.verticalSupports ? 'V' : ''} / ${beamsCount} ${beamsLabel})`;
     }
     
     // Якщо одноповерховий - без висоти

@@ -52,24 +52,22 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
       // Трансформація відповіді сервера в BatteryVariant
       const transformedVariants: BatteryVariant[] = response.variants.map((variant: any, index: number) => ({
         _index: index,
-        name: variant.name || `Варіант ${index + 1}`,
-        width: Number(width),
-        height: Number(height),
-        length: Number(length),
-        totalLength: response.requiredLength,
-        floors: Number(floors),
-        rows: Number(rows),
-        supportType,
+        rackConfigId: variant.rackConfigId,
+        name: variant.name,
+        config: variant.config,
+        components: variant.components || {},
+        prices: variant.prices || [],
+        totalCost: variant.totalCost || 0,
+        // Додаткові поля для UI
+        span: variant.span,
+        spansCount: variant.spansCount,
+        totalLength: variant.totalLength,
         combination: variant.combination,
         beams: variant.beams,
         batteriesPerRow: response.batteriesPerRow,
-        prices: variant.prices?.map((p: any) => ({
-          type: p.type,
-          label: p.label,
-          value: p.value,
-        })),
-        components: variant.components || {},
-        rackConfigId: variant.rackConfigId,
+        excessLength: variant.excessLength,
+        isBest: variant.isBest,
+        index: variant.index,
       }));
 
       resultsStore.setVariants(transformedVariants);
