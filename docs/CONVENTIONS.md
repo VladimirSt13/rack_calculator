@@ -1,6 +1,6 @@
 # 📋 Конвенції проєкту Rack Calculator
 
-> Версія: 2.0.0  
+> Версія: 2.0.0
 > Оновлено: 6 березня 2026
 
 Цей документ описує стандарти розробки для monorepo проєкту Rack Calculator (React + Express + TypeScript).
@@ -122,7 +122,7 @@ export function useRackCalculator({
 }: UseRackCalculatorProps): UseRackCalculatorReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const calculate = useCallback(() => {
     // логіка
   }, [priceData]);
@@ -291,7 +291,7 @@ function Card({ children }: { children: React.ReactNode }) {
 {isLoading ? <Skeleton /> : <Results />}
 
 // ✅ Використовуйте && для простих умов
-{error && <Alert variant="destructive">{error}</Alert>}
+{error && <Alert variant="destructive">{error.message}</Alert>}
 
 // ❌ Уникати
 {isLoading && <Skeleton />}
@@ -308,11 +308,11 @@ function Card({ children }: { children: React.ReactNode }) {
 // ✅ Error Boundary для класів
 class ErrorBoundary extends React.Component {
   state = { hasError: false };
-  
+
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-  
+
   render() {
     if (this.state.hasError) {
       return <FallbackUI />;
@@ -468,10 +468,10 @@ export const useRackFormStore = create<RackFormState>((set) => ({
 ```tsx
 // ✅ Mobile-first підхід
 <div className="
-  grid 
-  grid-cols-1 
-  md:grid-cols-2 
-  lg:grid-cols-3 
+  grid
+  grid-cols-1
+  md:grid-cols-2
+  lg:grid-cols-3
   gap-4
 ">
   {/* Контент */}
@@ -540,11 +540,11 @@ import DOMPurify from 'dompurify';
 // ✅ Protected route
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 }
 
@@ -571,7 +571,7 @@ describe('calculateRack', () => {
       rows: 2,
       beamsPerRow: 2,
     });
-    
+
     expect(result.totalBeams).toBe(12);
   });
 });
@@ -588,16 +588,16 @@ import { RackForm } from './RackForm';
 describe('RackForm', () => {
   it('повинен відображати форму з початковими значеннями', () => {
     render(<RackForm onSubmit={vi.fn()} />);
-    
+
     expect(screen.getByLabelText(/кількість поверхів/i)).toHaveValue(3);
   });
 
   it('повинен викликати onSubmit при відправці', async () => {
     const handleSubmit = vi.fn();
     render(<RackForm onSubmit={handleSubmit} />);
-    
+
     fireEvent.click(screen.getByText(/розрахувати/i));
-    
+
     await waitFor(() => {
       expect(handleSubmit).toHaveBeenCalled();
     });
@@ -616,18 +616,18 @@ import { useRackCalculator } from './useRackCalculator';
 describe('useRackCalculator', () => {
   it('повинен повертати початковий стан', () => {
     const { result } = renderHook(() => useRackCalculator({}));
-    
+
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
   it('повинен розраховувати стелаж', async () => {
     const { result } = renderHook(() => useRackCalculator({ priceData: mockPrice }));
-    
+
     await act(async () => {
       await result.current.calculate();
     });
-    
+
     expect(result.current.calculationState).toBe('ready');
   });
 });
@@ -702,7 +702,7 @@ useEffect(() => {
   const timer = setTimeout(() => {
     calculate();
   }, 500);
-  
+
   return () => clearTimeout(timer);
 }, [calculate]);
 
@@ -774,8 +774,8 @@ const filteredData = useMemo(() => {
 <img src="/images/rack.webp" alt="Стелаж" loading="lazy" />
 
 // ✅ Вказуйте розміри
-<img 
-  src="/images/rack.webp" 
+<img
+  src="/images/rack.webp"
   alt="Стелаж"
   width="800"
   height="600"
@@ -937,6 +937,6 @@ chore/update-dependencies
 
 ---
 
-**Оновлено:** 6 березня 2026  
-**Версія:** 2.0.0  
+**Оновлено:** 6 березня 2026
+**Версія:** 2.0.0
 **Підтримка:** Акку-енерго

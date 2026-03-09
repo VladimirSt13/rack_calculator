@@ -1,7 +1,7 @@
 # 📊 Аудит змін: Нормалізація БД та виправлення розрахунку цін
 
-**Дата:** 9 березня 2026  
-**Статус:** ✅ Завершено  
+**Дата:** 9 березня 2026
+**Статус:** ✅ Завершено
 **Версія:** 2.2
 
 ---
@@ -55,7 +55,7 @@ rack_sets (
 ```javascript
 const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
   const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rackConfigId);
-  
+
   const rackConfig = {
     floors: config.floors,
     rows: config.rows,
@@ -64,10 +64,10 @@ const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
     verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
     spans: config.spans ? JSON.parse(config.spans) : null,
   };
-  
+
   const rackCalculator = await import('../../../shared/rackCalculator.js');
   const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
-  
+
   // Розрахунок цін з урахуванням дозволів
   // ...
 };
@@ -255,6 +255,6 @@ npm run migrate:status
 
 ---
 
-**Аудит провів:** Qwen Code  
-**Дата:** 9 березня 2026  
+**Аудит провів:** Qwen Code
+**Дата:** 9 березня 2026
 **Статус:** ✅ Завершено

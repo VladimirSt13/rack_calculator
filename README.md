@@ -155,34 +155,63 @@ server/
 
 ## 📚 Документація
 
-### Server
+### Плани розробки
+- [plan-server.md](./plan-server.md) - План розробки: Серверна частина
+- [plan-client.md](./plan-client.md) - План розробки: Клієнтська частина
 
+### Server
 - [ROLES_AND_PERMISSIONS.md](./server/docs/ROLES_AND_PERMISSIONS.md) - Ролі та дозволи
+- [PRICING.md](./server/docs/PRICING.md) - Система цін
 - [MIGRATIONS_GUIDE.md](./server/docs/MIGRATIONS_GUIDE.md) - Міграції БД
 - [PASSWORD_RESET.md](./server/docs/PASSWORD_RESET.md) - Відновлення пароля
-- [ROLES_AND_ACCESS.md](./server/docs/ROLES_AND_ACCESS.md) - Доступ за ролями
+- [AUDIT_MANAGEMENT.md](./server/docs/AUDIT_MANAGEMENT.md) - Журнал аудиту
 
 ### Client
-
 - [ROUTES.md](./client/docs/ROUTES.md) - Маршрути
 - [STAGE_3_COMPLETE.md](./client/docs/STAGE_3_COMPLETE.md) - Авторизація
+- [COMPONENTS.md](./client/COMPONENTS.md) - Компоненти
+- [DESIGN_SYSTEM.md](./client/DESIGN_SYSTEM.md) - Дизайн система
 
 ### Загальна
-
-- [MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md) - План модернізації
-- [CONVENTIONS.md](./CONVENTIONS.md) - Конвенції проєкту
+- [CONVENTIONS.md](./docs/CONVENTIONS.md) - Конвенції проєкту
+- [docs/AUDIT_REPORT.md](./docs/AUDIT_REPORT.md) - Аудит відповідності конвенціям
+- [docs/CLIENT_AUDIT.md](./docs/CLIENT_AUDIT.md) - Аналіз клієнта
+- [docs/EXPORT_FIX.md](./docs/EXPORT_FIX.md) - Виправлення експорту
+- [docs/DB_NORMALIZATION_AUDIT.md](./docs/DB_NORMALIZATION_AUDIT.md) - Нормалізація БД
+- [docs/BATTERY_PAGE_AUDIT.md](./docs/BATTERY_PAGE_AUDIT.md) - Аудит Battery сторінки
 
 ## 🛠️ Корисні команди
 
+### Server
+
 ```bash
-# Server
+# Міграції
 npm run migrate          # Запуск міграцій
 npm run migrate:status   # Статус міграцій
+npm run migrate:rollback # Відкат міграції
+
+# Адмін
 npm run seed:admin       # Створити адмінів
 
-# Client
+# Cleanup скрипти
+npm run audit:cleanup    # Очистити аудит (90 днів)
+npm run audit:cleanup 30 # Очистити аудит (30 днів)
+npm run token:cleanup    # Очистити застарілі токени (30 днів)
+npm run cleanup:deleted  # Очистити видалені об'єкти (30 днів)
+```
+
+### Client
+
+```bash
 npm run build            # Збірка
 npm run typecheck        # Перевірка типів
+```
+
+### Разом
+
+```bash
+npm run dev              # Обидва одночасно
+npm run install:all      # Встановити все
 ```
 
 ## 📄 Ліцензія

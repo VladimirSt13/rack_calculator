@@ -50,7 +50,7 @@ if (racks !== undefined) {
   // Якщо оновлюється rack_items без racks, оновлюємо і racks для експорту
   const existingRacks = JSON.parse(existing.racks);
   const updatedRacks = rack_items.map(rackItem => {
-    const existingRack = existingRacks.find(r => 
+    const existingRack = existingRacks.find(r =>
       r.rackConfigId === rackItem.rackConfigId || r.id === rackItem.rackConfigId
     );
     if (existingRack) {
@@ -82,8 +82,8 @@ return racksData.map(rack => {
 return racksData.map(rack => {
   // Якщо вже є components і prices (збережені повні дані) - використовуємо їх
   // Це важливо для експорту, щоб не втрачати дані
-  if (rack.components && Object.keys(rack.components).length > 0 && 
-      rack.prices && rack.prices.length > 0 && 
+  if (rack.components && Object.keys(rack.components).length > 0 &&
+      rack.prices && rack.prices.length > 0 &&
       rack.totalCost !== undefined && rack.totalCost !== 0) {
     // Дані вже розраховані - повертаємо як є
     return {
@@ -135,7 +135,7 @@ if (isAdmin) {
 Додано підтримку адміністраторів для перегляду всіх комплектів:
 ```javascript
 const isAdmin = userRole === 'admin';
-const rackSets = isAdmin 
+const rackSets = isAdmin
   ? db.prepare('SELECT ... FROM rack_sets ORDER BY created_at DESC').all()
   : db.prepare('SELECT ... FROM rack_sets WHERE user_id = ?').all(userId);
 ```
