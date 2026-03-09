@@ -194,15 +194,16 @@ const SpansTable: React.FC<SpansTableProps> = memo(({ variants, onAdd }) => {
   // Формування назви: Стелаж ... L1A2C-1000/430 (комбінація / висота / н бал.)
   const formatName = (variant: BatteryVariant) => {
     const combinationStr = variant.combination.join('+');
-    const beamsCount = variant.combination.length;
+    const beamsCount = variant.beams || variant.combination.length;  // Кількість балок в ряду
+    const beamsLabel = beamsCount === 1 ? 'балка' : beamsCount <= 4 ? 'балки' : 'балок';
     
     // Якщо багатоповерховий - додаємо висоту
     if (variant.floors > 1) {
-      return `${variant.name} (${combinationStr} / ${variant.height} / ${beamsCount} бал.)`;
+      return `${variant.name} (${combinationStr} / ${variant.height} / ${beamsCount} ${beamsLabel})`;
     }
     
     // Якщо одноповерховий - без висоти
-    return `${variant.name} (${combinationStr} / ${beamsCount} бал.)`;
+    return `${variant.name} (${combinationStr} / ${beamsCount} ${beamsLabel})`;
   };
 
   return (
