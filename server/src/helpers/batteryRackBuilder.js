@@ -111,17 +111,28 @@ export const generateSpanCombinations = ({ rackLength, spans, limit = 500 }) => 
  */
 export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardSpans }) => {
   const results = [];
-  const neededBeamsForSpan = generateSpanOptions({ accLength, accWeight, gap, spans: standardSpans, beamsRange: CONSTANTS.beamsRange });
-
-  for (const currentSpan of neededBeamsForSpan) {
-    const spans = standardSpans
-      .filter((s) => s.length <= currentSpan.spanLength)
-      .map((s) => s.length)
-      .sort((a, b) => b - a);
-
-    const combinations = generateSpanCombinations({ rackLength, spans });
-    combinations.forEach((combo) => results.push({ combination: combo, beams: currentSpan.beams }));
+  
+  // Спочатку генеруємо всі комбінації прольотів
+  const allSpans = standardSpans.map(s => s.length).sort((a, b) => b - a);
+  const combinations = generateSpanCombinations({ rackLength, spans: allSpans });
+  
+  // Для кожної комбінації перевіряємо вантажопідйомність
+  for (const combo of combinations) {
+    // Беремо найбільший проліт в комбінації
+    const maxSpanLength = Math.max(...combo);
+    const maxSpanObj = standardSpans.find(s => s.length === maxSpanLength);
+    
+    if (!maxSpanObj) continue;
+    
+    // Перевіряємо, скільки балок потрібно для вантажопідйомності
+    for (const beams of CONSTANTS.beamsRange) {
+      if (checkSpanWeight({ span: maxSpanObj, beams, accLength, accWeight, gap })) {
+        results.push({ combination: combo, beams });
+        break; // Знайдено мінімальну кількість балок - додаємо і переходимо далі
+      }
+    }
   }
+  
   return results;
 };
 
