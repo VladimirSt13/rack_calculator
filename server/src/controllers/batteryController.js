@@ -13,12 +13,13 @@ import { calcRackSpans, optimizeRacks } from '../helpers/batteryRackBuilder.js';
  * Отримати або створити конфігурацію стелажа в БД
  */
 const findOrCreateRackConfiguration = (db, config) => {
-  const { floors, rows, beamsPerRow, supports, verticalSupports, spans } = config;
+  const { floors, rows, beamsPerRow, supports, verticalSupports, spans, braces } = config;
   
   // Серіалізація для порівняння
   const supportsStr = supports || null;
   const verticalSupportsStr = verticalSupports || null;
   const spansJson = spans ? JSON.stringify(spans) : null;
+  const bracesStr = braces || null;
   
   // Спроба знайти існуючу конфігурацію
   const existing = db.prepare(`
@@ -29,6 +30,7 @@ const findOrCreateRackConfiguration = (db, config) => {
       AND (supports IS ? OR supports = ?)
       AND (vertical_supports IS ? OR vertical_supports = ?)
       AND (spans IS ? OR spans = ?)
+      AND (braces IS ? OR braces = ?)
   `).get(
     floors,
     rows,
@@ -38,7 +40,9 @@ const findOrCreateRackConfiguration = (db, config) => {
     verticalSupportsStr === null ? 'NULL' : verticalSupportsStr,
     verticalSupportsStr,
     spansJson === null ? 'NULL' : spansJson,
-    spansJson
+    spansJson,
+    bracesStr === null ? 'NULL' : bracesStr,
+    bracesStr
   );
   
   if (existing) {
@@ -47,15 +51,16 @@ const findOrCreateRackConfiguration = (db, config) => {
   
   // Створити нову конфігурацію
   const result = db.prepare(`
-    INSERT INTO rack_configurations (floors, rows, beams_per_row, supports, vertical_supports, spans)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO rack_configurations (floors, rows, beams_per_row, supports, vertical_supports, spans, braces)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(
     floors,
     rows,
     beamsPerRow,
     supportsStr,
     verticalSupportsStr,
-    spansJson
+    spansJson,
+    bracesStr
   );
   
   return result.lastInsertRowid;
@@ -218,6 +223,11 @@ export const findBestRackForBattery = async (req, res, next) => {
 
     // Розрахунок конфігурації для найкращого варіанту
     const bestVariant = optimizedVariants[0];
+    
+    // Визначення типу розкосів (брейсів) на основі довжини стелажа
+    const rackLength = bestVariant?.totalLength || requiredLength;
+    const bracesType = rackLength >= 1500 ? 'D1500' : rackLength >= 1000 ? 'D1000' : 'D600';
+    
     const rackConfig = {
       floors: floors,
       rows: rows,
@@ -225,6 +235,7 @@ export const findBestRackForBattery = async (req, res, next) => {
       supports: config?.supports || 'C80',
       verticalSupports: config?.verticalSupports || null,
       spansArray: bestVariant?.combination || [],
+      braces: bracesType,
     };
 
     // Розрахунок цін для найкращого варіанту
@@ -239,6 +250,10 @@ export const findBestRackForBattery = async (req, res, next) => {
 
     // Формування варіантів для відповіді з цінами
     const variantsWithPrices = optimizedVariants.map((v, index) => {
+      // Визначення типу розкосів для варіанту
+      const variantLength = v.totalLength || requiredLength;
+      const variantBraces = variantLength >= 1500 ? 'D1500' : variantLength >= 1000 ? 'D1000' : 'D600';
+      
       // Конфігурація для кожного варіанту
       const variantConfig = {
         floors: floors,
@@ -247,6 +262,7 @@ export const findBestRackForBattery = async (req, res, next) => {
         supports: config?.supports || 'C80',
         verticalSupports: config?.verticalSupports || null,
         spansArray: v.combination,
+        braces: variantBraces,
       };
 
       // Розрахунок цін для варіанту
