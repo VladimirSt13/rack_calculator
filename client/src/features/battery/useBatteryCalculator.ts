@@ -22,7 +22,7 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
   const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
   const calculate = useCallback(async (formState: BatteryFormState) => {
-    const { length, width, height, weight, count, rows, floors, supportType } = formState;
+    const { length, width, height, weight, gap, count, rows, floors, supportType } = formState;
 
     // Validation
     if (!length || !width || !height || !weight || !count) {
@@ -39,6 +39,7 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
       width: Number(width),
       height: Number(height),
       weight: Number(weight),
+      gap: Number(gap) || 0,
     };
 
     try {
