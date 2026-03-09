@@ -1,5 +1,5 @@
 import api from '@/features/auth/authApi';
-import type { BatteryCalculationRequest, BatteryCalculationResponse, BatteryVariantDto } from '@/shared/types/api.types';
+import type { BatteryCalculationRequest, BatteryFindBestResponse } from '@/shared/types/api.types';
 
 export const batteryApi = {
   /**
@@ -10,7 +10,7 @@ export const batteryApi = {
     weight: number,
     quantity: number,
     config?: { format?: string }
-  ): Promise<BatteryCalculationResponse> => {
+  ): Promise<any> => {
     const { data } = await api.post('/battery/calculate', {
       batteryDimensions,
       weight,
@@ -28,7 +28,7 @@ export const batteryApi = {
     weight: number,
     quantity: number,
     config?: { floors?: number; rows?: number; supportType?: string }
-  ): Promise<{ variants: BatteryVariantDto[]; bestMatch?: unknown }> => {
+  ): Promise<BatteryFindBestResponse> => {
     const { data } = await api.post('/battery/find-best', {
       batteryDimensions,
       weight,

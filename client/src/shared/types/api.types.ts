@@ -176,33 +176,37 @@ export interface BatteryCalculationRequest {
 }
 
 export interface BatteryVariantDto {
-  id: string;
-  name: string;
-  rackLength: number;
-  batteriesPerRow: number;
-  rows: number;
-  totalBatteries: number;
-  config: {
+  id?: string;
+  name?: string;
+  rackLength?: number;
+  batteriesPerRow?: number;
+  rows?: number;
+  totalBatteries?: number;
+  span?: number;
+  spansCount?: number;
+  totalLength?: number;
+  combination?: number[];
+  beams?: number;
+  config?: {
     floors: number;
     rows: number;
     beamsPerRow: number;
     spansArray: number[];
   };
-  components: Array<{
-    name: string;
-    amount: number;
-    price: number;
-    total: number;
-  }>;
+  components?: Record<string, any>;
   prices?: Array<{
     type: string;
-    amount: number;
     label: string;
+    value: number;
   }>;
   totalCost?: number;
+  rackConfigId?: number;
 }
 
-export interface BatteryCalculationResponse {
+export interface BatteryFindBestResponse {
+  rackConfigId?: number;
+  requiredLength?: number;
+  batteriesPerRow?: number;
   variants: BatteryVariantDto[];
   bestMatch?: {
     variant: BatteryVariantDto;

@@ -20,6 +20,7 @@ export interface BatteryVariant {
   supportType: string;
   combination: number[];
   beams: number;
+  batteriesPerRow?: number;  // Кількість акумуляторів в ряду
   prices?: PriceInfo[];
   components?: Record<string, ComponentItem | ComponentItem[]>;  // Компоненти стелажа
   rackConfigId?: number;  // ID конфігурації в БД (нова інтеграція)

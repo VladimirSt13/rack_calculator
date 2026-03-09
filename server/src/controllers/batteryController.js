@@ -187,20 +187,28 @@ export const findBestRackForBattery = async (req, res, next) => {
       return res.status(400).json({ error: 'No span options available in price data' });
     }
 
+    // Конфігурація стелажа
+    const rows = config?.rows || 2;
+    const floors = config?.floors || 1;
+
+    // Розрахунок кількості акумуляторів в одному ряду
+    // Кількість акумуляторів / кількість рядів / кількість поверхів
+    const batteriesPerRow = Math.ceil(quantity / (rows * floors));
+
     // Розрахунок необхідної довжини стелажа
     const batteryLength = batteryDimensions.length;
     const gap = batteryDimensions.gap || 0;
-    const batteriesPerRow = quantity || 1;
 
-    // Загальна довжина, яку потрібно покрити
-    const requiredLength = (batteryLength + gap) * batteriesPerRow;
+    // Довжина = (кількість * довжина) - (кількість-1) * зазор
+    // Загальна довжина ряду з урахуванням зазорів між акумуляторами
+    const requiredLength = (batteriesPerRow * batteryLength) - ((batteriesPerRow - 1) * gap);
 
     // Генерація варіантів розподілу по стандартним балкам
     const variants = spanOptions.map((span) => {
       const spansCount = Math.ceil(requiredLength / span);
       const totalLength = span * spansCount;
       const excessLength = totalLength - requiredLength;
-      
+
       // Комбінація балок
       const combination = Array(spansCount).fill(span);
 
@@ -209,19 +217,20 @@ export const findBestRackForBattery = async (req, res, next) => {
         spansCount,
         totalLength,
         combination,
+        batteriesPerRow,
         excessLength: Math.round(excessLength * 100) / 100,
       };
     });
 
     // Вибір найкращого варіанту (мінімальна довжина, але >= requiredLength)
-    const bestMatch = variants.reduce((min, v) => 
+    const bestMatch = variants.reduce((min, v) =>
       (v.totalLength >= requiredLength && v.totalLength < min.totalLength) ? v : min
     , variants[0]);
 
     // Розрахунок конфігурації для найкращого варіанту
     const rackConfig = {
-      floors: config?.floors || 1,
-      rows: config?.rows || 2,
+      floors: floors,
+      rows: rows,
       beamsPerRow: config?.beamsPerRow || 2,
       supports: config?.supports || 'C80',
       verticalSupports: config?.verticalSupports || null,
@@ -236,7 +245,8 @@ export const findBestRackForBattery = async (req, res, next) => {
 
     res.json({
       rackConfigId,
-      requiredLength,
+      requiredLength: Math.round(requiredLength),
+      batteriesPerRow,
       variants: variants.map((v, index) => ({
         ...v,
         isBest: v.span === bestMatch.span,
