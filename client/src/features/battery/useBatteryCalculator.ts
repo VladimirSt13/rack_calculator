@@ -71,6 +71,7 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
       }));
 
       resultsStore.setVariants(transformedVariants);
+      resultsStore.setRequiredLength(response.requiredLength);
       setCalculationState('ready');
     } catch (error) {
       logger.error('[BatteryCalculator] Error:', error);
@@ -84,6 +85,7 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
     isLoading: resultsStore.isLoading,
     error: resultsStore.error,
     variants: resultsStore.variants,
+    requiredLength: resultsStore.requiredLength,  // Додамо requiredLength
     calculationState,
     setCalculationState,
   };

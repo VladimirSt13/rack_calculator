@@ -44,7 +44,7 @@ interface SpansTableProps {
 }
 
 const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false }) => {
-  const { variants } = useBatteryResultsStore();
+  const { variants, requiredLength } = useBatteryResultsStore();
   const { addRack } = useBatterySetStore();
   const [showComponents, setShowComponents] = useState(false);
 
@@ -168,7 +168,7 @@ const BatteryElement: React.FC<BatteryElementProps> = memo(({ variants }) => {
           Розрахункова довжина стелажа
         </h4>
         <p className='text-base font-semibold tabular-nums text-primary'>
-          {firstVariant?.totalLength || firstVariant?.config.spans?.reduce((a, b) => a + b, 0) || 0} мм
+          {requiredLength || 0} мм
         </p>
       </div>
     </div>

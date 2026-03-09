@@ -43,12 +43,14 @@ export interface BatteryVariant {
 export interface BatteryResultsState {
   variants: BatteryVariant[];
   selectedVariant: BatteryVariant | null;
+  requiredLength?: number;  // Розрахункова довжина стелажа
   isLoading: boolean;
   error: string | null;
 }
 
 export interface BatteryResultsActions {
   setVariants: (variants: BatteryVariant[]) => void;
+  setRequiredLength: (length: number) => void;
   setSelectedVariant: (variant: BatteryVariant | null) => void;
   clear: () => void;
   setLoading: (loading: boolean) => void;
@@ -58,6 +60,7 @@ export interface BatteryResultsActions {
 const initialResultsState: BatteryResultsState = {
   variants: [],
   selectedVariant: null,
+  requiredLength: undefined,
   isLoading: false,
   error: null,
 };
@@ -66,6 +69,7 @@ export const useBatteryResultsStore = create<BatteryResultsState & BatteryResult
   ...initialResultsState,
 
   setVariants: (variants) => set({ variants, isLoading: false, error: null }),
+  setRequiredLength: (length) => set({ requiredLength: length }),
   setSelectedVariant: (variant) => set({ selectedVariant: variant }),
   clear: () => set(initialResultsState),
   setLoading: (loading) => set({ isLoading: loading }),

@@ -313,7 +313,7 @@ export const findBestRackForBattery = async (req, res, next) => {
 
     res.json({
       rackConfigId,
-      requiredLength: Math.round(requiredLength),
+      requiredLength: Math.round(requiredLength),  // Потрібна довжина (розрахункова)
       batteriesPerRow,
       variants: variantsWithPrices,
       bestMatch: {
