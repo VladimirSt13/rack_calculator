@@ -233,9 +233,9 @@ export const findBestRackForBattery = async (req, res, next) => {
     // Знайти або створити конфігурацію в БД для найкращого варіанту
     const rackConfigId = findOrCreateRackConfiguration(db, rackConfig);
 
-    // Перевірка дозволів на показ компонентів
+    // Перевірка дозволів на показ цін в компонентах
     const userPermissions = req.user?.permissions || { price_types: [] };
-    const showComponents = userPermissions.price_types?.includes('базова');
+    const showPricesInComponents = userPermissions.price_types?.includes('базова');
 
     // Формування варіантів для відповіді з цінами
     const variantsWithPrices = optimizedVariants.map((v, index) => {
@@ -252,6 +252,22 @@ export const findBestRackForBattery = async (req, res, next) => {
       // Розрахунок цін для варіанту
       const variantPrices = calculateRackPricesWithPermissions(variantConfig, price, req.user);
 
+      // Компоненти: завжди показуємо, але без цін якщо немає дозволу
+      let componentsWithPrices = variantPrices.components;
+      if (!showPricesInComponents) {
+        // Прибираємо ціни з компонентів, залишаємо тільки назви та кількість
+        componentsWithPrices = {};
+        for (const [category, items] of Object.entries(variantPrices.components)) {
+          const itemsArray = Array.isArray(items) ? items : [items];
+          componentsWithPrices[category] = itemsArray.map(item => ({
+            name: item.name,
+            amount: item.amount,
+            price: 0,  // Прибираємо ціну
+            total: 0,  // Прибираємо суму
+          }));
+        }
+      }
+
       return {
         span: v.combination[0],
         spansCount: v.combination.length,
@@ -265,8 +281,8 @@ export const findBestRackForBattery = async (req, res, next) => {
         // Ціни (тільки дозволені)
         prices: variantPrices.prices,
         totalCost: variantPrices.totalCost,
-        // Компоненти (тільки якщо є дозвіл на базові ціни)
-        components: showComponents ? variantPrices.components : {},
+        // Компоненти (завжди, але ціни тільки з дозволом)
+        components: componentsWithPrices,
       };
     });
 
@@ -282,7 +298,7 @@ export const findBestRackForBattery = async (req, res, next) => {
         totalLength: bestVariant?.totalLength,
         combination: bestVariant?.combination,
         config: rackConfig,
-        components: showComponents ? bestComponents : {},
+        components: showPricesInComponents ? bestComponents : {},
         prices: bestPrices,
         totalCost: bestTotalCost,
         name: generateBatteryRackName({
