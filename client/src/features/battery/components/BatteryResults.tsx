@@ -168,7 +168,7 @@ const BatteryElement: React.FC<BatteryElementProps> = memo(({ variants }) => {
           Розрахункова довжина стелажа
         </h4>
         <p className='text-base font-semibold tabular-nums text-primary'>
-          {firstVariant.totalLength || firstVariant.length} мм
+          {firstVariant?.totalLength || firstVariant?.config.spans?.reduce((a, b) => a + b, 0) || 0} мм
         </p>
       </div>
     </div>
