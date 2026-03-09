@@ -7,6 +7,7 @@ import {
 } from '../../../shared/rackCalculator.js';
 import { getUserPermissions, PRICE_TYPES } from '../helpers/roles.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
+import { calcRackSpans, optimizeRacks } from '../helpers/batteryRackBuilder.js';
 
 /**
  * Отримати або створити конфігурацію стелажа в БД
@@ -181,9 +182,12 @@ export const findBestRackForBattery = async (req, res, next) => {
     const price = JSON.parse(priceRecord.data);
 
     // Отримати доступні прольоти з прайсу
-    const spanOptions = Object.keys(price.spans || {}).map(Number).sort((a, b) => a - b);
+    const spanObjects = Object.entries(price.spans || {}).map(([length, data]) => ({
+      length: Number(length),
+      capacity: data.capacity || 1000,
+    }));
 
-    if (spanOptions.length === 0) {
+    if (spanObjects.length === 0) {
       return res.status(400).json({ error: 'No span options available in price data' });
     }
 
@@ -192,49 +196,48 @@ export const findBestRackForBattery = async (req, res, next) => {
     const floors = config?.floors || 1;
 
     // Розрахунок кількості акумуляторів в одному ряду
-    // Кількість акумуляторів / кількість рядів / кількість поверхів
     const batteriesPerRow = Math.ceil(quantity / (rows * floors));
 
     // Розрахунок необхідної довжини стелажа
     const batteryLength = batteryDimensions.length;
     const gap = batteryDimensions.gap || 0;
-
-    // Формула з legacy: довжина = (кількість * довжина) + (кількість-1) * зазор
-    // Загальна довжина ряду з урахуванням зазорів між акумуляторами
     const requiredLength = (batteriesPerRow * batteryLength) + ((batteriesPerRow - 1) * gap);
 
-    // Генерація варіантів розподілу по стандартним балкам
-    const variants = spanOptions.map((span) => {
-      const spansCount = Math.ceil(requiredLength / span);
-      const totalLength = span * spansCount;
-      const excessLength = totalLength - requiredLength;
-
-      // Комбінація балок
-      const combination = Array(spansCount).fill(span);
-
-      return {
-        span,
-        spansCount,
-        totalLength,
-        combination,
-        batteriesPerRow,
-        excessLength: Math.round(excessLength * 100) / 100,
-      };
+    // Генерація всіх можливих комбінацій прольотів
+    const spanCombinations = calcRackSpans({
+      rackLength: requiredLength,
+      accLength: batteryLength,
+      accWeight: batteryDimensions.weight,
+      gap,
+      standardSpans: spanObjects,
     });
 
-    // Вибір найкращого варіанту (мінімальна довжина, але >= requiredLength)
-    const bestMatch = variants.reduce((min, v) =>
-      (v.totalLength >= requiredLength && v.totalLength < min.totalLength) ? v : min
-    , variants[0]);
+    // Оптимізація - вибір TOP-5 варіантів
+    const maxSpan = Math.max(...spanObjects.map((s) => s.length));
+    const optimizedVariants = optimizeRacks(spanCombinations, requiredLength, maxSpan, 5, price);
+
+    // Формування відповіді
+    const variants = optimizedVariants.map((v, index) => ({
+      span: v.combination[0],  // Перший проліт для сумісності
+      spansCount: v.combination.length,
+      totalLength: v.totalLength,
+      combination: v.combination,
+      beams: v.beams,
+      batteriesPerRow,
+      excessLength: Math.round(v.overLength * 100) / 100,
+      isBest: index === 0,  // Перший - найкращий
+      index,
+    }));
 
     // Розрахунок конфігурації для найкращого варіанту
+    const bestVariant = optimizedVariants[0];
     const rackConfig = {
       floors: floors,
       rows: rows,
-      beamsPerRow: config?.beamsPerRow || 2,
+      beamsPerRow: bestVariant?.beams || 2,
       supports: config?.supports || 'C80',
       verticalSupports: config?.verticalSupports || null,
-      spansArray: bestMatch.combination,
+      spansArray: bestVariant?.combination || [],
     };
 
     // Розрахунок цін для найкращого варіанту
