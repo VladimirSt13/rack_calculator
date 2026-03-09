@@ -20,6 +20,7 @@ const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
     supports: config.supports || null,  // Простий рядок, не JSON
     verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
     spans: config.spans ? JSON.parse(config.spans) : null,
+    braces: config.braces || null,
   };
 
   // Імпортуємо функцію розрахунку
