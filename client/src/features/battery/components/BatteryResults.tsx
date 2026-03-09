@@ -44,7 +44,7 @@ interface SpansTableProps {
 }
 
 const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false }) => {
-  const { variants, requiredLength } = useBatteryResultsStore();
+  const { variants } = useBatteryResultsStore();
   const { addRack } = useBatterySetStore();
   const [showComponents, setShowComponents] = useState(false);
 
@@ -142,6 +142,7 @@ Preamble.displayName = 'Preamble';
  */
 const BatteryElement: React.FC<BatteryElementProps> = memo(({ variants }) => {
   const formState = useBatteryFormStore();
+  const { requiredLength } = useBatteryResultsStore();
   const firstVariant = variants[0];
 
   if (!firstVariant || !formState) return null;
