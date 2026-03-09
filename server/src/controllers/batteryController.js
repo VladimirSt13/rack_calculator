@@ -199,9 +199,9 @@ export const findBestRackForBattery = async (req, res, next) => {
     const batteryLength = batteryDimensions.length;
     const gap = batteryDimensions.gap || 0;
 
-    // Довжина = (кількість * довжина) - (кількість-1) * зазор
+    // Формула з legacy: довжина = (кількість * довжина) + (кількість-1) * зазор
     // Загальна довжина ряду з урахуванням зазорів між акумуляторами
-    const requiredLength = (batteriesPerRow * batteryLength) - ((batteriesPerRow - 1) * gap);
+    const requiredLength = (batteriesPerRow * batteryLength) + ((batteriesPerRow - 1) * gap);
 
     // Генерація варіантів розподілу по стандартним балкам
     const variants = spanOptions.map((span) => {
