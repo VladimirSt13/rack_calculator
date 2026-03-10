@@ -1,0 +1,9 @@
+node_modules
+data/*.db
+data/backups
+.env
+.env.local
+*.log
+.DS_Store
+backups
+temp
