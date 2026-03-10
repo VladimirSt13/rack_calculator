@@ -46,7 +46,9 @@ export class RackSetRevision extends BaseModel {
    * @returns {Promise<RackSetRevision|null>}
    */
   static async findById(id) {
-    return await BaseModel.findById(RackSetRevision.tableName, id);
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new RackSetRevision(row) : null;
   }
 
   /**

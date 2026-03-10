@@ -18,6 +18,17 @@ export class Permission extends BaseModel {
   }
 
   /**
+   * Найти разрешение по ID
+   * @param {number} id
+   * @returns {Promise<Permission|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new Permission(row) : null;
+  }
+
+  /**
    * Найти разрешение по имени
    * @param {string} name
    * @returns {Promise<Permission|null>}

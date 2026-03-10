@@ -20,6 +20,17 @@ export class RefreshToken extends BaseModel {
   }
 
   /**
+   * Найти токен по ID
+   * @param {number} id
+   * @returns {Promise<RefreshToken|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new RefreshToken(row) : null;
+  }
+
+  /**
    * Хэшировать токен
    * @param {string} token
    * @returns {string}

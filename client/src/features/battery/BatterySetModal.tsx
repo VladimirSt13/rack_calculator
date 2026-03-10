@@ -71,12 +71,28 @@ export const BatterySetModal: React.FC<BatterySetModalProps> = ({
   });
 
   const onSubmit = (data: BatterySetForm) => {
-    // Формуємо rack_items = [{rackConfigId, quantity}]
+    // Конвертуємо spansArray (напр. [600, 600, 750]) у формат rack page
+    // [{item: '600', quantity: 2}, {item: '750', quantity: 1}]
+    const convertSpansToRackFormat = (spansArray: number[]) => {
+      const spansMap = new Map<string, number>();
+      spansArray.forEach((span) => {
+        const key = String(span);
+        spansMap.set(key, (spansMap.get(key) || 0) + 1);
+      });
+      return Array.from(spansMap.entries()).map(([item, quantity]) => ({
+        item,
+        quantity,
+      }));
+    };
+
+    // Формуємо rack_items = [{rackConfigId, quantity, spans}]
     const rackItems = racks
       .filter(rack => rack.rackConfigId)
       .map(rack => ({
         rackConfigId: rack.rackConfigId!,
         quantity: rack.quantity || 1,
+        // Конвертуємо spansArray у формат rack page для сумісності
+        spans: rack.config?.spans && Array.isArray(rack.config.spans) ? convertSpansToRackFormat(rack.config.spans) : [],
       }));
 
     createMutation.mutate({
@@ -93,11 +109,26 @@ export const BatterySetModal: React.FC<BatterySetModalProps> = ({
 
     setIsExporting(true);
     try {
+      // Конвертуємо spansArray у формат rack page
+      const convertSpansToRackFormat = (spansArray: number[]) => {
+        const spansMap = new Map<string, number>();
+        spansArray.forEach((span) => {
+          const key = String(span);
+          spansMap.set(key, (spansMap.get(key) || 0) + 1);
+        });
+        return Array.from(spansMap.entries()).map(([item, quantity]) => ({
+          item,
+          quantity,
+        }));
+      };
+
       const rackItems = racks
         .filter(rack => rack.rackConfigId)
         .map(rack => ({
           rackConfigId: rack.rackConfigId!,
           quantity: rack.quantity || 1,
+          // Конвертуємо spansArray у формат rack page для сумісності
+          spans: rack.config?.spans && Array.isArray(rack.config.spans) ? convertSpansToRackFormat(rack.config.spans) : [],
         }));
 
       const blob = await rackSetsApi.exportNew(rackItems, includePrices);

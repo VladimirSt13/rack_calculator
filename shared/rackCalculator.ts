@@ -226,9 +226,11 @@ export const calculateBraces = (config: RackConfig, price: PriceData): Component
 
 /**
  * Розрахунок ізоляторів
+ * Ізолятори встановлюються тільки на опори (по 2 на опору)
+ * Опори є спільними для всіх рядів стелажа
  */
 export const calculateIsolators = (config: RackConfig, price: PriceData): ComponentItem | null => {
-  const { floors, spans, spansArray, rows } = config;
+  const { floors, spans, spansArray } = config;
   if (floors > 1) {
     return null;
   }
@@ -237,11 +239,12 @@ export const calculateIsolators = (config: RackConfig, price: PriceData): Compon
     ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
     : (spansArray?.length || 0);
 
-  // Кількість опор × 2 ізолятори на опору
-  const edgeSupports = 2 * rows;
-  const intermediateSupports = Math.max(0, totalSpans - 1) * rows;
+  // Кількість опор: 2 крайні + (прольоти - 1) проміжних
+  // Опори спільні для всіх рядів, тому rows не множимо
+  const edgeSupports = 2;
+  const intermediateSupports = Math.max(0, totalSpans - 1);
   const totalSupports = edgeSupports + intermediateSupports;
-  const totalIsolators = totalSupports * 2;
+  const totalIsolators = totalSupports * 2; // 2 ізолятори на кожну опору
 
   const isolatorPrice = price.isolator?.isolator?.price || 0;
 

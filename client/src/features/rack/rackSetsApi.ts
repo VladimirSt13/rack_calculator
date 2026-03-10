@@ -29,6 +29,12 @@ export interface RackSetRevision {
   created_at: string;
 }
 
+export interface RackItem {
+  rackConfigId: number;
+  quantity: number;
+  spans?: Array<{ item: string; quantity: number }>;  // Для battery page
+}
+
 export const rackSetsApi = {
   /**
    * Отримати список комплектів стелажів
@@ -54,7 +60,7 @@ export const rackSetsApi = {
     object_name?: string;
     description?: string;
     racks?: RackSetItem[];
-    rack_items?: Array<{ rackConfigId: number; quantity: number }>;
+    rack_items?: RackItem[];
   }) => {
     const { data } = await api.post('/rack-sets', rackSetData);
     return data;
@@ -112,10 +118,10 @@ export const rackSetsApi = {
 
   /**
    * Експорт комплекту в Excel (для нового комплекту, ще не збереженого)
-   * @param rack_items - Масив елементів комплекту {rackConfigId, quantity}
+   * @param rack_items - Масив елементів комплекту {rackConfigId, quantity, spans?}
    * @param includePrices - Чи включати ціни
    */
-  exportNew: async (rack_items: Array<{ rackConfigId: number; quantity: number }>, includePrices: boolean = false) => {
+  exportNew: async (rack_items: RackItem[], includePrices: boolean = false) => {
     const response = await api.post('/rack-sets/export', { rack_items, includePrices }, {
       responseType: 'arraybuffer',
     });

@@ -49,6 +49,7 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
         rows: Number(rows),
         supportType,
       });
+      console.log('🚀 ~ response->', response)
 
       // Трансформація відповіді сервера в BatteryVariant
       const transformedVariants: BatteryVariant[] = response.variants.map((variant: any, index: number) => ({

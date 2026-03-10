@@ -23,6 +23,17 @@ export class AuditLog extends BaseModel {
   }
 
   /**
+   * Найти лог по ID
+   * @param {number} id
+   * @returns {Promise<AuditLog|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new AuditLog(row) : null;
+  }
+
+  /**
    * Создать запись аудита
    * @param {Object} data
    * @param {number} [data.userId]

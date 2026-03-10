@@ -21,6 +21,20 @@ const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
     spans: config.spans ? JSON.parse(config.spans) : null,
   };
 
+  // Для battery page: spans зберігається як масив чисел [600, 600, 750]
+  // Конвертуємо у формат rack page: [{item: '600', quantity: 2}, {item: '750', quantity: 1}]
+  if (Array.isArray(rackConfig.spans) && typeof rackConfig.spans[0] === 'number') {
+    const spansMap = new Map();
+    rackConfig.spans.forEach((span) => {
+      const key = String(span);
+      spansMap.set(key, (spansMap.get(key) || 0) + 1);
+    });
+    rackConfig.spans = Array.from(spansMap.entries()).map(([item, quantity]) => ({
+      item,
+      quantity,
+    }));
+  }
+
   // Імпортуємо функцію розрахунку
   const rackCalculator = await import('../../../shared/rackCalculator.js');
   const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
@@ -45,8 +59,6 @@ const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
   }
 
   // Визначаємо основну ціну для розрахунку totalCost
-  // Якщо є дозвіл на "нульова" - використовуємо її, інакше "без ізоляторів" або "базова"
-  // Якщо немає дозволів на ціни - повертаємо 0
   let mainTotalCost = 0;
   if (permissions.price_types?.includes('нульова')) {
     mainTotalCost = zeroPrice;
@@ -55,7 +67,7 @@ const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
   } else if (permissions.price_types?.includes('базова')) {
     mainTotalCost = totalCost;
   } else {
-    mainTotalCost = 0;  // Немає дозволів на ціни
+    mainTotalCost = 0;
   }
 
   return {

@@ -21,6 +21,17 @@ export class Role extends BaseModel {
   }
 
   /**
+   * Найти роль по ID
+   * @param {number} id
+   * @returns {Promise<Role|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new Role(row) : null;
+  }
+
+  /**
    * Найти роль по имени
    * @param {string} name
    * @returns {Promise<Role|null>}

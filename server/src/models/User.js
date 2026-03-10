@@ -21,6 +21,17 @@ export class User extends BaseModel {
   }
 
   /**
+   * Найти пользователя по ID
+   * @param {number} id
+   * @returns {Promise<User|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new User(row) : null;
+  }
+
+  /**
    * Найти пользователя по email
    * @param {string} email
    * @returns {Promise<User|null>}

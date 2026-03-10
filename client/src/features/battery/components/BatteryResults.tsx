@@ -88,7 +88,7 @@ const BatteryResults: React.FC<BatteryResultsProps> = memo(({ isLoading = false 
 BatteryResults.displayName = 'BatteryResults';
 
 /**
- * Пreamble - короткі вхідні дані
+ * Preamble - короткі вхідні дані
  */
 const Preamble: React.FC<PreambleProps> = memo(({ variants }) => {
   // Кількість варіантів

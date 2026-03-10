@@ -20,6 +20,17 @@ export class EmailVerification extends BaseModel {
   }
 
   /**
+   * Найти верификацию по ID
+   * @param {number} id
+   * @returns {Promise<EmailVerification|null>}
+   */
+  static async findById(id) {
+    const db = await this.getDb();
+    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    return row ? new EmailVerification(row) : null;
+  }
+
+  /**
    * Хэшировать токен
    * @param {string} token
    * @returns {string}

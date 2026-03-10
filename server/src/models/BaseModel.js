@@ -91,7 +91,7 @@ export class BaseModel {
       VALUES (${placeholders})
     `).run(...values);
 
-    return this.findById(tableName, result.lastInsertRowid);
+    return this.findById(tableName, Number(result.lastInsertRowid));
   }
 
   /**
