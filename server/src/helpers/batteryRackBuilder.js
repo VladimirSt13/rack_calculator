@@ -1,49 +1,28 @@
 /**
- * Helper для розрахунку варіантів стелажів для battery page
- * Аналог legacy/js/app/pages/battery/core/spanCalculator.js
+ * Helper for battery rack calculations
+ * Optimizations: backtracking, weight filtering, memoization
  */
 
-/**
- * Стандартні значення
- */
 export const CONSTANTS = {
-  beamsRange: [2, 3, 4, 5, 6],  // Кількість балок в ряду на проліт
-  rackLengthTolerance: 100,  // Допустиме перевищення довжини (мм)
+  beamsRange: [2, 3, 4, 5, 6],
+  rackLengthTolerance: 200,  // Increased for better variant selection
 };
 
+// Cache for calcRackSpans results
+const spanCache = new Map();
+
 /**
- * Перевіряє, чи витримує спан вагу акумуляторів
- * @param {Object} params
- * @param {Object} params.span - Об'єкт спану { length, capacity }
- * @param {number} params.accLength - Довжина акумулятора
- * @param {number} params.accWeight - Вага акумулятора
- * @param {number} params.gap - Проміжок між акумуляторами
- * @param {number} params.beams - Кількість балок в ряду на проліт
- * @returns {boolean} true, якщо спан витримує навантаження
+ * Check if span can hold battery weight
  */
 export const checkSpanWeight = ({ span, accLength, accWeight, gap, beams }) => {
-  // Кількість акумуляторів на проліт
   const countPerSpan = Math.floor(span.length / (accLength + gap));
   const totalWeight = countPerSpan * accWeight;
-
-  // Вантажопідйомність:
-  // beams = кількість балок в ряду на проліт
-  // Рядів = 2 (зліва і справа)
-  // capacity вказаний на одну балку
   const totalCapacity = span.capacity * beams * 2;
-
   return totalWeight <= totalCapacity;
 };
 
 /**
- * Генерує доступні спани з урахуванням ваги акумуляторів
- * @param {Object} params
- * @param {number} params.accLength
- * @param {number} params.accWeight
- * @param {number} params.gap
- * @param {Array<Object>} params.spans - Масив { length, capacity }
- * @param {Array<number>} [params.beamsRange=beamsRange]
- * @returns {Array<Object>} Масив { spanLength, beams }
+ * Generate available spans with weight filtering
  */
 export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRange = CONSTANTS.beamsRange }) => {
   const results = [];
@@ -64,84 +43,92 @@ export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRan
 };
 
 /**
- * Генерує комбінації спанів, які покривають потрібну довжину стелажа
- * @param {Object} params
- * @param {number} params.rackLength
- * @param {Array<number>} params.spans
- * @param {number} [params.limit=500]
- * @returns {Array<Array<number>>} Комбінації спанів
+ * Generate span combinations using backtracking (no duplicates)
  */
-export const generateSpanCombinations = ({ rackLength, spans, limit = 500 }) => {
+export const generateSpanCombinations = ({ rackLength, spans, limit = 100 }) => {
   const results = [];
   const maxLength = rackLength + CONSTANTS.rackLengthTolerance;
   if (!spans.length) return results;
 
-  const minSpan = Math.min(...spans);
-  const maxItems = Math.ceil(maxLength / minSpan);
-  const stack = spans.map((length, index) => ({ combo: [length], sum: length, index }));
+  const spansSorted = [...spans].sort((a, b) => b - a);
 
-  while (stack.length > 0) {
-    const { combo, sum, index } = stack.pop();
-
+  const backtrack = (combo, sum, startIndex) => {
+    if (results.length >= limit) return;
     if (sum >= rackLength && sum <= maxLength) {
       results.push(combo);
-      if (results.length >= limit) break;
+      return;
     }
-    if (sum >= maxLength || combo.length >= maxItems) continue;
+    if (sum >= maxLength) return;
 
-    for (let i = index; i < spans.length; i++) {
-      const newSum = sum + spans[i];
+    for (let i = startIndex; i < spansSorted.length; i++) {
+      const newSum = sum + spansSorted[i];
       if (newSum > maxLength) continue;
-      stack.push({ combo: [...combo, spans[i]], sum: newSum, index: i });
+      backtrack([...combo, spansSorted[i]], newSum, i);
     }
-  }
+  };
 
+  backtrack([], 0, 0);
   return results;
 };
 
 /**
- * Підбирає всі можливі спани для стелажа
- * @param {Object} params
- * @param {number} params.rackLength
- * @param {number} params.accLength
- * @param {number} params.accWeight
- * @param {number} params.gap
- * @param {Array<Object>} params.standardSpans
- * @returns {Array<Object>} Комбінації { combination, beams }
+ * Find all valid spans with early filtering and memoization
  */
 export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardSpans }) => {
+  const cacheKey = `${rackLength}:${accLength}:${accWeight}:${gap}`;
+  
+  if (spanCache.has(cacheKey)) {
+    return spanCache.get(cacheKey);
+  }
+
   const results = [];
-  
-  // Спочатку генеруємо всі комбінації прольотів
-  const allSpans = standardSpans.map(s => s.length).sort((a, b) => b - a);
-  const combinations = generateSpanCombinations({ rackLength, spans: allSpans });
-  
-  // Для кожної комбінації перевіряємо вантажопідйомність
+
+  // Filter spans by weight capacity
+  const viableSpans = standardSpans.filter((span) => {
+    return CONSTANTS.beamsRange.some((beams) =>
+      checkSpanWeight({ span, beams, accLength, accWeight, gap })
+    );
+  });
+
+  if (viableSpans.length === 0) {
+    spanCache.set(cacheKey, results);
+    return results;
+  }
+
+  // Find minimum beams for each viable span
+  const spanWithBeams = viableSpans.map((span) => {
+    const beams = CONSTANTS.beamsRange.find((b) =>
+      checkSpanWeight({ span, beams: b, accLength, accWeight, gap })
+    );
+    return { spanLength: span.length, beams };
+  });
+
+  // Generate combinations once for all lengths
+  const allSpanLengths = spanWithBeams.map((s) => s.spanLength).sort((a, b) => b - a);
+  const combinations = generateSpanCombinations({ rackLength, spans: allSpanLengths, limit: 200 });
+
+  // Use max span to determine beams for each combination
   for (const combo of combinations) {
-    // Беремо найбільший проліт в комбінації
     const maxSpanLength = Math.max(...combo);
-    const maxSpanObj = standardSpans.find(s => s.length === maxSpanLength);
-    
-    if (!maxSpanObj) continue;
-    
-    // Перевіряємо, скільки балок потрібно для вантажопідйомності
-    for (const beams of CONSTANTS.beamsRange) {
-      if (checkSpanWeight({ span: maxSpanObj, beams, accLength, accWeight, gap })) {
-        results.push({ combination: combo, beams });
-        break; // Знайдено мінімальну кількість балок - додаємо і переходимо далі
-      }
+    const spanData = spanWithBeams.find((s) => s.spanLength === maxSpanLength);
+    if (spanData) {
+      results.push({ combination: combo, beams: spanData.beams });
     }
   }
-  
+
+  spanCache.set(cacheKey, results);
   return results;
 };
 
 /**
- * Збагачує варіант додатковими полями для оцінки
- * @param {Object} r - варіант з combination та beams
- * @param {number} rackLength - потрібна довжина стелажа
- * @param {Object} price - прайс-лист для розрахунку вартості
- * @returns {Object} enriched варіант
+ * Clear span cache (for tests)
+ */
+export const clearSpanCache = () => {
+  spanCache.clear();
+};
+
+/**
+ * Enrich variant with additional fields for evaluation
  */
 const enrichVariant = (r, rackLength, price) => {
   const spans = r.combination;
@@ -174,38 +161,36 @@ const enrichVariant = (r, rackLength, price) => {
 };
 
 /**
- * Оптимізує варіанти стелажів, обираючи TOP-N кращих
- * @param {Array<Object>} variants - масив варіантів { combination, beams }
- * @param {number} rackLength - потрібна довжина стелажа
- * @param {number} maxAllowedSpan - максимальна довжина прольоту
- * @param {number} [topN=5] - кількість кращих варіантів
- * @param {Object} [price] - прайс-лист для розрахунку вартості
- * @returns {Array<Object>} Масив оптимізованих варіантів
+ * Optimize rack variants, select TOP-N best
+ * Criteria: fewer beams, fewer spans, uniform spans, symmetry, lower price, less overlength
  */
 export const optimizeRacks = (variants, rackLength, maxAllowedSpan, topN = 5, price = null) => {
   if (!variants.length) return [];
 
-  const enriched = variants.map((v) => enrichVariant(v, rackLength, price));
+  // Filter: keep variants with min beams (+1 reserve)
+  const minBeams = Math.min(...variants.map((v) => v.beams));
+  const filtered = variants.filter((v) => v.beams <= minBeams + 1);
 
-  // Сортування за пріоритетами
-  return enriched
-    .sort((a, b) => {
-      // 1. Менше балок
-      if (a.beams !== b.beams) return a.beams - b.beams;
+  // Filter: keep variants with min spans (+1)
+  const minSpanCount = Math.min(...filtered.map((v) => v.combination.length));
+  const furtherFiltered = filtered.filter(
+    (v) => v.combination.length <= minSpanCount + 1
+  );
 
-      // 2. Менше прольотів
-      if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount;
+  // Enrich all filtered variants
+  const enriched = furtherFiltered.map((v) => enrichVariant(v, rackLength, price));
 
-      // 3. Більше симетрії
-      if (a.symmetryPairs !== b.symmetryPairs) return b.symmetryPairs - a.symmetryPairs;
+  // Sort by priority criteria
+  const sorted = enriched.sort((a, b) => {
+    if (a.beams !== b.beams) return a.beams - b.beams;  // Fewer beams
+    if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount;  // Fewer spans
+    if (a.lengthDiff !== b.lengthDiff) return a.lengthDiff - b.lengthDiff;  // Uniform spans
+    if (a.symmetryPairs !== b.symmetryPairs) return b.symmetryPairs - a.symmetryPairs;  // More symmetry
+    if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost;  // Lower price
+    return a.overLength - b.overLength;  // Less overlength
+  });
 
-      // 4. Менша ціна
-      if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost;
-
-      // Додатково: менша довжина
-      return a.totalLength - b.totalLength;
-    })
-    .slice(0, topN);
+  return sorted.slice(0, topN);
 };
 
 export default {

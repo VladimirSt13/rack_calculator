@@ -12,6 +12,7 @@
     "migrate:rollback": "tsx scripts/migrate.js rollback",
     "seed:admin": "tsx scripts/seed-admin.js",
     "audit:cleanup": "tsx scripts/cleanup-audit.js",
+    "db:clear": "tsx scripts/clear-db.js",
     "lint": "eslint src --ext js",
     "format": "prettier --write \"src/**/*.{js,json}\"",
     "test": "jest",

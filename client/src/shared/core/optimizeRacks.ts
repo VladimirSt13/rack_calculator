@@ -37,7 +37,8 @@ const enrichVariant = (
 };
 
 /**
- * Оптимізує варіанти стелажів, обираючи TOP-N кращих
+ * Optimize rack variants, select TOP-N best
+ * Criteria: fewer beams, fewer spans, uniform spans, symmetry, lower price, less overlength
  */
 export const optimizeRacks = (
   variants: { combination: number[]; beams: number }[],
@@ -48,24 +49,28 @@ export const optimizeRacks = (
 ): { combination: number[]; beams: number }[] => {
   if (!variants.length) return [];
 
-  const enriched = variants.map((v) => enrichVariant(v, rackLength, price));
+  // Filter: keep variants with min beams (+1 reserve)
+  const minBeams = Math.min(...variants.map((v) => v.beams));
+  const filtered = variants.filter((v) => v.beams <= minBeams + 1);
 
-  return enriched
-    .sort((a, b) => {
-      // 1. Менше балок
-      if (a.beams !== b.beams) return a.beams - b.beams;
+  // Filter: keep variants with min spans (+1)
+  const minSpanCount = Math.min(...filtered.map((v) => v.combination.length));
+  const furtherFiltered = filtered.filter(
+    (v) => v.combination.length <= minSpanCount + 1
+  );
 
-      // 2. Менше прольотів
-      if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount;
+  // Enrich all filtered variants
+  const enriched = furtherFiltered.map((v) => enrichVariant(v, rackLength, price));
 
-      // 3. Більше симетрії
-      if (a.symmetryPairs !== b.symmetryPairs) return b.symmetryPairs - a.symmetryPairs;
+  // Sort by priority criteria
+  const sorted = enriched.sort((a, b) => {
+    if (a.beams !== b.beams) return a.beams - b.beams;  // Fewer beams
+    if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount;  // Fewer spans
+    if (a.lengthDiff !== b.lengthDiff) return a.lengthDiff - b.lengthDiff;  // Uniform spans
+    if (a.symmetryPairs !== b.symmetryPairs) return b.symmetryPairs - a.symmetryPairs;  // More symmetry
+    if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost;  // Lower price
+    return a.overLength - b.overLength;  // Less overlength
+  });
 
-      // 4. Менша ціна
-      if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost;
-
-      // Додатково: менша довжина
-      return a.totalLength - b.totalLength;
-    })
-    .slice(0, topN);
+  return sorted.slice(0, topN);
 };

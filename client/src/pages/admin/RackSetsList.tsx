@@ -100,7 +100,9 @@ export const RackSetsList: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => rackSetsApi.delete(id),
     onSuccess: () => {
+      // Інвалідуємо обидва ключі: для адмінки та для "Мої комплекти"
       queryClient.invalidateQueries({ queryKey: ['rackSets'] });
+      queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       setIsDeleteOpen(false);
       toast.success('Комплект видалено');
     },

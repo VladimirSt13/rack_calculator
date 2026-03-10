@@ -1,6 +1,12 @@
 import { beamsRange, rackLengthTolerance } from './constants';
 
 /**
+ * Кеш для мемоізації calcRackSpans
+ * Ключ: `${rackLength}:${accLength}:${accWeight}:${gap}`
+ */
+const spanCache = new Map<string, { combination: number[]; beams: number }[]>();
+
+/**
  * Перевіряє, чи витримує спан вагу акумуляторів
  */
 export const checkSpanWeight = ({
@@ -61,12 +67,14 @@ export const generateSpanOptions = ({
 };
 
 /**
- * Генерує комбінації спанів, які покривають потрібну довжину стелажа
+ * Генерує комбінації спанів без дублікатів за допомогою backtracking
+ * Генерує тільки унікальні комбінації (наприклад, [1200, 900] але не [900, 1200])
+ * Сортує від більшого до меншого для кращої продуктивності
  */
 export const generateSpanCombinations = ({
   rackLength,
   spans,
-  limit = 500,
+  limit = 100,
 }: {
   rackLength: number;
   spans: number[];
@@ -76,35 +84,46 @@ export const generateSpanCombinations = ({
   const maxLength = rackLength + rackLengthTolerance;
   if (!spans.length) return results;
 
-  const minSpan = Math.min(...spans);
-  const maxItems = Math.ceil(maxLength / minSpan);
-  const stack: { combo: number[]; sum: number; index: number }[] = spans.map((length, index) => ({
-    combo: [length],
-    sum: length,
-    index,
-  }));
+  // Сортуємо від більшого до меншого - швидше знаходимо підходящі комбінації
+  const spansSorted = [...spans].sort((a, b) => b - a);
 
-  while (stack.length > 0) {
-    const { combo, sum, index } = stack.pop()!;
+  /**
+   * Backtracking з уникненням дублікатів
+   * @param combo - поточна комбінація
+   * @param sum - поточна сума
+   * @param startIndex - індекс для наступних елементів (уникаємо дублікатів)
+   */
+  const backtrack = (combo: number[], sum: number, startIndex: number) => {
+    if (results.length >= limit) return;
 
+    // Знайдено підходящу комбінацію
     if (sum >= rackLength && sum <= maxLength) {
       results.push(combo);
-      if (results.length >= limit) break;
+      return;
     }
-    if (sum >= maxLength || combo.length >= maxItems) continue;
 
-    for (let i = index; i < spans.length; i++) {
-      const newSum = sum + spans[i];
+    // Перевищено максимальну довжину
+    if (sum >= maxLength) return;
+
+    // Перебираємо спани починаючи з startIndex (уникаємо дублікатів типу [900, 1200] і [1200, 900])
+    for (let i = startIndex; i < spansSorted.length; i++) {
+      const newSum = sum + spansSorted[i];
       if (newSum > maxLength) continue;
-      stack.push({ combo: [...combo, spans[i]], sum: newSum, index: i });
-    }
-  }
 
+      backtrack([...combo, spansSorted[i]], newSum, i);
+    }
+  };
+
+  backtrack([], 0, 0);
   return results;
 };
 
 /**
- * Підбирає всі можливі спани для стелажа
+ * Підбирає всі можливі спани для стелажа з ранньою відсіюванням та мемоізацією
+ * Оптимізації:
+ * 1. Мемоізація результатів для уникнення повторних обчислень
+ * 2. Рання фільтрація нежиттєздатних прольотів за вантажопідйомністю
+ * 3. Генерація комбінацій без дублікатів
  */
 export const calcRackSpans = ({
   rackLength,
@@ -119,17 +138,57 @@ export const calcRackSpans = ({
   gap: number;
   standardSpans: { length: number; capacity: number }[];
 }): { combination: number[]; beams: number }[] => {
-  const results: { combination: number[]; beams: number }[] = [];
-  const neededBeamsForSpan = generateSpanOptions({ accLength, accWeight, gap, spans: standardSpans, beamsRange });
-
-  for (const currentSpan of neededBeamsForSpan) {
-    const spans = standardSpans
-      .filter((s) => s.length <= currentSpan.spanLength)
-      .map((s) => s.length)
-      .sort((a, b) => b - a);
-
-    const combinations = generateSpanCombinations({ rackLength, spans });
-    combinations.forEach((combo) => results.push({ combination: combo, beams: currentSpan.beams }));
+  // Створюємо унікальний ключ для кешу
+  const cacheKey = `${rackLength}:${accLength}:${accWeight}:${gap}`;
+  
+  // Перевіряємо кеш
+  if (spanCache.has(cacheKey)) {
+    return spanCache.get(cacheKey)!;
   }
+
+  const results: { combination: number[]; beams: number }[] = [];
+
+  // 1. Фільтруємо спани, які взагалі не підходять по вантажопідйомності
+  const viableSpans = standardSpans.filter((span) => {
+    return beamsRange.some((beams) =>
+      checkSpanWeight({ span, beams, accLength, accWeight, gap })
+    );
+  });
+
+  if (viableSpans.length === 0) {
+    spanCache.set(cacheKey, results);
+    return results;
+  }
+
+  // 2. Для кожного життєздатного спану визначаємо мінімальну кількість балок
+  const spanWithBeams = viableSpans.map((span) => {
+    const beams = beamsRange.find((b) =>
+      checkSpanWeight({ span, beams: b, accLength, accWeight, gap })
+    )!;
+    return { spanLength: span.length, beams };
+  });
+
+  // 3. Генеруємо комбінації тільки один раз для всіх доступних довжин
+  const allSpanLengths = spanWithBeams.map((s) => s.spanLength).sort((a, b) => b - a);
+  const combinations = generateSpanCombinations({ rackLength, spans: allSpanLengths, limit: 100 });
+
+  // 4. Для кожної комбінації беремо максимальний проліт і відповідну кількість балок
+  for (const combo of combinations) {
+    const maxSpanLength = Math.max(...combo);
+    const spanData = spanWithBeams.find((s) => s.spanLength === maxSpanLength);
+    if (spanData) {
+      results.push({ combination: combo, beams: spanData.beams });
+    }
+  }
+
+  // Зберігаємо в кеш
+  spanCache.set(cacheKey, results);
   return results;
+};
+
+/**
+ * Очищає кеш spanCache (використовується для тестів або при зміні стандартних значень)
+ */
+export const clearSpanCache = (): void => {
+  spanCache.clear();
 };

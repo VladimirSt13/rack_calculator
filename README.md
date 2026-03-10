@@ -188,6 +188,7 @@ server/
 - [docs/EXPORT_FIX.md](./docs/EXPORT_FIX.md) - Виправлення експорту
 - [docs/DB_NORMALIZATION_AUDIT.md](./docs/DB_NORMALIZATION_AUDIT.md) - Нормалізація БД
 - [docs/BATTERY_PAGE_AUDIT.md](./docs/BATTERY_PAGE_AUDIT.md) - Аудит Battery сторінки
+- **[docs/battery-algorithm.md](./docs/battery-algorithm.md) - Алгоритм підбору стелажей для акумуляторів**
 
 ## 🛠️ Корисні команди
 

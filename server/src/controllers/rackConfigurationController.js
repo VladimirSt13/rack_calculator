@@ -10,34 +10,37 @@ export const findOrCreateConfiguration = async (req, res, next) => {
     const db = await getDb();
     const config = req.body;
 
-    // Серіалізація для порівняння JSON
-    const supports = config.supports || null;  // Простий рядок, не JSON
-    const verticalSupports = config.verticalSupports || null;  // Простий рядок, не JSON
-    const spans = config.spans ? JSON.stringify(config.spans) : null;
+    // Серіалізація для порівняння - завжди передаємо значення (не null)
+    const supports = config.supports || '';
+    const verticalSupports = config.verticalSupports || '';
+    const spans = config.spans ? JSON.stringify(config.spans) : '[]';
+
+    // Обчислення spans_hash для унікальності
+    const crypto = await import('crypto');
+    const spansHash = spans ? crypto.createHash('sha256').update(spans).digest('hex') : '';
 
     // 1. Спроба знайти існуючу конфігурацію
     const existing = db.prepare(`
       SELECT id FROM rack_configurations
-      WHERE floors = ? 
-        AND rows = ? 
+      WHERE floors = ?
+        AND rows = ?
         AND beams_per_row = ?
-        AND (supports IS ? OR supports = ?)
-        AND (vertical_supports IS ? OR vertical_supports = ?)
-        AND (spans IS ? OR spans = ?)
+        AND supports = ?
+        AND vertical_supports = ?
+        AND spans = ?
+        AND spans_hash = ?
     `).get(
       config.floors,
       config.rows,
       config.beamsPerRow,
-      supports === null ? 'NULL' : supports,
       supports,
-      verticalSupports === null ? 'NULL' : verticalSupports,
       verticalSupports,
-      spans === null ? 'NULL' : spans,
-      spans
+      spans,
+      spansHash
     );
 
     let configId;
-    
+
     if (existing) {
       // Знайдено існуючу
       configId = existing.id;
@@ -46,17 +49,18 @@ export const findOrCreateConfiguration = async (req, res, next) => {
       // Створити нову
       const result = db.prepare(`
         INSERT INTO rack_configurations (
-          floors, rows, beams_per_row, supports, vertical_supports, spans
-        ) VALUES (?, ?, ?, ?, ?, ?)
+          floors, rows, beams_per_row, supports, vertical_supports, spans, spans_hash
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(
         config.floors,
         config.rows,
         config.beamsPerRow,
         supports,
         verticalSupports,
-        spans
+        spans,
+        spansHash
       );
-      
+
       configId = result.lastInsertRowid;
       console.log(`[RackConfig] Created new configuration: ${configId}`);
     }

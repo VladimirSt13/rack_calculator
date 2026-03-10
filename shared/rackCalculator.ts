@@ -171,19 +171,21 @@ export const calculateSpans = (config: RackConfig, price: PriceData): ComponentI
 
 /**
  * Розрахунок вертикальних стійок
+ * Увага: кількість вертикальних стійок = (кількість прольотів + 1) × 2
+ * Не залежить від rows та floors (стійки йдуть на кожну опору з двох сторін)
  */
 export const calculateVerticalSupports = (config: RackConfig, price: PriceData): ComponentItem | null => {
-  const { floors, spans, spansArray, rows, verticalSupports } = config;
+  const { floors, spans, spansArray, verticalSupports } = config;
   if (!verticalSupports || floors <= 1) {
     return null;
   }
 
-  // Кількість прольотів + 1 = кількість стійок в ряду
+  // Кількість прольотів + 1 = кількість стійок на одну сторону
+  // × 2 = стійки з двох сторін (ліва і права)
   const totalSpans = spans
     ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
     : (spansArray?.length || 0);
-  const standsPerRow = totalSpans + 1;
-  const totalStands = standsPerRow * 2 * rows; // 2 сторони × ряди
+  const totalStands = (totalSpans + 1) * 2;
 
   const standPrice = price.vertical_supports?.[verticalSupports]?.price || 0;
 
@@ -197,9 +199,11 @@ export const calculateVerticalSupports = (config: RackConfig, price: PriceData):
 
 /**
  * Розрахунок розкосів
+ * Увага: кількість розкосів = (прольоти - 1) × 2 + 2
+ * Не залежить від rows та floors (розкоси йдуть на дві сторони стелажа)
  */
 export const calculateBraces = (config: RackConfig, price: PriceData): ComponentItem | null => {
-  const { floors, spans, spansArray, rows } = config;
+  const { floors, spans, spansArray } = config;
   if (floors <= 1) {
     return null;
   }
@@ -208,9 +212,8 @@ export const calculateBraces = (config: RackConfig, price: PriceData): Component
     ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
     : (spansArray?.length || 0);
 
-  // Формула розкосів: (прольоти - 1) × 2 + 2
-  const bracesPerSide = totalSpans > 1 ? (totalSpans - 1) * 2 + 2 : 2;
-  const totalBraces = bracesPerSide * rows; // × ряди
+  // Формула розкосів: (прольоти - 1) × 2 + 2 = розкоси на дві сторони
+  const totalBraces = totalSpans > 1 ? (totalSpans - 1) * 2 + 2 : 2;
 
   // Беремо перший доступний розкос з прайсу
   const braceCode = Object.keys(price.diagonal_brace || {})[0];

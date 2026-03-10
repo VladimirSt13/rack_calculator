@@ -1,8 +1,1 @@
-docs: reorganize documentation structure
 
-- Create /docs folder for service MD files
-- Move audit reports and fixes to docs/ (AUDIT_REPORT.md, BATTERY_PAGE_AUDIT.md, 
-  CLIENT_AUDIT.md, CONVENTIONS.md, DB_NORMALIZATION_AUDIT.md, EXPORT_FIX.md)
-- Split MODERNIZATION_PLAN.md into plan-server.md and plan-client.md
-- Update README.md with new documentation references
-- Add REORGANIZATION.md with migration guide

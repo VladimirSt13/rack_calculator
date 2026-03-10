@@ -12,47 +12,49 @@ import { calcRackSpans, optimizeRacks } from '../helpers/batteryRackBuilder.js';
 /**
  * Отримати або створити конфігурацію стелажа в БД
  */
-const findOrCreateRackConfiguration = (db, config) => {
+const findOrCreateRackConfiguration = async (db, config) => {
   const { floors, rows, beamsPerRow, supports, verticalSupports, spans, braces } = config;
-  
-  // Серіалізація для порівняння
-  const supportsStr = supports || null;
-  const verticalSupportsStr = verticalSupports || null;
-  const spansJson = spans ? JSON.stringify(spans) : null;
-  const bracesStr = braces || null;
-  
+
+  // Серіалізація для порівняння - завжди передаємо значення (не null)
+  const supportsStr = supports || '';
+  const verticalSupportsStr = verticalSupports || '';
+  const spansJson = spans ? JSON.stringify(spans) : '[]';  // Порожній масив замість null
+  const bracesStr = braces || '';
+
+  // Обчислення spans_hash для унікальності
+  const crypto = await import('crypto');
+  const spansHash = spansJson ? crypto.createHash('sha256').update(spansJson).digest('hex') : '';
+
   // Спроба знайти існуючу конфігурацію
   const existing = db.prepare(`
     SELECT id FROM rack_configurations
     WHERE floors = ?
       AND rows = ?
       AND beams_per_row = ?
-      AND (supports IS ? OR supports = ?)
-      AND (vertical_supports IS ? OR vertical_supports = ?)
-      AND (spans IS ? OR spans = ?)
-      AND (braces IS ? OR braces = ?)
+      AND supports = ?
+      AND vertical_supports = ?
+      AND spans = ?
+      AND braces = ?
+      AND spans_hash = ?
   `).get(
     floors,
     rows,
     beamsPerRow,
-    supportsStr === null ? 'NULL' : supportsStr,
     supportsStr,
-    verticalSupportsStr === null ? 'NULL' : verticalSupportsStr,
     verticalSupportsStr,
-    spansJson === null ? 'NULL' : spansJson,
     spansJson,
-    bracesStr === null ? 'NULL' : bracesStr,
-    bracesStr
+    bracesStr,
+    spansHash
   );
-  
+
   if (existing) {
     return existing.id;
   }
-  
+
   // Створити нову конфігурацію
   const result = db.prepare(`
-    INSERT INTO rack_configurations (floors, rows, beams_per_row, supports, vertical_supports, spans, braces)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO rack_configurations (floors, rows, beams_per_row, supports, vertical_supports, spans, braces, spans_hash)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     floors,
     rows,
@@ -60,9 +62,10 @@ const findOrCreateRackConfiguration = (db, config) => {
     supportsStr,
     verticalSupportsStr,
     spansJson,
-    bracesStr
+    bracesStr,
+    spansHash
   );
-  
+
   return result.lastInsertRowid;
 };
 
@@ -125,7 +128,7 @@ export const calculateBatteryRack = async (req, res, next) => {
     const { components, prices, totalCost } = calculateRackPricesWithPermissions(config, price, req.user);
 
     // Знайти або створити конфігурацію в БД
-    const rackConfigId = findOrCreateRackConfiguration(db, {
+    const rackConfigId = await findOrCreateRackConfiguration(db, {
       floors: config.floors,
       rows: config.rows,
       beamsPerRow: config.beamsPerRow,
@@ -242,7 +245,7 @@ export const findBestRackForBattery = async (req, res, next) => {
     const { components: bestComponents, prices: bestPrices, totalCost: bestTotalCost } = calculateRackPricesWithPermissions(rackConfig, price, req.user);
 
     // Знайти або створити конфігурацію в БД для найкращого варіанту
-    const rackConfigId = findOrCreateRackConfiguration(db, rackConfig);
+    const rackConfigId = await findOrCreateRackConfiguration(db, rackConfig);
 
     // Перевірка дозволів на показ цін в компонентах
     const userPermissions = req.user?.permissions || { price_types: [] };

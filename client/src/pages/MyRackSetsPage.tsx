@@ -98,7 +98,9 @@ export const MyRackSetsPage: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => rackSetsApi.delete(id),
     onSuccess: () => {
+      // Інвалідуємо обидва ключі: для "Мої комплекти" та для адмінки
       queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
+      queryClient.invalidateQueries({ queryKey: ['rackSets'] });
       setIsDeleteOpen(false);
       toast.success('Комплект видалено');
     },
@@ -119,7 +121,7 @@ export const MyRackSetsPage: React.FC = () => {
   };
 
   // Фільтруємо тільки свої комплекти
-  const mySets = data?.rackSets.filter((set) => set.user_id === user?.id);
+  const mySets = data?.rackSets?.filter((set) => set.user_id === user?.id);
   const filteredSets = mySets?.filter((set) => {
     if (!filters.search) return true;
     const searchLower = filters.search.toLowerCase();

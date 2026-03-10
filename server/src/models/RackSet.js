@@ -168,10 +168,10 @@ export class RackSet extends BaseModel {
    * @returns {Promise<void>}
    */
   async softDelete() {
-    const db = await this.getDb();
+    const db = await RackSet.getDb();
     db.prepare(`
-      UPDATE rack_sets 
-      SET deleted = 1, deleted_at = CURRENT_TIMESTAMP 
+      UPDATE rack_sets
+      SET deleted = 1, deleted_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(this.id);
     this.deleted = true;
@@ -183,10 +183,10 @@ export class RackSet extends BaseModel {
    * @returns {Promise<void>}
    */
   async restore() {
-    const db = await this.getDb();
+    const db = await RackSet.getDb();
     db.prepare(`
-      UPDATE rack_sets 
-      SET deleted = 0, deleted_at = NULL 
+      UPDATE rack_sets
+      SET deleted = 0, deleted_at = NULL
       WHERE id = ?
     `).run(this.id);
     this.deleted = false;
@@ -218,8 +218,8 @@ export class RackSet extends BaseModel {
    * @private
    */
   async _calculateRackPrice(config, priceData, user) {
-    const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = 
-      await import('../../shared/rackCalculator.js');
+    const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } =
+      await import('../../../shared/rackCalculator.js');
     
     const rackConfig = {
       floors: config.floors,
@@ -308,16 +308,17 @@ export class RackSet extends BaseModel {
   toDto(racksWithPrices = null) {
     return {
       id: this.id,
-      userId: this.userId,
+      user_id: this.userId,
       name: this.name,
-      objectName: this.objectName,
+      object_name: this.objectName,
       description: this.description,
       racks: racksWithPrices || this.rackItems,
-      totalCostSnapshot: this.totalCostSnapshot,
+      total_cost_snapshot: this.totalCostSnapshot,
+      total_cost: this.totalCostSnapshot, // Для сумісності
       deleted: this.deleted,
-      deletedAt: this.deletedAt,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      deleted_at: this.deletedAt,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }

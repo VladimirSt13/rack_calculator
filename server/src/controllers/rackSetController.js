@@ -22,8 +22,8 @@ const getRackDataFromConfig = async (rackConfigId, priceData, user) => {
     braces: config.braces,
   };
 
-  // Імпортуємо функцію розрахунку
-  const rackCalculator = await import('../../shared/rackCalculator.js');
+  // Імпортуємо функцію розрахунку з кореня проекту
+  const rackCalculator = await import('../../../shared/rackCalculator.js');
   const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
 
   const components = calculateRackComponents(rackConfig, priceData);
