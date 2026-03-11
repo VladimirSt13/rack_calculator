@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rackSetsApi, RackSet, downloadRackSetExport } from '@/features/rack/rackSetsApi';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +19,7 @@ import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { useNavigate } from 'react-router-dom';
+import { RackSetsTable } from '@/features/rack/components/RackSetsTable';
 
 export const RackSetsList: React.FC = () => {
   const queryClient = useQueryClient();
@@ -133,101 +133,18 @@ export const RackSetsList: React.FC = () => {
       </div>
 
       {/* Таблиця комплектів */}
-      <div className='bg-card rounded-lg border'>
-        {isLoading ? (
-          <div className='flex items-center justify-center py-12'>
-            <Loader2 className='w-8 h-8 animate-spin' />
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Назва</TableHead>
-                <TableHead>Об'єкт</TableHead>
-                <TableHead>Кількість стелажів</TableHead>
-                <TableHead>Загальна вартість</TableHead>
-                <TableHead>Створено</TableHead>
-                <TableHead className='text-right'>Дії</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSets?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='text-center py-12'>
-                    <div className='flex flex-col items-center gap-2'>
-                      <Package className='w-12 h-12 text-muted-foreground' />
-                      <p className='text-muted-foreground'>
-                        {filters.search ? 'Комплекти не знайдено' : 'Немає збережених комплектів'}
-                      </p>
-                      {!filters.search && (
-                        <p className='text-sm text-muted-foreground'>Розрахуйте стелажі та збережіть їх як комплект</p>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSets?.map((rackSet) => (
-                  <TableRow key={rackSet.id}>
-                    <TableCell className='font-medium'>
-                      <div className='flex items-center gap-2'>
-                        <Package className='w-4 h-4 text-muted-foreground' />
-                        {rackSet.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>{rackSet.object_name || '—'}</TableCell>
-                    <TableCell>
-                      <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>
-                        {rackSet.racks?.length || 0} од.
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className='font-semibold text-lg'>{(rackSet.total_cost || 0).toFixed(2)} ₴</span>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(rackSet.created_at).toLocaleDateString('uk-UA', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <div className='flex justify-end gap-2'>
-                        <IconButton
-                          icon={Edit}
-                          variant='icon'
-                          onClick={() => handleEditInCalculator(rackSet)}
-                          aria-label='Відкрити в редакторі'
-                          title='Відкрити в калькуляторі'
-                        />
-                        <IconButton
-                          icon={Download}
-                          variant='icon'
-                          onClick={() => handleExport(rackSet)}
-                          aria-label='Експортувати'
-                          disabled={exportMutation.isPending}
-                        />
-                        <IconButton
-                          icon={Eye}
-                          variant='icon'
-                          onClick={() => setViewingSet(rackSet)}
-                          aria-label='Переглянути'
-                        />
-                        <IconButton
-                          icon={Trash2}
-                          variant='icon'
-                          className='text-destructive hover:text-destructive'
-                          onClick={() => handleDelete(rackSet)}
-                          aria-label='Видалити'
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+      <RackSetsTable
+        rackSets={filteredSets || []}
+        isLoading={isLoading}
+        filters={filters}
+        onViewSet={setViewingSet}
+        onEditInCalculator={handleEditInCalculator}
+        onExport={handleExport}
+        onDelete={handleDelete}
+        isExporting={exportMutation.isPending}
+        emptyMessage="Немає збережених комплектів"
+        mode="admin"
+      />
 
       {/* Діалог перегляду */}
       {viewingSet && (

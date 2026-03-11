@@ -102,22 +102,6 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
               )}
-              {/* Admin - тільки для admin */}
-              {user?.role === 'admin' && (
-                <li key="/admin">
-                  <Link
-                    to="/admin"
-                    className={cn(
-                      'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
-                      location.pathname.startsWith('/admin')
-                        ? 'bg-primary-foreground/10 text-primary-foreground underline'
-                        : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
-                    )}
-                  >
-                    Адмін
-                  </Link>
-                </li>
-              )}
             </ul>
           </nav>
 

@@ -16,6 +16,10 @@ export default {
         card: 'hsl(var(--card))',
         'card-foreground': 'hsl(var(--card-foreground))',
 
+        // Popover (dropdowns, menus, dialogs)
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+
         // Primary - Professional Blue
         primary: 'hsl(var(--primary))',
         'primary-hover': 'hsl(var(--primary-hover))',
