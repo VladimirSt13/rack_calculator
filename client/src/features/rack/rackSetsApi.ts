@@ -15,8 +15,8 @@ export interface RackSet {
   object_name?: string;
   description?: string;
   racks?: RackSetItem[];
-  total_cost?: number;  // Старе поле (для сумісності)
-  total_cost_snapshot?: number;  // Нове поле
+  total_cost?: number; // Старе поле (для сумісності)
+  total_cost_snapshot?: number; // Нове поле
   created_at: string;
   updated_at?: string;
 }
@@ -32,8 +32,65 @@ export interface RackSetRevision {
 export interface RackItem {
   rackConfigId: number;
   quantity: number;
-  spans?: Array<{ item: string; quantity: number }>;  // Для battery page
+  spans?: Array<{ item: string; quantity: number }>; // Для battery page
 }
+
+/**
+ * Сформувати назву файлу для експорту
+ * Формат: {рікмісяць}_комплект стелажів_{об'єкт}_{назва}
+ * @param rackSet - Дані комплекту
+ * @param includePrices - Чи включати ціни
+ */
+export const getExportFilename = (
+  rackSet: { name: string; object_name?: string; description?: string },
+  includePrices: boolean = false,
+): string => {
+  const now = new Date();
+  const yearMonth = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0');
+
+  const name = rackSet.name?.trim() || 'без назви';
+  const objectName = rackSet.object_name?.trim() || "без об'єкта";
+  const description = rackSet.description?.trim() || '';
+
+  // Формуємо назву: дата_комплект стелажів_об'єкт_назва_примітка
+  const parts = [yearMonth, 'комплект стелажів', objectName, name];
+
+  if (description) {
+    parts.push(description);
+  }
+
+  if (includePrices) {
+    parts.push('з цінами');
+  }
+
+  return parts.join('_') + '.xlsx';
+};
+
+/**
+ * Завантажити Excel файл експорту комплекту в браузері
+ * Формує назву файлу автоматично з даних комплекту
+ * @param data - Дані файлу (arraybuffer від сервера)
+ * @param rackSet - Дані комплекту для формування назви
+ * @param includePrices - Чи включати ціни (для назви файлу)
+ */
+export const downloadRackSetExport = (
+  data: ArrayBuffer,
+  rackSet: { name: string; object_name?: string; description?: string },
+  includePrices: boolean = false,
+) => {
+  const blob = new Blob([data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const filename = getExportFilename(rackSet, includePrices);
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
 
 export const rackSetsApi = {
   /**
@@ -69,12 +126,15 @@ export const rackSetsApi = {
   /**
    * Оновити існуючий комплект
    */
-  update: async (id: number, rackSetData: {
-    name?: string;
-    object_name?: string;
-    description?: string;
-    racks?: RackSetItem[];
-  }) => {
+  update: async (
+    id: number,
+    rackSetData: {
+      name?: string;
+      object_name?: string;
+      description?: string;
+      racks?: RackSetItem[];
+    },
+  ) => {
     const { data } = await api.put(`/rack-sets/${id}`, rackSetData);
     return data;
   },
@@ -122,9 +182,13 @@ export const rackSetsApi = {
    * @param includePrices - Чи включати ціни
    */
   exportNew: async (rack_items: RackItem[], includePrices: boolean = false) => {
-    const response = await api.post('/rack-sets/export', { rack_items, includePrices }, {
-      responseType: 'arraybuffer',
-    });
+    const response = await api.post(
+      '/rack-sets/export',
+      { rack_items, includePrices },
+      {
+        responseType: 'arraybuffer',
+      },
+    );
     return response.data;
   },
 };

@@ -1,84 +1,5 @@
 import ExcelJS from 'exceljs';
-import { getDb } from '../db/index.js';
-
-/**
- * Отримати повні дані стелажа з rack_configurations
- */
-const getRackDataFromConfig = async (db, rackConfigId, priceData, user) => {
-  const config = db.prepare(`
-    SELECT * FROM rack_configurations WHERE id = ?
-  `).get(rackConfigId);
-
-  if (!config || !priceData) return null;
-
-  // Парсинг JSON полів
-  const rackConfig = {
-    floors: config.floors,
-    rows: config.rows,
-    beamsPerRow: config.beams_per_row,
-    supports: config.supports || null,  // Простий рядок, не JSON
-    verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
-    spans: config.spans ? JSON.parse(config.spans) : null,
-  };
-
-  // Для battery page: spans зберігається як масив чисел [600, 600, 750]
-  // Конвертуємо у формат rack page: [{item: '600', quantity: 2}, {item: '750', quantity: 1}]
-  if (Array.isArray(rackConfig.spans) && typeof rackConfig.spans[0] === 'number') {
-    const spansMap = new Map();
-    rackConfig.spans.forEach((span) => {
-      const key = String(span);
-      spansMap.set(key, (spansMap.get(key) || 0) + 1);
-    });
-    rackConfig.spans = Array.from(spansMap.entries()).map(([item, quantity]) => ({
-      item,
-      quantity,
-    }));
-  }
-
-  // Імпортуємо функцію розрахунку
-  const rackCalculator = await import('../../../shared/rackCalculator.js');
-  const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } = rackCalculator;
-
-  const components = calculateRackComponents(rackConfig, priceData);
-  const totalCost = calculateTotalCost(components);
-  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
-  const zeroPrice = totalCost * 1.44;
-
-  // Формуємо ціни з урахуванням дозволів користувача
-  const permissions = user?.permissions || { price_types: [] };
-  const prices = [];
-
-  if (permissions.price_types?.includes('базова')) {
-    prices.push({ type: 'базова', label: 'Базова ціна', value: Math.round(totalCost * 100) / 100 });
-  }
-  if (permissions.price_types?.includes('без_ізоляторів')) {
-    prices.push({ type: 'без_ізоляторів', label: 'Без ізоляторів', value: Math.round(totalWithoutIsolators * 100) / 100 });
-  }
-  if (permissions.price_types?.includes('нульова')) {
-    prices.push({ type: 'нульова', label: 'Нульова ціна', value: Math.round(zeroPrice * 100) / 100 });
-  }
-
-  // Визначаємо основну ціну для розрахунку totalCost
-  let mainTotalCost = 0;
-  if (permissions.price_types?.includes('нульова')) {
-    mainTotalCost = zeroPrice;
-  } else if (permissions.price_types?.includes('без_ізоляторів')) {
-    mainTotalCost = totalWithoutIsolators;
-  } else if (permissions.price_types?.includes('базова')) {
-    mainTotalCost = totalCost;
-  } else {
-    mainTotalCost = 0;
-  }
-
-  return {
-    rackConfigId: config.id,
-    name: generateRackName(rackConfig),
-    config: rackConfig,
-    components,
-    prices,
-    totalCost: mainTotalCost,
-  };
-};
+import * as exportService from '../services/exportService.js';
 
 /**
  * Форматування числа з комою як розділовим знаком
@@ -92,7 +13,7 @@ const formatNumber = (num) => {
  */
 const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalInfo = {}) => {
   const worksheet = workbook.addWorksheet('Комплект стелажів', {
-    properties: { 
+    properties: {
       defaultRowHeight: 18,
       defaultColWidth: 12
     }
@@ -125,8 +46,8 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
   if (additionalInfo.date) {
     worksheet.getCell('A2').value = 'Дата:';
     worksheet.getCell('A2').font = { italic: true };
-    worksheet.getCell('B2').value = typeof additionalInfo.date === 'string' 
-      ? additionalInfo.date 
+    worksheet.getCell('B2').value = typeof additionalInfo.date === 'string'
+      ? additionalInfo.date
       : new Date(additionalInfo.date).toLocaleDateString('uk-UA');
     worksheet.getRow(2).height = 20;
   }
@@ -144,7 +65,7 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
   headerRow.values = headerColumns;
   headerRow.font = { bold: true, size: 11, name: 'Arial' };
   headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  
+
   // Сірий фон заголовка
   for (let col = 1; col <= headerColumns.length; col++) {
     headerRow.getCell(col).fill = {
@@ -190,7 +111,7 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
     row.alignment = { vertical: 'middle' };
     row.getCell(2).alignment = { wrapText: true, vertical: 'middle' };
     row.getCell(2).font = { bold: true };
-    
+
     // Межі для основного рядка
     for (let col = 1; col <= (showPrices ? 6 : 3); col++) {
       row.getCell(col).border = {
@@ -309,7 +230,7 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
   // Підсумковий рядок "РАЗОМ:"
   const totalRow = worksheet.getRow(currentRow);
   const mainCols = showPrices ? 6 : 3;
-  
+
   totalRow.values = ['', 'РАЗОМ:', racks.reduce((sum, r) => sum + (r.quantity || 1), 0)];
   if (showPrices) {
     totalRow.values = [
@@ -359,7 +280,6 @@ const createRackSetWorksheet = (workbook, title, racks, showPrices, additionalIn
  */
 export const exportRackSet = async (req, res, next) => {
   try {
-    const db = await getDb();
     const { id } = req.params;
     const userId = req.user.userId;
     const userRole = req.user.role;
@@ -369,37 +289,14 @@ export const exportRackSet = async (req, res, next) => {
     // Перевіряємо чи є користувач адміністратором
     const isAdmin = userRole === 'admin';
 
-    // Отримати комплект з БД
-    // Для адміністраторів - будь-який комплект, для інших - тільки свій
-    let rackSet;
-    if (isAdmin) {
-      rackSet = db.prepare(`
-        SELECT id, name, object_name, description, rack_items, total_cost_snapshot, created_at
-        FROM rack_sets
-        WHERE id = ?
-      `).get(id);
-    } else {
-      rackSet = db.prepare(`
-        SELECT id, name, object_name, description, rack_items, total_cost_snapshot, created_at
-        FROM rack_sets
-        WHERE id = ? AND user_id = ?
-      `).get(id, userId);
-    }
+    // Отримати комплект з повними даними
+    const rackSetWithDetails = await exportService.getRackSetWithDetails(id, { userId, isAdmin }, req.user);
 
-    if (!rackSet) {
+    if (!rackSetWithDetails) {
       return res.status(404).json({ error: 'Rack set not found' });
     }
 
-    // Отримати актуальний прайс
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
-
-    // Отримати повні дані для кожного стелажа
-    const rackItems = rackSet.rack_items ? JSON.parse(rackSet.rack_items) : [];
-    const racks = (await Promise.all(rackItems.map(async (item) => {
-      const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
-      return rackData ? { ...rackData, quantity: item.quantity } : null;
-    }))).filter(Boolean);
+    const { racks, created_at, name } = rackSetWithDetails;
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
@@ -409,17 +306,16 @@ export const exportRackSet = async (req, res, next) => {
     workbook.modified = new Date();
 
     // Створити worksheet з даними
-    createRackSetWorksheet(workbook, rackSet.name, racks, showPrices, {
-      date: rackSet.created_at,
+    createRackSetWorksheet(workbook, name, racks, showPrices, {
+      date: created_at,
       total_quantity: racks.reduce((sum, r) => sum + (r.quantity || 1), 0),
-      total_cost: rackSet.total_cost
     });
 
     // Генерация файла и отправка клиенту
     const buffer = await workbook.xlsx.writeBuffer();
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    const filename = showPrices ? `${rackSet.name}_з_цінами.xlsx` : `${rackSet.name}.xlsx`;
+    const filename = showPrices ? `${name}_з_цінами.xlsx` : `${name}.xlsx`;
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
     res.send(buffer);
   } catch (error) {
@@ -440,20 +336,7 @@ export const exportNewRackSet = async (req, res, next) => {
     const { rack_items, includePrices = false } = req.body;
     const showPrices = includePrices === true;
 
-    if (!rack_items || !Array.isArray(rack_items) || rack_items.length === 0) {
-      return res.status(400).json({ error: 'Rack items array is required' });
-    }
-
-    // Отримати актуальний прайс для розрахунку цін і компонентів
-    const db = await getDb();
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    const priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
-
-    // Отримати повні дані для кожного стелажа
-    const racks = (await Promise.all(rack_items.map(async (item) => {
-      const rackData = await getRackDataFromConfig(db, item.rackConfigId, priceData, req.user);
-      return rackData ? { ...rackData, quantity: item.quantity } : null;
-    }))).filter(Boolean);
+    const racks = await exportService.getNewRackSetData(rack_items, req.user);
 
     // Створити новий workbook
     const workbook = new ExcelJS.Workbook();
@@ -476,6 +359,9 @@ export const exportNewRackSet = async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
     res.send(buffer);
   } catch (error) {
+    if (error.message === 'Rack items array is required and cannot be empty') {
+      return res.status(400).json({ error: error.message });
+    }
     next(error);
   }
 };

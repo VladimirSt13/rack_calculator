@@ -91,8 +91,8 @@ export const up = (db) => {
         beams_per_row INTEGER NOT NULL,
         supports TEXT,
         vertical_supports TEXT,
-        spans TEXT NOT NULL,
-        spans_hash TEXT NOT NULL,
+        spans TEXT NOT NULL DEFAULT '',
+        spans_hash TEXT NOT NULL DEFAULT '',
         braces TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(floors, rows, beams_per_row, supports, vertical_supports, spans_hash, braces)
@@ -100,11 +100,13 @@ export const up = (db) => {
     `);
     console.log('[Migration 015] Created rack_configurations_new table');
 
-    // Перенести дані
+    // Перенести дані (фільтруємо записи з NULL spans)
     db.exec(`
       INSERT INTO rack_configurations_new (id, floors, rows, beams_per_row, supports, vertical_supports, spans, spans_hash, braces, created_at)
-      SELECT id, floors, rows, beams_per_row, supports, vertical_supports, spans, spans_hash, braces, created_at
+      SELECT id, floors, rows, beams_per_row, supports, vertical_supports, 
+             COALESCE(spans, '[]'), COALESCE(spans_hash, ''), braces, created_at
       FROM rack_configurations
+      WHERE spans IS NOT NULL OR spans_hash IS NOT NULL
     `);
     console.log('[Migration 015] Migrated data');
 
@@ -196,7 +198,8 @@ export const down = (db) => {
 
     db.exec(`
       INSERT INTO rack_configurations_new (id, floors, rows, beams_per_row, supports, vertical_supports, spans, braces, created_at)
-      SELECT id, floors, rows, beams_per_row, supports, vertical_supports, spans, braces, created_at
+      SELECT id, floors, rows, beams_per_row, supports, vertical_supports, 
+             CASE WHEN spans = '[]' THEN NULL ELSE spans END, braces, created_at
       FROM rack_configurations
     `);
 

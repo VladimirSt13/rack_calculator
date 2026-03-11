@@ -42,8 +42,8 @@ export type RackComponents = Record<string, ComponentItem | ComponentItem[]>;
 export const calculateRackComponents = (config: RackConfig, price: PriceData): RackComponents => {
   const components: RackComponents = {};
 
-  // 1. Опори (supports) - тільки для rack page
-  if (config.supports && config.spans) {
+  // 1. Опори (supports) - для rack page та battery page
+  if (config.supports && (config.spans || config.spansArray)) {
     const supportsData = calculateSupports(config, price);
     if (supportsData.length > 0) {
       components.supports = supportsData;
@@ -84,14 +84,18 @@ export const calculateRackComponents = (config: RackConfig, price: PriceData): R
 };
 
 /**
- * Розрахунок опор (тільки для rack page)
+ * Розрахунок опор (для rack page та battery page)
  */
 export const calculateSupports = (config: RackConfig, price: PriceData): ComponentItem[] => {
-  const { floors, spans, supports } = config;
+  const { floors, spans, spansArray, supports } = config;
   const result: ComponentItem[] = [];
 
   // Кількість прольотів
-  const totalSpans = spans?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0;
+  // Для rack page: spans з quantity
+  // Для battery page: spansArray - масив прольотів
+  const totalSpans = spans
+    ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
+    : (spansArray?.length || 0);
 
   // Крайні опори: 2 × поверхи
   const edgeSupports = 2 * floors;
@@ -346,8 +350,9 @@ export const generateBatteryRackName = ({
   const prefix = `L${floors}A${rows}${supportMarker}`;
   const spansSum = spans.reduce((a, b) => a + b, 0);
   const base = `${prefix}-${spansSum}/${rackWidth}`;
-  const spansDetail = spans.join('+');
-  const detail = floors > 1 ? ` (${spansDetail} - ${rackLength})` : ` (${spansDetail})`;
+
+  // Для багатоповерхових додаємо довжину стелажа
+  const detail = floors > 1 ? ` (${rackLength})` : '';
 
   return base + detail;
 };

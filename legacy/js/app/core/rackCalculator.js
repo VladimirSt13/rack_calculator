@@ -43,8 +43,8 @@
 export const calculateRackComponents = (config, price) => {
   const components = {};
 
-  // 1. Опори (supports) - тільки для rack page
-  if (config.supports && config.spans) {
+  // 1. Опори (supports) - для rack page та battery page
+  if (config.supports && (config.spans || config.spansArray)) {
     const supportsData = calculateSupports(config, price);
     if (supportsData.length > 0) {
       components.supports = supportsData;
@@ -85,17 +85,21 @@ export const calculateRackComponents = (config, price) => {
 };
 
 /**
- * Розрахунок опор (тільки для rack page)
+ * Розрахунок опор (для rack page та battery page)
  * @param {RackConfig} config
  * @param {PriceData} price
  * @returns {ComponentItem[]}
  */
 export const calculateSupports = (config, price) => {
-  const { floors, spans, supports } = config;
+  const { floors, spans, spansArray, supports } = config;
   const result = [];
 
   // Кількість прольотів
-  const totalSpans = spans.reduce((sum, s) => sum + (s.quantity || 0), 0);
+  // Для rack page: spans з quantity
+  // Для battery page: spansArray - масив прольотів
+  const totalSpans = spans
+    ? spans.reduce((sum, s) => sum + (s.quantity || 0), 0)
+    : (spansArray?.length || 0);
 
   // Крайні опори: 2 × поверхи
   const edgeSupports = 2 * floors;

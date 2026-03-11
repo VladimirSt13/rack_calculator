@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 
+export enum SupportType {
+  Straight = 'straight',
+  Step = 'step',
+}
+
 export interface BatteryFormState {
   length: number;
   width: number;
@@ -9,7 +14,7 @@ export interface BatteryFormState {
   count: number;
   rows: number;
   floors: number;
-  supportType: string;
+  supportType: SupportType;
 }
 
 export interface BatteryFormActions {
@@ -21,20 +26,20 @@ export interface BatteryFormActions {
   setCount: (count: number) => void;
   setRows: (rows: number) => void;
   setFloors: (floors: number) => void;
-  setSupportType: (type: string) => void;
+  setSupportType: (type: SupportType) => void;
   reset: () => void;
 }
 
 const initialFormState: BatteryFormState = {
-  length: 0,
-  width: 0,
-  height: 0,
-  weight: 0,
+  length: 108,
+  width: 240,
+  height: 480,
+  weight: 28,
   gap: 10,
-  count: 1,
-  rows: 1,
+  count: 26,
+  rows: 2,
   floors: 1,
-  supportType: 'straight',
+  supportType: SupportType.Straight,
 };
 
 export const useBatteryFormStore = create<BatteryFormState & BatteryFormActions>((set) => ({

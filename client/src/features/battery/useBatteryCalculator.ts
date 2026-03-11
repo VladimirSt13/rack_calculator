@@ -5,10 +5,6 @@ import type { BatteryFormState } from './formStore';
 import { batteryApi } from '@/features/battery/batteryApi';
 import { logger } from '@/lib/logger';
 
-interface UseBatteryCalculatorProps {
-  priceData?: any;
-}
-
 /**
  * Hook для розрахунку варіантів стелажів для battery
  *
@@ -17,7 +13,7 @@ interface UseBatteryCalculatorProps {
  * - calculating: триває розрахунок
  * - ready: розрахунок завершено
  */
-export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
+export const useBatteryCalculator = () => {
   const resultsStore = useBatteryResultsStore();
   const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
 
@@ -49,7 +45,6 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
         rows: Number(rows),
         supportType,
       });
-      console.log('🚀 ~ response->', response)
 
       // Трансформація відповіді сервера в BatteryVariant
       const transformedVariants: BatteryVariant[] = response.variants.map((variant: any, index: number) => ({
@@ -70,6 +65,10 @@ export const useBatteryCalculator = ({}: UseBatteryCalculatorProps) => {
         excessLength: variant.excessLength,
         isBest: variant.isBest,
         index: variant.index,
+        // Нові поля з сервера
+        supports: variant.config?.supports || response.supports,
+        verticalSupports: variant.config?.verticalSupports || response.verticalSupports,
+        rackHeight: response.rackHeight || undefined,  // Може бути null для floors=1
       }));
 
       resultsStore.setVariants(transformedVariants);

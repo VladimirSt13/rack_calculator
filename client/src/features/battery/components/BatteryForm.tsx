@@ -1,5 +1,5 @@
 import React from 'react';
-import { useBatteryFormStore } from '@/features/battery/formStore';
+import { useBatteryFormStore, SupportType } from '@/features/battery/formStore';
 import {
   CardContent,
   FormSection,
@@ -45,8 +45,8 @@ const BatteryForm: React.FC = () => {
     { value: '3', label: '3' },
   ];
   const supportTypeOptions = [
-    { value: 'straight', label: 'Пряма' },
-    { value: 'step', label: 'Ступінчаста' },
+    { value: SupportType.Straight, label: 'Пряма' },
+    { value: SupportType.Step, label: 'Ступінчаста' },
   ];
 
   return (
@@ -136,7 +136,7 @@ const BatteryForm: React.FC = () => {
             label='Тип опори'
             id='battery-supportType'
             value={supportType}
-            onChange={(val) => setSupportType(String(val))}
+            onChange={(val) => setSupportType(val as SupportType)}
             options={supportTypeOptions}
             required
             className='w-[15ch]'

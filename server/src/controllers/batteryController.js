@@ -1,112 +1,5 @@
-import { getDb } from '../db/index.js';
-import {
-  calculateRackComponents,
-  calculateTotalCost,
-  calculateTotalWithoutIsolators,
-  generateBatteryRackName,
-} from '../../../shared/rackCalculator.js';
-import { getUserPermissions, PRICE_TYPES } from '../helpers/roles.js';
+import * as batteryService from '../services/batteryService.js';
 import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
-import { calcRackSpans, optimizeRacks } from '../helpers/batteryRackBuilder.js';
-
-/**
- * Отримати або створити конфігурацію стелажа в БД
- */
-const findOrCreateRackConfiguration = async (db, config) => {
-  const { floors, rows, beamsPerRow, supports, verticalSupports, spans, braces } = config;
-
-  // Серіалізація для порівняння - завжди передаємо значення (не null)
-  const supportsStr = supports || '';
-  const verticalSupportsStr = verticalSupports || '';
-  const spansJson = spans ? JSON.stringify(spans) : '[]';  // Порожній масив замість null
-  const bracesStr = braces || '';
-
-  // Обчислення spans_hash для унікальності
-  const crypto = await import('crypto');
-  const spansHash = spansJson ? crypto.createHash('sha256').update(spansJson).digest('hex') : '';
-
-  // Спроба знайти існуючу конфігурацію
-  const existing = db.prepare(`
-    SELECT id FROM rack_configurations
-    WHERE floors = ?
-      AND rows = ?
-      AND beams_per_row = ?
-      AND supports = ?
-      AND vertical_supports = ?
-      AND spans = ?
-      AND braces = ?
-      AND spans_hash = ?
-  `).get(
-    floors,
-    rows,
-    beamsPerRow,
-    supportsStr,
-    verticalSupportsStr,
-    spansJson,
-    bracesStr,
-    spansHash
-  );
-
-  if (existing) {
-    return existing.id;
-  }
-
-  // Створити нову конфігурацію
-  const result = db.prepare(`
-    INSERT INTO rack_configurations (floors, rows, beams_per_row, supports, vertical_supports, spans, braces, spans_hash)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    floors,
-    rows,
-    beamsPerRow,
-    supportsStr,
-    verticalSupportsStr,
-    spansJson,
-    bracesStr,
-    spansHash
-  );
-
-  return result.lastInsertRowid;
-};
-
-/**
- * Розрахунок цін з урахуванням дозволів користувача
- */
-const calculateRackPricesWithPermissions = (rackConfig, priceData, user) => {
-  const components = calculateRackComponents(rackConfig, priceData);
-  const totalCost = calculateTotalCost(components);
-  const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
-  const zeroPrice = totalCost * 1.44;
-  
-  const permissions = user?.permissions || { price_types: [] };
-  const prices = [];
-  
-  if (permissions.price_types?.includes('базова')) {
-    prices.push({ type: 'базова', label: 'Базова ціна', value: Math.round(totalCost * 100) / 100 });
-  }
-  if (permissions.price_types?.includes('без_ізоляторів')) {
-    prices.push({ type: 'без_ізоляторів', label: 'Без ізоляторів', value: Math.round(totalWithoutIsolators * 100) / 100 });
-  }
-  if (permissions.price_types?.includes('нульова')) {
-    prices.push({ type: 'нульова', label: 'Нульова ціна', value: Math.round(zeroPrice * 100) / 100 });
-  }
-  
-  // Визначаємо основну ціну для totalCost
-  let mainTotalCost = 0;
-  if (permissions.price_types?.includes('нульова')) {
-    mainTotalCost = zeroPrice;
-  } else if (permissions.price_types?.includes('без_ізоляторів')) {
-    mainTotalCost = totalWithoutIsolators;
-  } else if (permissions.price_types?.includes('базова')) {
-    mainTotalCost = totalCost;
-  }
-  
-  return {
-    components,
-    prices,
-    totalCost: mainTotalCost,
-  };
-};
 
 /**
  * POST /api/battery/calculate
@@ -115,27 +8,11 @@ const calculateRackPricesWithPermissions = (rackConfig, priceData, user) => {
 export const calculateBatteryRack = async (req, res, next) => {
   try {
     const { batteryDimensions, weight, quantity, config } = req.body;
-    const db = await getDb();
 
-    // Отримати актуальний прайс
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    if (!priceRecord) {
-      return res.status(404).json({ error: 'Price data not found' });
-    }
-    const price = JSON.parse(priceRecord.data);
-
-    // Розрахунок компонентів та цін
-    const { components, prices, totalCost } = calculateRackPricesWithPermissions(config, price, req.user);
-
-    // Знайти або створити конфігурацію в БД
-    const rackConfigId = await findOrCreateRackConfiguration(db, {
-      floors: config.floors,
-      rows: config.rows,
-      beamsPerRow: config.beamsPerRow,
-      supports: config.supports,
-      verticalSupports: config.verticalSupports,
-      spans: config.spansArray || [],
-    });
+    const result = await batteryService.calculateBatteryRack(
+      { batteryDimensions, weight, quantity, config },
+      req.user
+    );
 
     // Audit log
     if (req.user) {
@@ -143,27 +20,17 @@ export const calculateBatteryRack = async (req, res, next) => {
         userId: req.user.userId,
         action: AUDIT_ACTIONS.CREATE,
         entityType: ENTITY_TYPES.CALCULATION,
-        newValue: { batteryDimensions, weight, quantity, totalCost, rackConfigId },
+        newValue: { batteryDimensions, weight, quantity, totalCost: result.totalCost, rackConfigId: result.rackConfigId },
         ipAddress: req.ip,
         userAgent: req.get('user-agent'),
       });
     }
 
-    res.json({
-      rackConfigId,
-      name: generateBatteryRackName({
-        floors: config.floors,
-        rows: config.rows,
-        supportType: config.supports?.includes('C') ? 'step' : 'edge',
-        rackWidth: config.spansArray?.[0] || 0,
-        rackLength: batteryDimensions?.length || 0,
-        spans: config.spansArray || [],
-      }),
-      components,
-      prices,
-      totalCost,
-    });
+    res.json(result);
   } catch (error) {
+    if (error.message === 'Price data not found') {
+      return res.status(404).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -175,171 +42,20 @@ export const calculateBatteryRack = async (req, res, next) => {
 export const findBestRackForBattery = async (req, res, next) => {
   try {
     const { batteryDimensions, weight, quantity, config } = req.body;
-    const db = await getDb();
 
-    // Валідація
-    if (!batteryDimensions || !batteryDimensions.length || !batteryDimensions.width) {
-      return res.status(400).json({ error: 'Battery dimensions are required' });
-    }
+    const result = await batteryService.findBestRackForBattery(
+      { batteryDimensions, weight, quantity, config },
+      req.user
+    );
 
-    // Отримати актуальний прайс
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
-    if (!priceRecord) {
-      return res.status(404).json({ error: 'Price data not found' });
-    }
-    const price = JSON.parse(priceRecord.data);
-
-    // Отримати доступні прольоти з прайсу
-    const spanObjects = Object.entries(price.spans || {}).map(([length, data]) => ({
-      length: Number(length),
-      capacity: data.capacity || 1000,
-    }));
-
-    if (spanObjects.length === 0) {
-      return res.status(400).json({ error: 'No span options available in price data' });
-    }
-
-    // Конфігурація стелажа
-    const rows = config?.rows || 2;
-    const floors = config?.floors || 1;
-
-    // Розрахунок кількості акумуляторів в одному ряду
-    const batteriesPerRow = Math.ceil(quantity / (rows * floors));
-
-    // Розрахунок необхідної довжини стелажа
-    const batteryLength = batteryDimensions.length;
-    const gap = batteryDimensions.gap || 0;
-    const requiredLength = (batteriesPerRow * batteryLength) + ((batteriesPerRow - 1) * gap);
-
-    // Генерація всіх можливих комбінацій прольотів
-    const spanCombinations = calcRackSpans({
-      rackLength: requiredLength,
-      accLength: batteryLength,
-      accWeight: batteryDimensions.weight,
-      gap,
-      standardSpans: spanObjects,
-    });
-
-    // Оптимізація - вибір TOP-5 варіантів
-    const maxSpan = Math.max(...spanObjects.map((s) => s.length));
-    const optimizedVariants = optimizeRacks(spanCombinations, requiredLength, maxSpan, 5, price);
-
-    // Розрахунок конфігурації для найкращого варіанту
-    const bestVariant = optimizedVariants[0];
-    
-    // Визначення типу розкосів (брейсів) на основі довжини стелажа
-    const rackLength = bestVariant?.totalLength || requiredLength;
-    const bracesType = rackLength >= 1500 ? 'D1500' : rackLength >= 1000 ? 'D1000' : 'D600';
-    
-    const rackConfig = {
-      floors: floors,
-      rows: rows,
-      beamsPerRow: bestVariant?.beams || 2,
-      supports: config?.supports || 'C80',
-      verticalSupports: config?.verticalSupports || null,
-      spansArray: bestVariant?.combination || [],
-      braces: bracesType,
-    };
-
-    // Розрахунок цін для найкращого варіанту
-    const { components: bestComponents, prices: bestPrices, totalCost: bestTotalCost } = calculateRackPricesWithPermissions(rackConfig, price, req.user);
-
-    // Знайти або створити конфігурацію в БД для найкращого варіанту
-    const rackConfigId = await findOrCreateRackConfiguration(db, rackConfig);
-
-    // Перевірка дозволів на показ цін в компонентах
-    const userPermissions = req.user?.permissions || { price_types: [] };
-    const showPricesInComponents = userPermissions.price_types?.includes('базова');
-
-    // Формування варіантів для відповіді з цінами
-    const variantsWithPrices = optimizedVariants.map((v, index) => {
-      // Визначення типу розкосів для варіанту
-      const variantLength = v.totalLength || requiredLength;
-      const variantBraces = variantLength >= 1500 ? 'D1500' : variantLength >= 1000 ? 'D1000' : 'D600';
-      
-      // Конфігурація для кожного варіанту
-      const variantConfig = {
-        floors: floors,
-        rows: rows,
-        beamsPerRow: v.beams,
-        supports: config?.supports || 'C80',
-        verticalSupports: config?.verticalSupports || null,
-        spansArray: v.combination,
-        braces: variantBraces,
-      };
-
-      // Розрахунок цін для варіанту
-      const variantPrices = calculateRackPricesWithPermissions(variantConfig, price, req.user);
-
-      // Компоненти: завжди показуємо, але без цін якщо немає дозволу
-      let componentsWithPrices = variantPrices.components;
-      if (!showPricesInComponents) {
-        // Прибираємо ціни з компонентів, залишаємо тільки назви та кількість
-        componentsWithPrices = {};
-        for (const [category, items] of Object.entries(variantPrices.components)) {
-          const itemsArray = Array.isArray(items) ? items : [items];
-          componentsWithPrices[category] = itemsArray.map(item => ({
-            name: item.name,
-            amount: item.amount,
-            price: 0,  // Прибираємо ціну
-            total: 0,  // Прибираємо суму
-          }));
-        }
-      }
-
-      return {
-        rackConfigId: index === 0 ? rackConfigId : undefined,
-        name: generateBatteryRackName({
-          floors: variantConfig.floors,
-          rows: variantConfig.rows,
-          supportType: variantConfig.supports?.includes('C') ? 'step' : 'edge',
-          rackWidth: batteryDimensions.width,
-          rackLength: batteryLength,
-          spans: variantConfig.spansArray,
-        }),
-        config: variantConfig,
-        components: showPricesInComponents ? variantPrices.components : componentsWithPrices,
-        prices: variantPrices.prices,
-        totalCost: variantPrices.totalCost,
-        // Додаткові поля для UI
-        span: v.combination[0],
-        spansCount: v.combination.length,
-        totalLength: v.totalLength,
-        combination: v.combination,
-        beams: v.beams,
-        batteriesPerRow,
-        excessLength: Math.round(v.overLength * 100) / 100,
-        isBest: index === 0,
-        index,
-      };
-    });
-
-    res.json({
-      rackConfigId,
-      requiredLength: Math.round(requiredLength),  // Потрібна довжина (розрахункова)
-      batteriesPerRow,
-      variants: variantsWithPrices,
-      bestMatch: {
-        rackConfigId,
-        span: bestVariant?.combination?.[0],
-        spansCount: bestVariant?.combination?.length,
-        totalLength: bestVariant?.totalLength,
-        combination: bestVariant?.combination,
-        config: rackConfig,
-        components: showPricesInComponents ? bestComponents : {},
-        prices: bestPrices,
-        totalCost: bestTotalCost,
-        name: generateBatteryRackName({
-          floors: rackConfig.floors,
-          rows: rackConfig.rows,
-          supportType: rackConfig.supports?.includes('C') ? 'step' : 'edge',
-          rackWidth: batteryDimensions.width,
-          rackLength: batteryLength,
-          spans: rackConfig.spansArray,
-        }),
-      },
-    });
+    res.json(result);
   } catch (error) {
+    if (error.message === 'Battery dimensions are required' || error.message === 'Price data not found') {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message === 'No span options available in price data') {
+      return res.status(400).json({ error: error.message });
+    }
     next(error);
   }
 };

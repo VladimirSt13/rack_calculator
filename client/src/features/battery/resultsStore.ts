@@ -30,7 +30,7 @@ export interface BatteryVariant {
   span?: number;
   spansCount?: number;
   totalLength?: number;
-  combination: number[];
+  combination: number[];  // Масив чисел [600, 600, 750]
   beams: number;
   batteriesPerRow?: number;
   excessLength?: number;
@@ -38,6 +38,10 @@ export interface BatteryVariant {
   index?: number;
   quantity?: number;  // Для комплектів
   setId?: number;     // Для комплектів
+  // Додаткові поля з сервера
+  supports?: string;
+  verticalSupports?: string;
+  rackHeight?: number;
 }
 
 export interface BatteryResultsState {
