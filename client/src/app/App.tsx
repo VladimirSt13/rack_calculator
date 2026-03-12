@@ -22,6 +22,7 @@ import AuditLogPage from '@/pages/admin/AuditLogPage';
 import PriceManagementPage from '@/pages/admin/PriceManagementPage';
 import RolesManagementPage from '@/pages/admin/RolesManagementPage';
 import MyRackSetsPage from '@/pages/MyRackSetsPage';
+import DashboardPage from '@/pages/DashboardPage';
 import { cn } from '@/lib/utils';
 import { LogOut } from 'lucide-react';
 
@@ -56,6 +57,20 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           <nav className="header__nav" aria-label="Головна навігація">
             <ul className="flex list-none gap-2 sm:gap-4 m-0 p-0">
+              {/* Dashboard - для всіх */}
+              <li key="/dashboard">
+                <Link
+                  to="/dashboard"
+                  className={cn(
+                    'px-3 py-2 rounded-md transition-fast font-medium text-sm sm:text-base',
+                    location.pathname === '/dashboard'
+                      ? 'bg-primary-foreground/10 text-primary-foreground underline'
+                      : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                  )}
+                >
+                  Головна
+                </Link>
+              </li>
               {/* Мої комплекти - для всіх */}
               <li key="/my-sets">
                 <Link
@@ -235,12 +250,22 @@ const App: React.FC = () => {
                 }
               />
 
+              {/* Dashboard - головна сторінка */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute requireActive>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Захищені маршрути */}
               <Route
                 path={PROTECTED_ROUTES.HOME}
                 element={
                   <ProtectedRoute requireActive>
-                    <Navigate to={DEFAULT_REDIRECT_ROUTE} replace />
+                    <Navigate to="/dashboard" replace />
                   </ProtectedRoute>
                 }
               />

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rackSetsApi, downloadRackSetExport } from '@/features/rack/rackSetsApi';
+import { useBatterySetStore } from '@/features/battery/setStore';
 import type { BatterySetItem } from '@/features/battery/setStore';
 import { toast } from 'sonner';
 
@@ -39,6 +40,7 @@ export const useBatterySetModal = ({
   racks,
 }: UseBatterySetModalProps): UseBatterySetModalReturn => {
   const queryClient = useQueryClient();
+  const { clear } = useBatterySetStore();
   const [includePrices, setIncludePrices] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
@@ -70,6 +72,7 @@ export const useBatterySetModal = ({
       queryClient.invalidateQueries({ queryKey: ['rackSets'] });
       queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       toast.success('Комплект стелажів збережено');
+      clear();
       onClose();
     },
     onError: (error: Error) => {

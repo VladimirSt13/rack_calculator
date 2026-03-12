@@ -225,14 +225,117 @@
 
 ---
 
+## 📊 МЕТРИКИ ПРОЄКТУ
+
+### Поточний статус
+| Показник | Значення |
+|----------|----------|
+| **Завершено етапів** | 13/13 (Phase 1 & 2) |
+| **Всього міграцій** | 16 |
+| **API endpoints** | 40+ |
+| **Користувачів** | 5 |
+| **Комплектів** | 18+ конфігурацій |
+| **Аудит записів** | 149+ |
+| **Моделей даних** | 12 |
+| **Контролерів** | 12 |
+| **Сервісів** | 11 |
+| **Middleware** | 2 |
+| **Таблиць БД** | 15 |
+
+### Цілі Phase 3
+| Показник | Ціль |
+|----------|------|
+| **Критичні баги** | 0 (1 не підтвердився) |
+| **Завершено етапів** | 14/14 |
+| **Test coverage** | > 60% |
+| **Documentation** | 100% |
+
+---
+
+## 🏗️ Архітектура
+
+### Контролери (12)
+
+| Контролер | Призначення |
+|-----------|-------------|
+| `auditController.js` | Журнал аудиту |
+| `authController.js` | Авторизація (login, register, refresh, password reset) |
+| `batteryController.js` | Розрахунок стелажів для акумуляторів |
+| `calculationsController.js` | Збереження розрахунків |
+| `exportController.js` | Експорт в Excel |
+| `priceComponentsController.js` | Компоненти прайсу |
+| `priceController.js` | Управління прайсами |
+| `rackConfigurationController.js` | Конфігурації стелажів |
+| `rackController.js` | Розрахунок стелажів |
+| `rackSetController.js` | Комплекти стелажів (CRUD) |
+| `rolesController.js` | Ролі та дозволи |
+| `usersController.js` | Користувачі (CRUD) |
+
+### Моделі (12)
+
+1. `BaseModel` - базовий клас
+2. `User` - користувачі
+3. `Role` - ролі
+4. `Permission` - дозволи
+5. `Price` - прайс-листи
+6. `AuditLog` - журнал аудиту
+7. `RefreshToken` - refresh токени
+8. `EmailVerification` - підтвердження email
+9. `PasswordReset` - скидання пароля
+10. `RackSet` - комплекти стелажів
+11. `RackConfiguration` - конфігурації стелажів
+12. `RackSetRevision` - історія змін комплектів
+
+### Middleware (2)
+
+| Middleware | Призначення |
+|------------|-------------|
+| `auth.js` | Перевірка JWT токену (`authenticate`, `optionalAuth`) |
+| `authorizeRole.js` | Перевірка ролі (`authorizeRole`, `authorizePermission`) |
+
+### Сервіси (11)
+
+| Сервіс | Призначення |
+|--------|-------------|
+| `auditCleanupService.js` | Cron для очистки аудиту |
+| `auditService.js` | Логіка аудиту |
+| `batteryService.js` | Логіка акумуляторів |
+| `calculationsService.js` | Розрахунки |
+| `exportService.js` | Експорт в Excel |
+| `priceComponentsService.js` | Компоненти прайсу |
+| `priceService.js` | Управління прайсами |
+| `pricingService.js` | Розрахунок цін з фільтрацією |
+| `rackConfigurationService.js` | Конфігурації стелажів |
+| `rackService.js` | Логіка стелажів |
+| `rolesService.js` | Ролі та дозволи |
+
+---
+
 ## 📋 ПОТОЧНИЙ ПЛАН (Phase 3)
 
 ### 🔴 Priority 1: Critical Bug Fixes (Week 1)
 
 #### Етап 14: Виправлення критичних багів
-- [ ] **Виправити подвоєння ізоляторів**
-- [ ] **Виправити Battery Page експорт**
-- [ ] **Перевірити експорт для різних ролей**
+
+**14.1 Подвоєння ізоляторів** (✅ Не підтвердилось)
+- [x] Перевірено `shared/rackCalculator.ts` (рядки 239-263)
+- [x] Формула правильна: `(2 + (прольоти - 1)) × 2`
+- [x] Ізолятори тільки для 1-поверхових стелажів
+- [x] `rows` не множиться (опори спільні)
+- [ ] **Можлива причина:** Проблема на клієнті або була виправлена раніше
+
+**14.2 Battery Page експорт** (⚠️ Частково виправлено)
+- [x] `rackSetController.js` - зберігає `rack_items` правильно
+- [x] `exportService.js` - розраховує дані заново з `rack_configurations`
+- [ ] **Потрібна перевірка:** Тестування на реальних даних
+- [ ] **Файли:** `server/src/controllers/rackSetController.js`, `server/src/services/exportService.js`
+
+**14.3 Експорт для admin/manager** (✅ Виправлено)
+- [x] `filterPriceArrayByPermissions` працює коректно (рядки 107-133)
+- [x] Admin отримує всі 3 типи цін
+- [x] Manager отримує тільки "нульова"
+- [x] `exportController.js` враховує дозволи користувача
+- [ ] **Файл:** `server/src/services/pricingService.js`
 
 ---
 
@@ -241,41 +344,49 @@
 #### Етап 15: Soft Delete та відновлення комплектів
 **Опис:** Замість повного видалення - позначення як видалене з можливістю відновлення.
 
-**БД Зміни:**
-```sql
-ALTER TABLE rack_sets ADD COLUMN deleted BOOLEAN DEFAULT 0;
-ALTER TABLE rack_sets ADD COLUMN deleted_at DATETIME;
-CREATE INDEX idx_rack_sets_deleted ON rack_sets(deleted);
-```
+**Статус:** ✅ **ВИКОНАНО**
 
-**Завдання:**
-- [ ] Створити міграцію для додавання `deleted` та `deleted_at`
-- [ ] Оновити `rackSetController.js`:
-  - [ ] `deleteRackSet` - м'яке видалення (прапор + timestamp)
-  - [ ] `getRackSets` - фільтрувати видалені за замовчуванням
-  - [ ] Додати `getDeletedRackSets` - отримати видалені
-  - [ ] Додати `restoreRackSet` - відновити
-- [ ] Додати confirmation dialog при видаленні
-- [ ] Адмін-панель: перегляд видалених об'єктів
+**Реалізація:**
+- [x] Міграція 015: `add_soft_delete_and_spans_hash.js` (рядки 17-36)
+- [x] Міграція 016: `cleanup_deprecated_fields.js` (рядки 53-88)
+- [x] Модель `RackSet.js`:
+  - [x] Метод `softDelete()` (рядки 147-156)
+  - [x] Метод `restore()` (рядки 158-167)
+  - [x] Метод `cleanupDeleted(days)` (рядки 221-232)
+- [x] Контролер `rackSetController.js`:
+  - [x] `deleteRackSet` - м'яке видалення (рядок 237)
+  - [x] `restoreRackSet` - відновлення (рядок 267)
+  - [x] `getDeletedRackSets` - отримати видалені (рядок 109)
+- [ ] **Клієнт:** Потрібно додати UI для перегляду/відновлення (див. `plan-client.md` Етап 14)
 
-**Пріоритет:** 🟠 Високий
+**Пріоритет:** ✅ Завершено
 
 ---
 
 #### Етап 16: Cron для очищення видалених об'єктів
 **Опис:** Автоматичне видалення записів з прапором `deleted` старіше 30 днів.
 
+**Статус:** ❌ **НЕ ВИКОНАНО**
+
+**Що є:**
+- [x] Метод `RackSet.cleanupDeleted(days)` в моделі (рядки 221-232)
+- [x] Endpoint `POST /api/rack-sets/cleanup` в контролері (рядки 378-390)
+- [ ] **НЕМАЄ** cron-задачі для автоматичного очищення
+
 **Завдання:**
+- [ ] Створити `server/src/services/rackSetCleanupService.js` (аналогічно `auditCleanupService.js`)
+- [ ] Додати ініціалізацію в `server/src/index.js`:
+  ```javascript
+  import { initRackSetCleanup } from './services/rackSetCleanupService.js';
+  initRackSetCleanup();
+  ```
 - [ ] Додати команду `npm run cleanup:deleted`
-- [ ] Створити скрипт `server/scripts/cleanupDeleted.js`
 - [ ] Налаштування в `.env`:
   ```env
   DELETED_CLEANUP_ENABLED=true
   DELETED_CLEANUP_SCHEDULE=0 4 * * 0  # Щонеділі о 04:00
   DELETED_CLEANUP_DAYS=30
   ```
-- [ ] Додати cron job в `server/src/index.js` або окремий файл
-- [ ] Логування видалених записів
 - [ ] Документація
 
 **Пріоритет:** 🟠 Високий
@@ -348,15 +459,15 @@ CREATE INDEX idx_rack_sets_deleted ON rack_sets(deleted);
 ## 🎯 Пріоритети
 
 ### Високий пріоритет (Priority 1-2)
-1. 🔴 **Виправити подвоєння ізоляторів** (Критичне)
-2. 🔴 **Виправити Battery Page експорт** (Критичне)
-3. 🔴 **Перевірити експорт для різних ролей** (Критичне)
-4. 🟠 **Soft Delete та відновлення** (Високий)
-5. 🟠 **Cron для очищення видалених** (Високий)
+1. ✅ **Подвоєння ізоляторів** - не підтвердилось (формула правильна)
+2. ⚠️ **Battery Page експорт** - частково виправлено (потрібна перевірка)
+3. ✅ **Експорт для admin/manager** - виправлено (фільтрація працює)
+4. ✅ **Soft Delete та відновлення** - виконано
+5. 🟠 **Cron для очищення видалених** - не виконано (створити rackSetCleanupService.js)
 
 ### Низький пріоритет (Priority 4)
-6. 🟢 **Тестування** (Низький)
-7. 🟢 **Документація** (Низький)
+6. 🟢 **Тестування** - 0% coverage (потрібно створити тести)
+7. 🟢 **Документація** - оновити після виправлень
 
 ---
 
@@ -413,11 +524,11 @@ DELETED_CLEANUP_DAYS=30
 - [docs/EXPORT_FIX.md](./docs/EXPORT_FIX.md)
 - [docs/DB_NORMALIZATION_AUDIT.md](./docs/DB_NORMALIZATION_AUDIT.md)
 - [docs/BATTERY_PAGE_AUDIT.md](./docs/BATTERY_PAGE_AUDIT.md)
-- [docs/CLIENT_AUDIT.md](./docs/CLIENT_AUDIT.md)
-- [docs/AUDIT_REPORT.md](./docs/AUDIT_REPORT.md)
+- [docs/CLIENT_AUDIT_2026_03_11.md](./docs/CLIENT_AUDIT_2026_03_11.md)
+- [docs/SERVER_AUDIT_2026_03_11.md](./docs/SERVER_AUDIT_2026_03_11.md)
 
 ---
 
-**Затверджено:** 10 березня 2026
-**Версія:** 4.0
+**Затверджено:** 11 березня 2026  
+**Версія:** 5.0  
 **Статус:** Phase 3 🔄 В роботі (Priority-based)

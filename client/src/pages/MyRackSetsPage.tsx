@@ -13,7 +13,7 @@ import {
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
 import { RackItemDisplay } from '@/shared/components/RackItemDisplay';
-import { Loader2, Package, Download, Trash2, Eye } from 'lucide-react';
+import { Loader2, Package, Download, Trash2, Eye, Archive, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
@@ -35,10 +35,13 @@ export const MyRackSetsPage: React.FC = () => {
   const [filters, setFilters] = useState({
     search: '',
   });
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [setToRestore, setSetToRestore] = useState<RackSet | null>(null);
 
+  // Завантажуємо або активні, або видалені комплекти
   const { data, isLoading } = useQuery({
-    queryKey: ['myRackSets'],
-    queryFn: rackSetsApi.getAll,
+    queryKey: ['myRackSets', showDeleted],
+    queryFn: () => showDeleted ? rackSetsApi.getDeleted() : rackSetsApi.getAll(),
   });
 
   // Мутація для експорту
@@ -91,6 +94,23 @@ export const MyRackSetsPage: React.FC = () => {
     },
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: (id: number) => rackSetsApi.restore(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
+      queryClient.invalidateQueries({ queryKey: ['rackSets'] });
+      toast.success('Комплект відновлено');
+    },
+    onError: (error: Error) => {
+      toast.error((error as any).response?.data?.error || 'Помилка відновлення');
+    },
+  });
+
+  const handleRestore = (rackSet: RackSet) => {
+    setSetToRestore(rackSet);
+    restoreMutation.mutate(rackSet.id);
+  };
+
   const handleDelete = (rackSet: RackSet) => {
     setSetToDelete(rackSet);
     setIsDeleteOpen(true);
@@ -118,13 +138,28 @@ export const MyRackSetsPage: React.FC = () => {
     <div className='container mx-auto py-8 px-4'>
       <div className='flex justify-between items-center mb-6'>
         <div>
-          <h1 className='text-3xl font-bold mb-2'>Мої комплекти</h1>
-          <p className='text-muted-foreground'>Ваші збережені комплекти стелажів</p>
+          <h1 className='text-3xl font-bold mb-2'>
+            {showDeleted ? 'Видалені комплекти' : 'Мої комплекти'}
+          </h1>
+          <p className='text-muted-foreground'>
+            {showDeleted ? 'Видалені комплекти стелажів' : 'Ваші збережені комплекти стелажів'}
+          </p>
         </div>
-        <Button onClick={() => navigate('/rack')}>
-          <Package className='w-4 h-4 mr-2' />
-          Створити новий
-        </Button>
+        <div className='flex gap-2'>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleted(!showDeleted)}
+          >
+            <Archive className='w-4 h-4 mr-2' />
+            {showDeleted ? 'Активні' : 'Видалене'}
+          </Button>
+          {!showDeleted && (
+            <Button onClick={() => navigate('/rack')}>
+              <Package className='w-4 h-4 mr-2' />
+              Створити новий
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Фільтри */}
@@ -146,9 +181,11 @@ export const MyRackSetsPage: React.FC = () => {
         onViewSet={handleViewSet}
         onExport={handleExport}
         onDelete={handleDelete}
+        onRestore={handleRestore}
         isExporting={exportMutation.isPending}
-        emptyMessage="У вас ще немає збережених комплектів"
+        emptyMessage={showDeleted ? "У вас немає видалених комплектів" : "У вас ще немає збережених комплектів"}
         mode="user"
+        showDeleted={showDeleted}
       />
 
       {/* Діалог видалення */}

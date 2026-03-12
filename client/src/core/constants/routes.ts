@@ -63,7 +63,7 @@ export const NAVIGATION_ROUTES = {
 /**
  * Маршрут за замовчуванням після входу
  */
-export const DEFAULT_REDIRECT_ROUTE = PROTECTED_ROUTES.BATTERY;
+export const DEFAULT_REDIRECT_ROUTE = '/dashboard';
 
 /**
  * Маршрут за замовчуванням для адміна

@@ -19,6 +19,7 @@ export interface RackSet {
   total_cost_snapshot?: number; // Нове поле
   created_at: string;
   updated_at?: string;
+  deleted_at?: string; // Для soft delete
 }
 
 export interface RackSetRevision {
@@ -140,10 +141,26 @@ export const rackSetsApi = {
   },
 
   /**
-   * Видалити комплект стелажів
+   * Видалити комплект стелажів (Soft Delete)
    */
   delete: async (id: number) => {
     const { data } = await api.delete(`/rack-sets/${id}`);
+    return data;
+  },
+
+  /**
+   * Отримати видалені комплекти стелажів
+   */
+  getDeleted: async () => {
+    const { data } = await api.get('/rack-sets/deleted');
+    return data as { rackSets: RackSet[] };
+  },
+
+  /**
+   * Відновити видалений комплект стелажів
+   */
+  restore: async (id: number) => {
+    const { data } = await api.post(`/rack-sets/${id}/restore`);
     return data;
   },
 

@@ -1,4 +1,4 @@
-import { Package, Eye, Edit, Download, Loader2, Trash2 } from 'lucide-react';
+import { Package, Eye, Edit, Download, Loader2, Trash2, RotateCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
 import { IconButton } from '@/shared/components/IconButton';
 import { RackSet } from '@/features/rack/types/rack.types';
@@ -11,9 +11,11 @@ interface RackSetsTableProps {
   onEditInCalculator?: (rackSet: RackSet) => void;
   onExport: (rackSet: RackSet) => void;
   onDelete?: (rackSet: RackSet) => void;
+  onRestore?: (rackSet: RackSet) => void;
   isExporting?: boolean;
   emptyMessage?: string;
   mode?: 'user' | 'admin';
+  showDeleted?: boolean;
 }
 
 export const RackSetsTable: React.FC<RackSetsTableProps> = ({
@@ -24,9 +26,11 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
   onEditInCalculator,
   onExport,
   onDelete,
+  onRestore,
   isExporting = false,
   emptyMessage = 'У вас ще немає збережених комплектів',
   mode = 'user',
+  showDeleted = false,
 }) => {
   const filteredSets = rackSets.filter(
     (set) =>
@@ -71,11 +75,16 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
               </TableRow>
             ) : (
               filteredSets.map((rackSet) => (
-                <TableRow key={rackSet.id}>
+                <TableRow key={rackSet.id} className={showDeleted ? 'opacity-75' : ''}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Package className="w-4 h-4 text-muted-foreground" />
                       {rackSet.name}
+                      {showDeleted && rackSet.deleted_at && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Видалено
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>{rackSet.object_name || '—'}</TableCell>
@@ -131,7 +140,17 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
                         disabled={isExporting}
                         title="Експортувати комплект"
                       />
-                      {mode === 'user' && onDelete && (
+                      {showDeleted && onRestore && (
+                        <IconButton
+                          icon={RotateCcw}
+                          variant="icon"
+                          className="text-green-600 hover:text-green-700"
+                          onClick={() => onRestore(rackSet)}
+                          aria-label="Відновити"
+                          title="Відновити комплект"
+                        />
+                      )}
+                      {mode === 'user' && onDelete && !showDeleted && (
                         <IconButton
                           icon={Trash2}
                           variant="icon"
