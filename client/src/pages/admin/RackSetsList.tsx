@@ -20,6 +20,7 @@ import { Label } from '@/shared/components/Label';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { useNavigate } from 'react-router-dom';
 import { RackSetsTable } from '@/features/rack/components/RackSetsTable';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
 
 export const RackSetsList: React.FC = () => {
   const queryClient = useQueryClient();
@@ -113,11 +114,18 @@ export const RackSetsList: React.FC = () => {
   });
 
   return (
-    <div className='container mx-auto py-8 px-4'>
+    <AdminLayout
+      title="Комплекти стелажів"
+      description="Збережені комплекти стелажів з розрахунками"
+    >
       <div className='flex justify-between items-center mb-6'>
         <div>
-          <h1 className='text-3xl font-bold mb-2'>Комплекти стелажів</h1>
-          <p className='text-muted-foreground'>Збережені комплекти стелажів з розрахунками</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/my-sets')}
+          >
+            Мої комплекти
+          </Button>
         </div>
       </div>
 
@@ -271,7 +279,7 @@ export const RackSetsList: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

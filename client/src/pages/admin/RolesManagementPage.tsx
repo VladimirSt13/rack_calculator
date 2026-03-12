@@ -1,24 +1,21 @@
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/Alert';
 import { AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/authStore';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
 
 export const RolesManagementPage: React.FC = () => {
   const { user } = useAuthStore();
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Ролі та дозволи</h1>
-        <p className="text-muted-foreground">
-          Управління ролями та дозволами користувачів
-        </p>
-      </div>
-
+    <AdminLayout
+      title="Ролі та дозволи"
+      description="Управління ролями та дозволами користувачів"
+    >
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>В розробці</AlertTitle>
         <AlertDescription>
-          Ця сторінка знаходиться в процесі розробки. 
+          Ця сторінка знаходиться в процесі розробки.
           Для зміни ролей користувачів використовуйте сторінку "Користувачі".
         </AlertDescription>
       </Alert>
@@ -52,7 +49,7 @@ export const RolesManagementPage: React.FC = () => {
           </ul>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -1,21 +1,18 @@
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/Alert';
 import { AlertCircle } from 'lucide-react';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
 
 export const PriceManagementPage: React.FC = () => {
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Управління прайсом</h1>
-        <p className="text-muted-foreground">
-          Завантаження та оновлення прайс-листу
-        </p>
-      </div>
-
+    <AdminLayout
+      title="Управління прайсом"
+      description="Завантаження та оновлення прайс-листу"
+    >
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>В розробці</AlertTitle>
         <AlertDescription>
-          Ця сторінка знаходиться в процесі розробки. 
+          Ця сторінка знаходиться в процесі розробки.
           Для оновлення прайсу зверніться до адміністратора системи.
         </AlertDescription>
       </Alert>
@@ -28,7 +25,7 @@ export const PriceManagementPage: React.FC = () => {
           <li>Після оновлення всі розрахунки будуть перераховані автоматично</li>
         </ol>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

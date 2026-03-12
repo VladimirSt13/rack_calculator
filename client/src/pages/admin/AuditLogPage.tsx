@@ -21,6 +21,7 @@ import {
 } from '@/shared/components/Dialog';
 import { Loader2, FileText, User, Calendar, Activity, Trash2, TrendingUp, Database, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Створення',
@@ -134,10 +135,13 @@ export const AuditLogPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <AdminLayout
+      title="Журнал аудиту"
+      description="Історія всіх дій у системі"
+    >
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3">
             <FileText className="w-8 h-8 text-primary" />
             <h1 className="text-3xl font-bold">Журнал аудиту</h1>
           </div>
@@ -150,9 +154,6 @@ export const AuditLogPage: React.FC = () => {
             Очистити старі
           </Button>
         </div>
-        <p className="text-muted-foreground">
-          Історія всіх дій у системі
-        </p>
       </div>
 
       {/* Статистика */}
@@ -434,7 +435,7 @@ export const AuditLogPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 };
 
