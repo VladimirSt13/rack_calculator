@@ -60,8 +60,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <aside
       className={cn(
-        'w-64 bg-card border-r border-border h-[calc(100vh-4rem)] flex flex-col',
-        'sticky top-16', // Прилипає до хедера (4rem = 64px висота хедера)
+        'w-64 bg-card border-r border-border h-full flex flex-col',
         'transition-all duration-300 ease-in-out',
         collapsed && 'w-0 lg:w-16',
         className
