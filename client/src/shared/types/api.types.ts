@@ -207,6 +207,9 @@ export interface BatteryFindBestResponse {
   rackConfigId?: number;
   requiredLength?: number;
   batteriesPerRow?: number;
+  supports?: string;
+  verticalSupports?: string | null;
+  rackHeight?: number | null;
   variants: BatteryVariantDto[];
   bestMatch?: {
     variant: BatteryVariantDto;

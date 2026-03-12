@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rackSetsApi, downloadRackSetExport } from '@/features/rack/rackSetsApi';
 import { useRackSetStore } from '@/features/rack/setStore';
+import { useRackResultsStore } from '@/features/rack/resultsStore';
 import type { RackSetItem } from '@/features/rack/setStore';
 import { toast } from 'sonner';
 
@@ -37,6 +38,7 @@ export interface UseRackSetModalReturn {
 export const useRackSetModal = ({ isOpen, onClose, racks }: UseRackSetModalProps): UseRackSetModalReturn => {
   const queryClient = useQueryClient();
   const { clear } = useRackSetStore();
+  const resultsStore = useRackResultsStore();
   const [includePrices, setIncludePrices] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
@@ -65,6 +67,7 @@ export const useRackSetModal = ({ isOpen, onClose, racks }: UseRackSetModalProps
       queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       toast.success('Комплект стелажів збережено');
       clear();
+      resultsStore.clear();  // ✅ Очищаємо результати розрахунку
       onClose();
     },
     onError: (error: Error) => {

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { useBatteryResultsStore, type BatteryVariant } from '@/features/battery/resultsStore';
 import { useBatterySetStore } from '@/features/battery/setStore';
-import { useBatteryFormStore } from '@/features/battery/formStore';
+import { useBatteryFormStore, type BatteryFormState } from '@/features/battery/formStore';
 import {
   Table,
   TableHeader,
@@ -23,10 +23,6 @@ import { Plus, CheckCircle2 } from 'lucide-react';
  */
 interface BatteryResultsProps {
   isLoading?: boolean;
-}
-
-interface PreambleProps {
-  variants: BatteryVariant[];
 }
 
 interface SpansTableProps {
@@ -66,7 +62,7 @@ BatteryResults.displayName = 'BatteryResults';
  */
 interface PreamblePropsWithForm {
   variants: BatteryVariant[];
-  formState: ReturnType<typeof useBatteryFormStore>;
+  formState: BatteryFormState;
   requiredLength?: number;
 }
 
