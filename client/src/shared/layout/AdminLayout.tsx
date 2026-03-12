@@ -20,7 +20,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex">
       {/* Sidebar */}
       <AdminSidebar
         collapsed={sidebarCollapsed}
@@ -28,14 +28,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       />
 
       {/* Main Content */}
-      <main
+      <div
         className={cn(
-          'flex-1 transition-all duration-300 ease-in-out',
+          'flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out',
           'lg:ml-64',
           sidebarCollapsed && 'lg:ml-16'
         )}
       >
-        <div className="container mx-auto py-8 px-4 pt-8">
+        <div className="container mx-auto py-8 px-4">
           {/* Header */}
           {(title || description) && (
             <div className="mb-8">
@@ -49,7 +49,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {/* Content */}
           {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 };
