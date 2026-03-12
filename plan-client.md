@@ -253,25 +253,22 @@
 
 ---
 
-#### Етап 19: Sidebar навігація в адмін-панелі
+#### Етап 19: Sidebar навігація в адмін-панелі ✅ Завершено
 **Опис:** Додати лівий сайдбар з пунктами меню для адмін-панелі.
 
 **Завдання:**
-- [ ] Створити `AdminSidebar.tsx` компонент
-- [ ] Пункти меню:
-  - [ ] Дашборд
-  - [ ] Користувачі
-  - [ ] Ролі та дозволи
-  - [ ] Комплекти стелажів
-  - [ ] Журнал аудиту
-  - [ ] Налаштування
-- [ ] Оновити `AdminDashboard` з сайдбаром
-- [ ] Додати active state для поточного пункту
-- [ ] Responsive (ховається на мобільних)
-- [ ] **Файли:** `client/src/pages/admin/AdminDashboard.tsx`, `client/src/shared/layout/Sidebar.tsx`
-- [ ] **Проблема:** Sidebar існує, але не використовується в адмінці
+- [x] Створити `AdminSidebar.tsx` компонент
+- [x] Пункти меню: Дашборд, Користувачі, Ролі, Прайс, Комплекти, Аудит
+- [x] Створити `AdminLayout.tsx` - обгортка для всіх адмін-сторінок
+- [x] Інтегрувати `AdminLayout` в усі адмін-сторінки
+- [x] Додати active state для поточного пункту
+- [x] Responsive (ховається на мобільних)
+- [x] Grid layout як в CalculatorPage (256px sidebar + flexible content)
+- [x] Sticky sidebar поведінка
+- [x] **Файли:** `client/src/shared/layout/AdminSidebar.tsx`, `client/src/shared/layout/AdminLayout.tsx`
+- [x] **Оновлені сторінки:** AdminDashboard, UserManagement, AuditLogPage, RolesManagementPage, RackSetsList, PriceManagementPage
 
-**Пріоритет:** 🟡 Середній
+**Пріоритет:** ✅ Завершено
 
 ---
 
