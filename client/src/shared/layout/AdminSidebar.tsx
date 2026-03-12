@@ -60,7 +60,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <aside
       className={cn(
-        'w-64 bg-card border-r border-border h-full flex flex-col',
+        'w-64 bg-card border-r border-border flex flex-col',
         'transition-all duration-300 ease-in-out',
         collapsed && 'w-0 lg:w-16',
         className
