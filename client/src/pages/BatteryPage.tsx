@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skeleton, CalculationControls } from '@/shared/components';
+import { CalculationControls } from '@/shared/components';
 import { CalculatorPage } from '@/shared/layout';
 import BatteryForm from '@/features/battery/components/BatteryForm';
 import BatteryResults from '@/features/battery/components/BatteryResults';
@@ -27,7 +27,8 @@ const BatteryPage: React.FC = () => {
     return () => {
       clear();
     };
-  }, [clear]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCalculate = async () => {
     setCalculationState('calculating');

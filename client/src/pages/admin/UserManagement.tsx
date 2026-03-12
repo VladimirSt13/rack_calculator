@@ -24,6 +24,7 @@ import { DeleteDialog } from '@/shared/components/DeleteDialog';
 import { Loader2, Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconButton } from '@/shared/components/IconButton';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
 
 export const UserManagement: React.FC = () => {
   const queryClient = useQueryClient();
@@ -82,18 +83,17 @@ export const UserManagement: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <AdminLayout
+      title="Користувачі"
+      description="Управління користувачами системи"
+    >
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Користувачі</h1>
-          <p className="text-muted-foreground">
-            Управління користувачами системи
-          </p>
+          <Button onClick={handleCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Додати користувача
+          </Button>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          Додати користувача
-        </Button>
       </div>
 
       {/* Фільтри */}
@@ -320,7 +320,7 @@ export const UserManagement: React.FC = () => {
           description={`Ви дійсно хочете видалити користувача ${userToDelete?.email}? Цю дію не можна скасувати.`}
         />
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

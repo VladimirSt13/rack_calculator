@@ -1,5 +1,6 @@
 import React from 'react';
 import { useBatteryFormStore, SupportType } from '@/features/battery/formStore';
+import { useBatteryResultsStore } from '@/features/battery/resultsStore';
 import {
   CardContent,
   FormSection,
@@ -8,6 +9,7 @@ import {
   LengthWithGapField,
   FormSelectField,
 } from '@/shared/components';
+import { X } from 'lucide-react';
 
 /**
  * Battery Form - форма введення параметрів акумулятора
@@ -33,7 +35,15 @@ const BatteryForm: React.FC = () => {
     setRows,
     setFloors,
     setSupportType,
+    reset,
   } = useBatteryFormStore();
+
+  const resultsStore = useBatteryResultsStore();
+
+  const handleReset = () => {
+    reset();
+    resultsStore.clear();
+  };
 
   const rowsOptions = [
     { value: '1', label: '1' },
@@ -51,6 +61,18 @@ const BatteryForm: React.FC = () => {
 
   return (
     <CardContent className='w-full px-0 '>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Параметри акумулятора</h3>
+        <button
+          onClick={handleReset}
+          className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+          title="Очистити форму"
+        >
+          <X className="w-3 h-3" />
+          Очистити
+        </button>
+      </div>
+
       <FormSectionsGroup>
         {/* Dimensions Section */}
         <FormSection title='Розміри акумулятора, мм'>

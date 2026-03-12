@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRackFormStore } from '@/features/rack/formStore';
 import { useRackSpansStore } from '@/features/rack/spansStore';
+import { useRackResultsStore } from '@/features/rack/resultsStore';
 import { useRackComponents } from '@/features/rack/useRackComponents';
 import type { SupportComponent, VerticalSupportComponent, SpanComponent } from '@/features/rack/types/rack.types';
 import type { ComponentOption } from '@/features/rack/types/rack.types';
@@ -14,7 +15,7 @@ import {
   IconButton,
 } from '@/shared/components';
 import SpanList from './SpanList';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 /**
  * Rack Form - форма введення параметрів стелажа
@@ -32,9 +33,18 @@ const RackForm: React.FC = () => {
     setSupports,
     setRows,
     setBeamsPerRow,
+    reset,
   } = useRackFormStore();
 
-  const { addSpan } = useRackSpansStore();
+  const { addSpan, clearSpans } = useRackSpansStore();
+  const resultsStore = useRackResultsStore();
+
+  const handleReset = () => {
+    reset();
+    clearSpans();
+    resultsStore.clear();
+  };
+
   const {
     supports: supportsComponents,
     verticalSupports: verticalSupportsComponents,
@@ -79,6 +89,18 @@ const RackForm: React.FC = () => {
 
   return (
     <CardContent className='w-full px-0'>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Параметри стелажа</h3>
+        <button
+          onClick={handleReset}
+          className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+          title="Очистити форму"
+        >
+          <X className="w-3 h-3" />
+          Очистити
+        </button>
+      </div>
+
       <FormSectionsGroup>
         {/* Geometry Section */}
         <FormSection title='Геометрія'>

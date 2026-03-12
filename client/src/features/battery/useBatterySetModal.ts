@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rackSetsApi, downloadRackSetExport } from '@/features/rack/rackSetsApi';
 import { useBatterySetStore } from '@/features/battery/setStore';
+import { useBatteryResultsStore } from '@/features/battery/resultsStore';
 import type { BatterySetItem } from '@/features/battery/setStore';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ export const useBatterySetModal = ({
 }: UseBatterySetModalProps): UseBatterySetModalReturn => {
   const queryClient = useQueryClient();
   const { clear } = useBatterySetStore();
+  const resultsStore = useBatteryResultsStore();
   const [includePrices, setIncludePrices] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
@@ -73,24 +75,13 @@ export const useBatterySetModal = ({
       queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
       toast.success('Комплект стелажів збережено');
       clear();
+      resultsStore.clear();  // ✅ Очищаємо результати розрахунку
       onClose();
     },
     onError: (error: Error) => {
       toast.error((error as any).response?.data?.error || 'Помилка збереження');
     },
   });
-
-  const convertSpansToRackFormat = (spansArray: number[]) => {
-    const spansMap = new Map<string, number>();
-    spansArray.forEach((span) => {
-      const key = String(span);
-      spansMap.set(key, (spansMap.get(key) || 0) + 1);
-    });
-    return Array.from(spansMap.entries()).map(([item, quantity]) => ({
-      item,
-      quantity,
-    }));
-  };
 
   const prepareRackItems = () => {
     return racks

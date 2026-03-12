@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useRackSetStore, type RackSetItem, type PriceInfo } from '@/features/rack/setStore';
 import { RackSetModal } from '@/features/rack/RackSetModal';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '@/shared/components';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, X } from 'lucide-react';
 
 /**
  * RackSetCard - картка комплекту стелажів
  */
 const RackSetCard: React.FC = () => {
-  const { racks, removeRack, updateRackQuantity } = useRackSetStore();
+  const { racks, removeRack, updateRackQuantity, clear } = useRackSetStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Функція для отримання нульової ціни з prices масиву
@@ -136,14 +136,22 @@ const RackSetCard: React.FC = () => {
             )}
           </div>
 
-          <CardFooter className="px-0 pb-0">
-            <TextButton 
-              variant="outline" 
-              className="w-full" 
+          <CardFooter className="px-0 pb-0 flex gap-2">
+            <TextButton
+              variant="outline"
+              className="flex-1"
               leftIcon={Eye}
               onClick={() => setIsModalOpen(true)}
             >
               Переглянути комплект
+            </TextButton>
+            <TextButton
+              variant="outline"
+              onClick={clear}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              leftIcon={X}
+            >
+              Очистити комплект
             </TextButton>
           </CardFooter>
         </CardContent>
