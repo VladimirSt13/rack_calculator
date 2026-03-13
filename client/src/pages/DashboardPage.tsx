@@ -202,8 +202,8 @@ const DashboardPage: React.FC = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => setViewingSet(set)}
-                      leftIcon={Eye}
                     >
+                      <Eye className="w-4 h-4 mr-2" />
                       Перегляд
                     </Button>
                   </div>

@@ -147,3 +147,11 @@ export type { ResultsSkeletonProps } from './ResultsSkeleton';
 // Price Display
 export { PriceDisplay } from './PriceDisplay';
 export type { PriceDisplayProps } from './PriceDisplay';
+
+// Set Card (Universal)
+export { SetCard } from './SetCard';
+export type { SetCardProps, PriceConfig, RowRenderProps, SummaryRenderProps, BaseSetItem } from './SetCard';
+
+// Set Modal Content (Universal)
+export { SetModalContent } from './SetModalContent';
+export type { SetModalContentProps, RenderSetContentProps, SetModalFormProps, BaseSetItemWithPrices } from './SetModalContent';

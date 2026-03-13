@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
 import { Loader2, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+import { PUBLIC_ROUTES } from '@/core/constants/routes';
 
 const COOLDOWN_MS = 30000; // 30 секунд між запитами
 
@@ -206,7 +207,7 @@ export const ResetPasswordPage: React.FC = () => {
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Згадали старий пароль? </span>
-          <Link to="/login" className="text-primary hover:underline font-medium">
+          <Link to={PUBLIC_ROUTES.LOGIN} className="text-primary hover:underline font-medium">
             Увійти
           </Link>
         </div>

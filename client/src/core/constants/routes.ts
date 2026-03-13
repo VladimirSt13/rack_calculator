@@ -23,6 +23,9 @@ export const PROTECTED_ROUTES = {
   HOME: '/',
   RACK: '/rack',
   BATTERY: '/battery',
+  DASHBOARD: '/dashboard',
+  MY_SETS: '/my-sets',
+  PROFILE: '/profile',
 } as const;
 
 /**

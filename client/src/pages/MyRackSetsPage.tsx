@@ -13,9 +13,8 @@ import {
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
 import { RackItemDisplay } from '@/shared/components/RackItemDisplay';
-import { Loader2, Package, Download, Trash2, Eye, Archive, RotateCcw } from 'lucide-react';
+import { Loader2, Package, Download, Archive } from 'lucide-react';
 import { toast } from 'sonner';
-import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +35,6 @@ export const MyRackSetsPage: React.FC = () => {
     search: '',
   });
   const [showDeleted, setShowDeleted] = useState(false);
-  const [setToRestore, setSetToRestore] = useState<RackSet | null>(null);
 
   // Завантажуємо або активні, або видалені комплекти
   const { data, isLoading } = useQuery({
@@ -107,7 +105,6 @@ export const MyRackSetsPage: React.FC = () => {
   });
 
   const handleRestore = (rackSet: RackSet) => {
-    setSetToRestore(rackSet);
     restoreMutation.mutate(rackSet.id);
   };
 

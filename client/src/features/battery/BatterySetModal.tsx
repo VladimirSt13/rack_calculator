@@ -1,17 +1,17 @@
 import * as React from 'react';
 import type { BatterySetItem } from '@/features/battery/setStore';
 import { useBatterySetModal } from './useBatterySetModal';
-import { BatterySetModalContent } from './components/BatterySetModalContent';
+import { SetModalContent } from '@/shared/components/SetModalContent';
 
 interface BatterySetModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   racks: BatterySetItem[];
 }
 
 export const BatterySetModal: React.FC<BatterySetModalProps> = ({
-  isOpen,
-  onClose,
+  isOpen = false,
+  onClose = () => {},
   racks,
 }) => {
   const {
@@ -27,7 +27,7 @@ export const BatterySetModal: React.FC<BatterySetModalProps> = ({
   } = useBatterySetModal({ isOpen, onClose, racks });
 
   return (
-    <BatterySetModalContent
+    <SetModalContent<BatterySetItem>
       isOpen={isOpen}
       onClose={onClose}
       form={form}
@@ -40,6 +40,11 @@ export const BatterySetModal: React.FC<BatterySetModalProps> = ({
       groupedRacks={groupedRacks}
       totalCost={totalCost}
       hasRacks={racks.length > 0}
+      dialogTitle="Зберегти комплект стелажів (Акумулятор)"
+      namePlaceholder="Наприклад: Стелажі для АКБ"
+      objectNamePlaceholder="Наприклад: Склад АКБ"
+      submitButtonText="Зберегти комплект"
+      exportButtonText="Експорт в Excel"
     />
   );
 };

@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
 import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PUBLIC_ROUTES } from '@/core/constants/routes';
 
 const verifySchema = z.object({
   token: z.string().min(1, 'Токен обов\'язковий'),
@@ -184,7 +185,7 @@ export const VerifyEmailPage: React.FC = () => {
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Вже підтвердили? </span>
-          <Link to="/login" className="text-primary hover:underline font-medium">
+          <Link to={PUBLIC_ROUTES.LOGIN} className="text-primary hover:underline font-medium">
             Увійти
           </Link>
         </div>

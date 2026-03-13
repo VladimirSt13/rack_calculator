@@ -1,7 +1,7 @@
 import { Package, Eye, Edit, Download, Loader2, Trash2, RotateCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
 import { IconButton } from '@/shared/components/IconButton';
-import { RackSet } from '@/features/rack/types/rack.types';
+import type { RackSet } from '@/features/rack/rackSetsApi';
 
 interface RackSetsTableProps {
   rackSets: RackSet[];

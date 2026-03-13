@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/authStore';
 import { Button } from '@/shared/components/Button';
 import { AlertTriangle, Home, LogIn } from 'lucide-react';
+import { PUBLIC_ROUTES } from '@/core/constants/routes';
 
 export const AccessDeniedPage: React.FC = () => {
   const { user, accessToken } = useAuthStore();
@@ -22,7 +23,7 @@ export const AccessDeniedPage: React.FC = () => {
             <p className="text-muted-foreground">
               Вам необхідно увійти в систему для отримання доступу
             </p>
-            <Link to="/login">
+            <Link to={PUBLIC_ROUTES.LOGIN}>
               <Button className="w-full">
                 <LogIn className="w-4 h-4 mr-2" />
                 Увійти
@@ -49,7 +50,7 @@ export const AccessDeniedPage: React.FC = () => {
               </ol>
             </div>
 
-            <Link to="/login">
+            <Link to={PUBLIC_ROUTES.LOGIN}>
               <Button variant="outline" className="w-full">
                 <Home className="w-4 h-4 mr-2" />
                 На головну
@@ -61,7 +62,7 @@ export const AccessDeniedPage: React.FC = () => {
             <p className="text-muted-foreground">
               У вас немає прав для перегляду цієї сторінки
             </p>
-            <Link to="/login">
+            <Link to={PUBLIC_ROUTES.LOGIN}>
               <Button variant="outline" className="w-full">
                 <Home className="w-4 h-4 mr-2" />
                 На головну

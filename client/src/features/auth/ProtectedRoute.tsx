@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from './authStore';
+import { PUBLIC_ROUTES } from '@/core/constants/routes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,7 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Якщо немає токену - редірект на login
   if (!accessToken) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={PUBLIC_ROUTES.LOGIN} replace />;
   }
 
   // Якщо завантажується користувач - показуємо лоадер
@@ -30,12 +31,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Якщо потрібна конкретна роль і користувач не має її
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/access-denied" replace />;
+    return <Navigate to={PUBLIC_ROUTES.ACCESS_DENIED} replace />;
   }
 
   // Якщо роль 'user' і вимагається активна роль - редірект на access-denied
   if (requireActive && user.role === 'user') {
-    return <Navigate to="/access-denied" replace />;
+    return <Navigate to={PUBLIC_ROUTES.ACCESS_DENIED} replace />;
   }
 
   return <>{children}</>;

@@ -61,6 +61,73 @@ export const getCurrentPriceData = async () => {
 };
 
 /**
+ * Отримати історію змін прайсу
+ * @returns {Array} Список версій
+ */
+export const getPriceHistory = async () => {
+  const db = await getDb();
+
+  const versions = db.prepare(`
+    SELECT 
+      id,
+      updated_at as created_at,
+      LENGTH(data) - LENGTH(REPLACE(data, ',', '')) + 1 as items_count
+    FROM prices
+    ORDER BY updated_at DESC
+    LIMIT 50
+  `).all();
+
+  return versions.map(v => ({
+    id: v.id,
+    created_at: v.created_at,
+    created_by: 'system', // Поки що немає користувача
+    items_count: v.items_count || 0,
+  }));
+};
+
+/**
+ * Отримати конкретну версію прайсу
+ * @param {number} versionId - ID версії
+ * @returns {Object|null} Дані версії або null
+ */
+export const getPriceVersion = async (versionId) => {
+  const db = await getDb();
+
+  const version = db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(versionId);
+
+  if (!version) {
+    return null;
+  }
+
+  return {
+    data: JSON.parse(version.data),
+    updatedAt: version.updated_at,
+    id: versionId,
+  };
+};
+
+/**
+ * Відновити попередню версію прайсу (rollback)
+ * @param {number} versionId - ID версії для відновлення
+ * @returns {Object} Відновлений прайс
+ */
+export const restorePriceVersion = async (versionId) => {
+  const db = await getDb();
+
+  // Отримуємо дані версії
+  const version = db.prepare('SELECT data FROM prices WHERE id = ?').get(versionId);
+
+  if (!version) {
+    throw new Error('Version not found');
+  }
+
+  // Створюємо новий запис з тими ж даними
+  const result = db.prepare('INSERT INTO prices (data) VALUES (?)').run(version.data);
+
+  return db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(result.lastInsertRowid);
+};
+
+/**
  * Оновити прайс-лист
  * @param {Object} data - Дані прайсу
  * @returns {Object} Оновлений прайс
@@ -90,6 +157,9 @@ export default {
   validatePriceData,
   getPrice,
   getCurrentPriceData,
+  getPriceHistory,
+  getPriceVersion,
+  restorePriceVersion,
   updatePrice,
   uploadPrice,
 };

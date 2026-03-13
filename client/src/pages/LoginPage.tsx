@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/Button';
 import { Label } from '@/shared/components/Label';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
+import { DEFAULT_REDIRECT_ROUTE, PUBLIC_ROUTES } from '@/core/constants/routes';
 
 const loginSchema = z.object({
   email: z.string().email('Невірний формат email'),
@@ -40,9 +41,9 @@ export const LoginPage: React.FC = () => {
     try {
       await login(data.email, data.password);
       toast.success('Вхід успішний');
-      
+
       // Визначаємо куди редиректити після логіну
-      const redirectPath = from || '/battery';
+      const redirectPath = from || DEFAULT_REDIRECT_ROUTE;
       navigate(redirectPath, { replace: true });
     } catch (err) {
       const errorMessage =
@@ -140,7 +141,7 @@ export const LoginPage: React.FC = () => {
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Немає акаунту? </span>
-          <Link to="/register" className="text-primary hover:underline font-medium">
+          <Link to={PUBLIC_ROUTES.REGISTER} className="text-primary hover:underline font-medium">
             Зареєструватися
           </Link>
         </div>

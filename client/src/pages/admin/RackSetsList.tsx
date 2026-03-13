@@ -13,9 +13,8 @@ import {
 } from '@/shared/components/Dialog';
 import { DeleteDialog } from '@/shared/components/DeleteDialog';
 import { RackItemDisplay } from '@/shared/components/RackItemDisplay';
-import { Loader2, Eye, Trash2, Package, Download, Edit } from 'lucide-react';
+import { Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { IconButton } from '@/shared/components/IconButton';
 import { Label } from '@/shared/components/Label';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { useNavigate } from 'react-router-dom';

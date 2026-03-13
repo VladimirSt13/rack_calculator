@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useRackSetStore, type RackSetItem, type PriceInfo } from '@/features/rack/setStore';
 import { RackSetModal } from '@/features/rack/RackSetModal';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, TextButton, IconButton, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Input, PriceDisplay } from '@/shared/components';
-import { Trash2, Eye, X } from 'lucide-react';
+import { SetCard, type PriceConfig, type SummaryRenderProps } from '@/shared/components/SetCard';
+import { PriceDisplay } from '@/shared/components';
 
 /**
  * RackSetCard - картка комплекту стелажів
  */
 const RackSetCard: React.FC = () => {
   const { racks, removeRack, updateRackQuantity, clear } = useRackSetStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Функція для отримання нульової ціни з prices масиву
   const getZeroPrice = (rack: RackSetItem) => {
@@ -28,141 +27,62 @@ const RackSetCard: React.FC = () => {
     rack.prices?.some((p: PriceInfo) => p.type === 'нульова' || p.type === 'zero')
   );
 
-  const totalZero = racks.reduce((sum, rack) => {
-    const rackPrice = getZeroPrice(rack);
-    return sum + (rackPrice * (rack.quantity || 1));
-  }, 0);
+  // Конфігурація цін для Rack
+  const priceConfig: PriceConfig[] = [
+    { type: 'нульова', label: 'нульова', isPrimary: hasZeroPrice, showInSummary: true },
+    { type: 'zero', label: 'нульова', isPrimary: hasZeroPrice, showInSummary: true },
+    { type: 'без_ізоляторів', label: 'без ізоляторів', isPrimary: !hasZeroPrice, showInSummary: true },
+    { type: 'no_isolators', label: 'без ізоляторів', isPrimary: !hasZeroPrice, showInSummary: true },
+  ];
 
-  const totalWithoutIsolators = racks.reduce((sum, rack) => {
-    const rackPrice = getPriceWithoutIsolators(rack);
-    return sum + (rackPrice * (rack.quantity || 1));
-  }, 0);
+  // Отримання первинної ціни (нульова або без ізоляторів)
+  const getPrimaryPrice = (rack: RackSetItem): number => {
+    return hasZeroPrice ? getZeroPrice(rack) : getPriceWithoutIsolators(rack);
+  };
 
-  if (racks.length === 0) {
+  // Кастомний рендер підсумків
+  const renderSummary = ({ getPriceByType }: SummaryRenderProps) => {
+    const totalZero = getPriceByType('нульова') + getPriceByType('zero');
+    const totalWithoutIsolators = getPriceByType('без_ізоляторів') + getPriceByType('no_isolators');
+
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Комплект стелажів</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Додайте стелажі до комплекту
-          </p>
-        </CardContent>
-      </Card>
+      <div className="mt-4 pt-4 border-t-2 space-y-2">
+        {/* Показуємо основну ціну (нульова або без ізоляторів) */}
+        {hasZeroPrice ? (
+          <div className="flex justify-between text-2xl font-bold">
+            <span>Нульова:</span>
+            <PriceDisplay value={totalZero} size="2xl" className="font-bold text-primary" />
+          </div>
+        ) : (
+          <div className="flex justify-between text-2xl font-bold">
+            <span>Без ізоляторів:</span>
+            <PriceDisplay value={totalWithoutIsolators} size="2xl" className="font-bold text-primary" />
+          </div>
+        )}
+        {/* Показуємо без ізоляторів тільки якщо є дозвіл на нульову */}
+        {hasZeroPrice && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Без ізоляторів:</span>
+            <PriceDisplay value={totalWithoutIsolators} className="font-medium" />
+          </div>
+        )}
+      </div>
     );
-  }
+  };
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Комплект стелажів</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="max-w-[200px]">Назва</TableHead>
-                  <TableHead>Кількість</TableHead>
-                  <TableHead>Вартість ({hasZeroPrice ? 'нульова' : 'без ізол.'})</TableHead>
-                  <TableHead>Загалом</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {racks.map((rack) => {
-                  // Використовуємо нульову ціну якщо вона є, інакше без ізоляторів
-                  const rackPrice = hasZeroPrice ? getZeroPrice(rack) : getPriceWithoutIsolators(rack);
-                  const quantity = rack.quantity || 1;
-                  const lineTotal = rackPrice * quantity;
-                  
-                  return (
-                    <TableRow key={rack.setId}>
-                      <TableCell className="max-w-[200px]">
-                        <div className="text-sm font-medium">{rack.name}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={rack.quantity}
-                          onChange={(e) => updateRackQuantity(rack.setId, Number(e.target.value))}
-                          className="w-16 text-center"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <PriceDisplay value={rackPrice} />
-                      </TableCell>
-                      <TableCell className='font-medium'>
-                        <PriceDisplay value={lineTotal} />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          icon={Trash2}
-                          variant='icon'
-                          onClick={() => removeRack(rack.setId)}
-                          aria-label="Видалити"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Підсумок */}
-          <div className="mt-4 pt-4 border-t-2 space-y-2">
-            {/* Показуємо основну ціну (нульова або без ізоляторів) */}
-            {hasZeroPrice ? (
-              <div className="flex justify-between text-2xl font-bold">
-                <span>Нульова:</span>
-                <PriceDisplay value={totalZero} size='2xl' className='font-bold text-primary' />
-              </div>
-            ) : (
-              <div className="flex justify-between text-2xl font-bold">
-                <span>Без ізоляторів:</span>
-                <PriceDisplay value={totalWithoutIsolators} size='2xl' className='font-bold text-primary' />
-              </div>
-            )}
-            {/* Показуємо без ізоляторів тільки якщо є дозвіл на нульову */}
-            {hasZeroPrice && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Без ізоляторів:</span>
-                <PriceDisplay value={totalWithoutIsolators} className='font-medium' />
-              </div>
-            )}
-          </div>
-
-          <CardFooter className="px-0 pb-0 flex gap-2">
-            <TextButton
-              variant="outline"
-              className="flex-1"
-              leftIcon={Eye}
-              onClick={() => setIsModalOpen(true)}
-            >
-              Переглянути комплект
-            </TextButton>
-            <TextButton
-              variant="outline"
-              onClick={clear}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              leftIcon={X}
-            >
-              Очистити комплект
-            </TextButton>
-          </CardFooter>
-        </CardContent>
-      </Card>
-
-      <RackSetModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        racks={racks}
-      />
-    </>
+    <SetCard<RackSetItem>
+      title="Комплект стелажів"
+      racks={racks}
+      removeRack={removeRack}
+      updateRackQuantity={updateRackQuantity}
+      clear={clear}
+      priceConfig={priceConfig}
+      getPrimaryPrice={getPrimaryPrice}
+      modalComponent={<RackSetModal racks={racks} />}
+      renderSummary={renderSummary}
+      emptyStateText="Додайте стелажі до комплекту"
+    />
   );
 };
 

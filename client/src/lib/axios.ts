@@ -72,16 +72,29 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 
 /**
  * Request interceptor - додає access token до запитів
- * 
+ *
  * @param config - Конфігурація запиту
  * @returns Конфігурація з Authorization header
  */
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('accessToken');
+
     if (token) {
+      // Гарантовано додаємо Authorization header
+      if (!config.headers) {
+        config.headers = {} as any;
+      }
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Видаляємо Content-Type для FormData (axios сам встановить multipart/form-data з boundary)
+    if (config.data instanceof FormData) {
+      if (config.headers) {
+        delete (config.headers as any)['Content-Type'];
+      }
+    }
+
     return config;
   },
   (error: AxiosError) => Promise.reject(error)

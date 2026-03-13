@@ -20,11 +20,17 @@ export interface RackConfig {
 }
 
 export interface PriceData {
-  supports: Record<string, { edge: { price: number }; intermediate: { price: number } }>;
-  spans: Record<string, { price: number }>;
-  vertical_supports: Record<string, { price: number }>;
-  diagonal_brace: Record<string, { price: number }>;
-  isolator: Record<string, { price: number }>;
+  supports: Record<string, { 
+    code: string; 
+    name: string; 
+    size?: string;
+    edge: { price: number; weight?: number | null }; 
+    intermediate: { price: number; weight?: number | null };
+  }>;
+  spans: Record<string, { code: string; name: string; price: number; weight?: number | null; sku?: string }>;
+  vertical_supports: Record<string, { code: string; name: string; price: number; weight?: number | null }>;
+  diagonal_brace: Record<string, { code: string; name: string; price: number; weight?: number | null }>;
+  isolator: Record<string, { code: string; name: string; price: number; weight?: number | null }>;
 }
 
 export interface ComponentItem {
@@ -102,23 +108,24 @@ export const calculateSupports = (config: RackConfig, price: PriceData): Compone
   // Проміжні опори: (прольоти - 1) × поверхи
   const intermediateSupports = Math.max(0, totalSpans - 1) * floors;
 
-  // Ціни з прайсу
-  const supportPrice = price.supports?.[supports!];
-  if (supportPrice) {
-    if (edgeSupports > 0) {
+  // Отримуємо ціни з вкладеної структури
+  const supportItem = price.supports?.[supports!];
+  
+  if (supportItem) {
+    if (edgeSupports > 0 && supportItem.edge) {
       result.push({
         name: `Опора ${supports} (крайня)`,
         amount: edgeSupports,
-        price: supportPrice.edge?.price || 0,
-        total: edgeSupports * (supportPrice.edge?.price || 0),
+        price: supportItem.edge.price || 0,
+        total: edgeSupports * (supportItem.edge.price || 0),
       });
     }
-    if (intermediateSupports > 0) {
+    if (intermediateSupports > 0 && supportItem.intermediate) {
       result.push({
         name: `Опора ${supports} (пром)`,
         amount: intermediateSupports,
-        price: supportPrice.intermediate?.price || 0,
-        total: intermediateSupports * (supportPrice.intermediate?.price || 0),
+        price: supportItem.intermediate.price || 0,
+        total: intermediateSupports * (supportItem.intermediate.price || 0),
       });
     }
   }

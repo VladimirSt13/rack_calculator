@@ -36,12 +36,12 @@ const RackForm: React.FC = () => {
     reset,
   } = useRackFormStore();
 
-  const { addSpan, clearSpans } = useRackSpansStore();
+  const { addSpan, reset: resetSpans } = useRackSpansStore();
   const resultsStore = useRackResultsStore();
 
   const handleReset = () => {
     reset();
-    clearSpans();
+    resetSpans();
     resultsStore.clear();
   };
 
