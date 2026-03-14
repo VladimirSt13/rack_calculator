@@ -81,7 +81,7 @@ export interface PriceTableProps {
 export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [expandedCategories] = useState<Record<string, boolean>>({
+  const [_expandedCategories] = useState<Record<string, boolean>>({
     supports: true,
     spans: true,
     vertical_supports: true,
@@ -222,7 +222,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate }) =
       result.push(item);
     });
     return result;
-  }, [allItems, selectedCategory, searchQuery, expandedCategories]);
+  }, [allItems, selectedCategory, searchQuery]);
 
   const getItemNumber = useCallback(
     (index: number) => {

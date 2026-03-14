@@ -158,7 +158,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authApi.logout();
-        } catch (_error) {
+        } catch {
           // Ігноруємо помилки logout
         } finally {
           // Явне очищення localStorage

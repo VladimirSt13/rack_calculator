@@ -148,14 +148,14 @@ const App: React.FC = () => {
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
   // Перевірка авторизації при першому завантаженні
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (accessToken) {
       checkAuth().finally(() => setIsCheckingAuth(false));
     } else {
       setIsCheckingAuth(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Виконується тільки при монтуванні
 
   // Показуємо лоадер під час перевірки авторизації
   if (isCheckingAuth) {

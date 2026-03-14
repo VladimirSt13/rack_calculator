@@ -27,7 +27,6 @@ export const PriceUpload: React.FC<PriceUploadProps> = ({ onFileSelected, onErro
   }, []);
 
   // Обробка drop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -36,15 +35,16 @@ export const PriceUpload: React.FC<PriceUploadProps> = ({ onFileSelected, onErro
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Обробка вибору файлу
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Перевірка та обробка файлу

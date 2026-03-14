@@ -76,7 +76,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate }) =
         isHeader: true,
       });
 
-      let itemNumber = 1;
+      const _itemNumber = 1;
 
       Object.entries(categoryItems).forEach(([code, item]) => {
         const anyItem = item as any;
