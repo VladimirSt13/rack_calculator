@@ -9,12 +9,18 @@
     "dev:server": "npm run dev --prefix server",
     "build": "npm run build --prefix client",
     "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "start:server": "npm run start --prefix server",
+    "migrate:sqlite": "npm run migrate --prefix server",
+    "migrate:postgres": "npm run migrate:postgres --prefix server",
+    "seed:admin": "npm run seed:admin --prefix server",
     "test": "npm run test --prefix client && npm run test --prefix server",
     "lint": "npm run lint --prefix client && npm run lint --prefix server",
     "format": "npm run format --prefix client && npm run format --prefix server",
     "format:check": "npm run format:check --prefix client && npm run format:check --prefix server",
     "install:all": "npm install && npm install --prefix client && npm install --prefix server && npm install --prefix shared",
-    "clean": "npm run clean --prefix client && npm run clean --prefix server"
+    "clean": "npm run clean --prefix client && npm run clean --prefix server",
+    "render:build": "npm run install:all && npm run build"
   },
   "keywords": [
     "rack",

@@ -22,7 +22,7 @@ lerna-debug.log*
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local
+# .env.production - зберігається для деплою (але з порожніми секретами)
 
 # Testing
 coverage/

@@ -1,0 +1,65 @@
+services:
+  # Backend API Service
+  - type: web
+    name: rack-calculator-api
+    env: node
+    region: frankfurt
+    plan: free
+    branch: production-render-supabase
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rack-calculator-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+      - key: CORS_ORIGIN
+        value: https://rack-calculator-web.onrender.com
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 100
+      - key: AUDIT_CLEANUP_ENABLED
+        value: true
+      - key: AUDIT_CLEANUP_SCHEDULE
+        value: 0 2 * * 0
+      - key: AUDIT_CLEANUP_DAYS
+        value: 90
+
+  # Frontend Static Site
+  - type: static
+    name: rack-calculator-web
+    env: node
+    region: frankfurt
+    branch: production-render-supabase
+    rootDir: client
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: rack-calculator-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+databases:
+  # PostgreSQL Database (Supabase альтернатива на Render)
+  - name: rack-calculator-db
+    databaseName: rack_calculator
+    plan: free
+    # Увага: безкоштовна БД на Render доступна тільки 90 днів
+    # Після цього потрібно мігрувати на Supabase
