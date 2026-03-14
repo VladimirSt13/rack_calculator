@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * SectionHeader - заголовок інженерної секції
@@ -18,22 +18,30 @@ export interface SectionHeaderProps extends React.HTMLAttributes<HTMLDivElement>
   required?: boolean;
 }
 
-export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, description, required, className, ...props }) => {
+export const SectionHeader: React.FC<SectionHeaderProps> = ({
+  title,
+  description,
+  required,
+  className,
+  ...props
+}) => {
   return (
-    <div className={cn('space-y-1.5', className)} {...props}>
+    <div className={cn("space-y-1.5", className)} {...props}>
       {/* Label row: title + optional indicator */}
-      <div className='flex items-center gap-2'>
-        <h3 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
+      <div className="flex items-center gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
-          {required && <span className='text-destructive ml-0.5'>*</span>}
+          {required && <span className="text-destructive ml-0.5">*</span>}
         </h3>
       </div>
 
       {/* Description (if provided) */}
-      {description && <p className='text-xs text-muted-foreground'>{description}</p>}
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
 
       {/* Subtle separator */}
-      <div className='h-px bg-border' />
+      <div className="h-px bg-border" />
     </div>
   );
 };
@@ -71,9 +79,13 @@ export const FormSection: React.FC<FormSectionProps> = ({
   ...props
 }) => {
   return (
-    <section className={cn('space-y-3', className)} {...props}>
-      <SectionHeader title={title} description={description} required={required} />
-      <div className='space-y-5'>{children}</div>
+    <section className={cn("space-y-3", className)} {...props}>
+      <SectionHeader
+        title={title}
+        description={description}
+        required={required}
+      />
+      <div className="space-y-5">{children}</div>
     </section>
   );
 };
@@ -86,9 +98,13 @@ export interface FormSectionsGroupProps extends React.HTMLAttributes<HTMLDivElem
   children: React.ReactNode;
 }
 
-export const FormSectionsGroup: React.FC<FormSectionsGroupProps> = ({ children, className, ...props }) => {
+export const FormSectionsGroup: React.FC<FormSectionsGroupProps> = ({
+  children,
+  className,
+  ...props
+}) => {
   return (
-    <div className={cn('space-y-6', className)} {...props}>
+    <div className={cn("space-y-6", className)} {...props}>
       {children}
     </div>
   );

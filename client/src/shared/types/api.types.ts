@@ -31,7 +31,7 @@ export interface QueryParams {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   filter?: Record<string, unknown>;
   search?: string;
 }
@@ -131,7 +131,10 @@ export interface PriceDto {
 }
 
 export interface PriceComponentsDto {
-  supports: Record<string, { edge: { price: number }; intermediate: { price: number } }>;
+  supports: Record<
+    string,
+    { edge: { price: number }; intermediate: { price: number } }
+  >;
   spans: Record<string, { price: number }>;
   vertical_supports: Record<string, { price: number }>;
   diagonal_brace: Record<string, { price: number }>;
@@ -291,7 +294,7 @@ export interface AuditStats {
 export interface ExportRequest {
   setId: number;
   includePrices?: boolean;
-  format?: 'excel' | 'pdf' | 'csv';
+  format?: "excel" | "pdf" | "csv";
 }
 
 export interface ExportResponse {

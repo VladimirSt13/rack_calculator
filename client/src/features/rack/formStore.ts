@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface RackFormState {
   floors: number;
@@ -19,21 +19,23 @@ export interface RackFormActions {
 
 const initialFormState: RackFormState = {
   floors: 1,
-  verticalSupports: '',
-  supports: '',
+  verticalSupports: "",
+  supports: "",
   rows: 1,
   beamsPerRow: 2,
 };
 
-export const useRackFormStore = create<RackFormState & RackFormActions>((set) => ({
-  ...initialFormState,
+export const useRackFormStore = create<RackFormState & RackFormActions>(
+  (set) => ({
+    ...initialFormState,
 
-  setFloors: (floors) => set({ floors }),
-  setVerticalSupports: (supports) => set({ verticalSupports: supports }),
-  setSupports: (supports) => set({ supports }),
-  setRows: (rows) => set({ rows }),
-  setBeamsPerRow: (beams) => set({ beamsPerRow: beams }),
-  reset: () => set(initialFormState),
-}));
+    setFloors: (floors) => set({ floors }),
+    setVerticalSupports: (supports) => set({ verticalSupports: supports }),
+    setSupports: (supports) => set({ supports }),
+    setRows: (rows) => set({ rows }),
+    setBeamsPerRow: (beams) => set({ beamsPerRow: beams }),
+    reset: () => set(initialFormState),
+  }),
+);
 
 export default useRackFormStore;

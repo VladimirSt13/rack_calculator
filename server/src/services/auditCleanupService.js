@@ -7,11 +7,11 @@
  * AUDIT_CLEANUP_DAYS=90
  */
 
-import cron from 'node-cron';
-import { getDb } from '../db/index.js';
-import { logAudit } from '../helpers/audit.js';
+import cron from "node-cron";
+import { getDb } from "../db/index.js";
+import { logAudit } from "../helpers/audit.js";
 
-const DEFAULT_SCHEDULE = '0 2 * * 0'; // Кожну неділю о 02:00
+const DEFAULT_SCHEDULE = "0 2 * * 0"; // Кожну неділю о 02:00
 const DEFAULT_DAYS = 90;
 
 let cleanupJob = null;
@@ -20,21 +20,23 @@ let cleanupJob = null;
  * Ініціалізація cron-задачі
  */
 export const initAuditCleanup = async () => {
-  const enabled = process.env.AUDIT_CLEANUP_ENABLED !== 'false';
+  const enabled = process.env.AUDIT_CLEANUP_ENABLED !== "false";
   const schedule = process.env.AUDIT_CLEANUP_SCHEDULE || DEFAULT_SCHEDULE;
   const days = parseInt(process.env.AUDIT_CLEANUP_DAYS) || DEFAULT_DAYS;
 
   if (!enabled) {
-    console.log('[Audit Cleanup] Disabled via environment variable');
+    console.log("[Audit Cleanup] Disabled via environment variable");
     return;
   }
 
-  console.log(`[Audit Cleanup] Initializing with schedule: ${schedule} (days: ${days})`);
+  console.log(
+    `[Audit Cleanup] Initializing with schedule: ${schedule} (days: ${days})`,
+  );
 
   try {
     // Перевірка валідності розкладу
     if (!cron.validate(schedule)) {
-      console.error('[Audit Cleanup] Invalid cron schedule:', schedule);
+      console.error("[Audit Cleanup] Invalid cron schedule:", schedule);
       return;
     }
 
@@ -42,24 +44,24 @@ export const initAuditCleanup = async () => {
     cleanupJob = cron.schedule(
       schedule,
       async () => {
-        console.log('[Audit Cleanup] Running scheduled cleanup...');
+        console.log("[Audit Cleanup] Running scheduled cleanup...");
         await runCleanup(days);
       },
       {
         scheduled: true,
-        timezone: 'Europe/Kiev',
+        timezone: "Europe/Kiev",
       },
     );
 
-    console.log('[Audit Cleanup] Scheduled successfully');
+    console.log("[Audit Cleanup] Scheduled successfully");
 
     // Запускати при старті (опціонально)
-    if (process.env.AUDIT_CLEANUP_RUN_ON_START === 'true') {
-      console.log('[Audit Cleanup] Running initial cleanup...');
+    if (process.env.AUDIT_CLEANUP_RUN_ON_START === "true") {
+      console.log("[Audit Cleanup] Running initial cleanup...");
       await runCleanup(days);
     }
   } catch (error) {
-    console.error('[Audit Cleanup] Initialization error:', error.message);
+    console.error("[Audit Cleanup] Initialization error:", error.message);
   }
 };
 
@@ -71,7 +73,7 @@ const runCleanup = async (days) => {
     const db = await getDb();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    const cutoffDateStr = cutoffDate.toISOString().split("T")[0];
 
     console.log(`[Audit Cleanup] Cutoff date: ${cutoffDateStr}`);
 
@@ -87,7 +89,7 @@ const runCleanup = async (days) => {
       .get(cutoffDateStr);
 
     if (count === 0) {
-      console.log('[Audit Cleanup] No records to delete');
+      console.log("[Audit Cleanup] No records to delete");
       return;
     }
 
@@ -113,7 +115,9 @@ const runCleanup = async (days) => {
         .run(cutoffDateStr, BATCH_SIZE);
 
       deletedTotal += result.changes;
-      console.log(`[Audit Cleanup] Deleted ${result.changes} records (total: ${deletedTotal})`);
+      console.log(
+        `[Audit Cleanup] Deleted ${result.changes} records (total: ${deletedTotal})`,
+      );
 
       if (result.changes < BATCH_SIZE) {
         break;
@@ -124,21 +128,21 @@ const runCleanup = async (days) => {
     }
 
     // Оптимізуємо базу даних після видалення
-    console.log('[Audit Cleanup] Running VACUUM...');
-    db.exec('VACUUM');
-    console.log('[Audit Cleanup] VACUUM completed');
+    console.log("[Audit Cleanup] Running VACUUM...");
+    db.exec("VACUUM");
+    console.log("[Audit Cleanup] VACUUM completed");
 
     // Запишемо в аудит факт очищення
     await logAudit({
       userId: 1, // Системний користувач
-      action: 'AUDIT_CLEANUP',
-      entityType: 'audit_log',
+      action: "AUDIT_CLEANUP",
+      entityType: "audit_log",
       newValue: { days, deletedCount: deletedTotal, scheduled: true },
     });
 
     console.log(`[Audit Cleanup] Completed. Total deleted: ${deletedTotal}`);
   } catch (error) {
-    console.error('[Audit Cleanup] Error:', error.message);
+    console.error("[Audit Cleanup] Error:", error.message);
   }
 };
 
@@ -147,10 +151,10 @@ const runCleanup = async (days) => {
  */
 export const stopAuditCleanup = () => {
   if (cleanupJob) {
-    console.log('[Audit Cleanup] Stopping scheduled job...');
+    console.log("[Audit Cleanup] Stopping scheduled job...");
     cleanupJob.stop();
     cleanupJob = null;
-    console.log('[Audit Cleanup] Stopped');
+    console.log("[Audit Cleanup] Stopped");
   }
 };
 

@@ -1,24 +1,24 @@
-import React, { useEffect, useRef } from 'react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { PageHeader } from './PageHeader';
+import React, { useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { PageHeader } from "./PageHeader";
 
 /**
  * Константи ширин для калькуляторів
  */
 export const CALCULATOR_WIDTHS = {
   /** Максимальна ширина контейнера */
-  container: '1600px',
+  container: "1600px",
   /** Ширина панелі вводу (фіксована) */
-  input: '380px',
+  input: "380px",
   /** Панель результатів (гнучка, minmax(0, 1fr)) */
-  results: 'auto',
+  results: "auto",
 } as const;
 
 /**
  * Режим відображення результатів
  */
-export type CalculatorMode = 'analysis' | 'builder';
+export type CalculatorMode = "analysis" | "builder";
 
 /**
  * CalculatorPage - універсальний лейаут для сторінок калькуляторів
@@ -62,20 +62,28 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
   results,
   setPanel,
   inputWidth = CALCULATOR_WIDTHS.input,
-  mode = 'analysis',
+  mode = "analysis",
   status,
 }) => {
   return (
-    <div className='min-h-screen bg-background'>
+    <div className="min-h-screen bg-background">
       {/* Container: max-w-[1600px], без внутрішніх max-width */}
-      <div className='mx-auto px-4 sm:px-6 lg:px-8 py-6' style={{ maxWidth: CALCULATOR_WIDTHS.container }}>
+      <div
+        className="mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        style={{ maxWidth: CALCULATOR_WIDTHS.container }}
+      >
         {/* Page Header */}
-        <PageHeader title={title} description={description} actions={headerActions} className='mb-6' />
+        <PageHeader
+          title={title}
+          description={description}
+          actions={headerActions}
+          className="mb-6"
+        />
 
         {/* Calculator Grid */}
         {/* Mobile: single column, Desktop: sidebar + content */}
         <div
-          className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,min-content)_minmax(0,1fr)]'
+          className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,min-content)_minmax(0,1fr)]"
           style={{
             gridTemplateColumns: `minmax(0, ${inputWidth}) minmax(0, 1fr)`,
           }}
@@ -107,13 +115,16 @@ export interface InputPanelProps {
   width?: string;
 }
 
-export const InputPanel: React.FC<InputPanelProps> = ({ children, width = CALCULATOR_WIDTHS.input }) => {
+export const InputPanel: React.FC<InputPanelProps> = ({
+  children,
+  width = CALCULATOR_WIDTHS.input,
+}) => {
   return (
     <div
-      className='lg:sticky lg:top-6 lg:self-start space-y-4 w-full max-w-full lg:max-w-none bg-surface rounded-lg p-4 shadow-sm'
+      className="lg:sticky lg:top-6 lg:self-start space-y-4 w-full max-w-full lg:max-w-none bg-surface rounded-lg p-4 shadow-sm"
       style={{ width, flexShrink: 0 }}
-      role='region'
-      aria-label='Панель вводу'
+      role="region"
+      aria-label="Панель вводу"
     >
       {/* Без внутрішніх max-width - діти розтягуються на 100% */}
       {children}
@@ -130,7 +141,7 @@ export interface ResultsWrapperProps {
 }
 
 export const ResultsWrapper: React.FC<ResultsWrapperProps> = ({ children }) => {
-  return <div className='space-y-4 min-w-0'>{children}</div>;
+  return <div className="space-y-4 min-w-0">{children}</div>;
 };
 
 /**
@@ -144,7 +155,11 @@ export interface SetPanelProps {
 
 export const SetPanel: React.FC<SetPanelProps> = ({ children }) => {
   return (
-    <div className='space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm' role='region' aria-label='Комплект стелажів'>
+    <div
+      className="space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm"
+      role="region"
+      aria-label="Комплект стелажів"
+    >
       {children}
     </div>
   );
@@ -170,9 +185,13 @@ export interface ResultsPanelProps {
   mode?: CalculatorMode;
 }
 
-export const ResultsPanel: React.FC<ResultsPanelProps> = ({ children, status = 'idle', mode = 'analysis' }) => {
+export const ResultsPanel: React.FC<ResultsPanelProps> = ({
+  children,
+  status = "idle",
+  mode = "analysis",
+}) => {
   // Toast-сповіщення при зміні статусу
-  const prevStatusRef = useRef<CalculationLifecycleStatus>('idle');
+  const prevStatusRef = useRef<CalculationLifecycleStatus>("idle");
 
   useEffect(() => {
     const prevStatus = prevStatusRef.current;
@@ -182,27 +201,27 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ children, status = '
     if (prevStatus === status) return;
 
     // Показуємо toast тільки для важливих змін
-    if (status === 'calculating') {
-      toast.loading('Розрахунок...', { id: 'calculation' });
-    } else if (status === 'ready') {
-      toast.success('Розрахунок виконано', { id: 'calculation' });
-    } else if (status === 'editing' && prevStatus === 'ready') {
-      toast.dismiss('calculation');
+    if (status === "calculating") {
+      toast.loading("Розрахунок...", { id: "calculation" });
+    } else if (status === "ready") {
+      toast.success("Розрахунок виконано", { id: "calculation" });
+    } else if (status === "editing" && prevStatus === "ready") {
+      toast.dismiss("calculation");
     }
 
     // Cleanup toast при розмонтуванні
     return () => {
-      if (status === 'calculating') {
-        toast.dismiss('calculation');
+      if (status === "calculating") {
+        toast.dismiss("calculation");
       }
     };
   }, [status]);
 
   return (
     <div
-      className='space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm'
-      role='region'
-      aria-label='Результати розрахунку'
+      className="space-y-4 min-w-0 bg-surface rounded-lg p-4 shadow-sm"
+      role="region"
+      aria-label="Результати розрахунку"
     >
       {/* Results Content (mode affects composition) */}
       <ResultsContent mode={mode}>{children}</ResultsContent>
@@ -213,7 +232,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ children, status = '
 /**
  * Статус розрахунку в життєвому циклі
  */
-export type CalculationLifecycleStatus = 'idle' | 'editing' | 'calculating' | 'ready';
+export type CalculationLifecycleStatus =
+  | "idle"
+  | "editing"
+  | "calculating"
+  | "ready";
 
 /**
  * ResultsContent - контейнер контенту результатів
@@ -227,6 +250,18 @@ export interface ResultsContentProps {
   mode?: CalculatorMode;
 }
 
-export const ResultsContent: React.FC<ResultsContentProps> = ({ children, mode = 'analysis' }) => {
-  return <section className={cn('space-y-4', mode === 'builder' && 'bg-muted/30 rounded-lg p-4')}>{children}</section>;
+export const ResultsContent: React.FC<ResultsContentProps> = ({
+  children,
+  mode = "analysis",
+}) => {
+  return (
+    <section
+      className={cn(
+        "space-y-4",
+        mode === "builder" && "bg-muted/30 rounded-lg p-4",
+      )}
+    >
+      {children}
+    </section>
+  );
 };

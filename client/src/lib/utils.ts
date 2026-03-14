@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from 'clsx';
+import { type ClassValue, clsx } from "clsx";
 
 /**
  * Об'єднує Tailwind класи з розумним merge
@@ -28,20 +28,23 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Форматує число у валютний формат
- * 
+ *
  * @param value - Число для форматування
  * @param currency - Валюта (за замовчуванням 'UAH')
  * @returns Відформатований рядок
- * 
+ *
  * @example
  * ```typescript
  * formatCurrency(1500.50); // "1 500,50 ₴"
  * formatCurrency(1500.50, 'USD'); // "1 500,50 $"
  * ```
  */
-export function formatCurrency(value: number, currency: string = 'UAH'): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
+export function formatCurrency(
+  value: number,
+  currency: string = "UAH",
+): string {
+  return new Intl.NumberFormat("uk-UA", {
+    style: "currency",
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -50,11 +53,11 @@ export function formatCurrency(value: number, currency: string = 'UAH'): string 
 
 /**
  * Форматує дату у локальний формат
- * 
+ *
  * @param date - Дата для форматування
  * @param options - Опції форматування
  * @returns Відформатований рядок дати
- * 
+ *
  * @example
  * ```typescript
  * formatDate(new Date()); // "08.03.2026"
@@ -63,48 +66,50 @@ export function formatCurrency(value: number, currency: string = 'UAH'): string 
  */
 export function formatDate(
   date: Date | string,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions,
 ): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
   const defaultOptions: Intl.DateTimeFormatOptions = {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   };
 
-  return new Intl.DateTimeFormat('uk-UA', options || defaultOptions).format(dateObj);
+  return new Intl.DateTimeFormat("uk-UA", options || defaultOptions).format(
+    dateObj,
+  );
 }
 
 /**
  * Форматує дату та час
- * 
+ *
  * @param date - Дата для форматування
  * @returns Відформатований рядок з часом
- * 
+ *
  * @example
  * ```typescript
  * formatDateTime(new Date()); // "08.03.2026, 14:30"
  * ```
  */
 export function formatDateTime(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  return new Intl.DateTimeFormat('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  return new Intl.DateTimeFormat("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(dateObj);
 }
 
 /**
  * Перевіряє чи email має правильний формат
- * 
+ *
  * @param email - Email для перевірки
  * @returns true якщо email валідний
- * 
+ *
  * @example
  * ```typescript
  * isValidEmail('user@example.com'); // true
@@ -118,16 +123,16 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Перевіряє чи пароль відповідає вимогам безпеки
- * 
+ *
  * @param password - Пароль для перевірки
  * @returns Об'єкт з результатами перевірки
- * 
+ *
  * @requirements
  * - Мінімум 8 символів
  * - Хоча б одна велика літера
  * - Хоча б одна мала літера
  * - Хоча б одна цифра
- * 
+ *
  * @example
  * ```typescript
  * validatePassword('weak'); // { valid: false, errors: ['too_short', ...] }
@@ -141,16 +146,16 @@ export function validatePassword(password: string): {
   const errors: string[] = [];
 
   if (password.length < 8) {
-    errors.push('too_short');
+    errors.push("too_short");
   }
   if (!/[A-Z]/.test(password)) {
-    errors.push('no_uppercase');
+    errors.push("no_uppercase");
   }
   if (!/[a-z]/.test(password)) {
-    errors.push('no_lowercase');
+    errors.push("no_lowercase");
   }
   if (!/\d/.test(password)) {
-    errors.push('no_digit');
+    errors.push("no_digit");
   }
 
   return {
@@ -161,11 +166,11 @@ export function validatePassword(password: string): {
 
 /**
  * Обрізає рядок до вказаної довжини з додаванням ...
- * 
+ *
  * @param text - Текст для обрізання
  * @param maxLength - Максимальна довжина
  * @returns Обрізаний текст
- * 
+ *
  * @example
  * ```typescript
  * truncate('Дуже довгий текст', 10); // "Дуже дов..."
@@ -174,15 +179,15 @@ export function validatePassword(password: string): {
  */
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + '...';
+  return text.slice(0, maxLength) + "...";
 }
 
 /**
  * Генерує випадковий ID
- * 
+ *
  * @param length - Довжина ID (за замовчуванням 8)
  * @returns Випадковий рядок
- * 
+ *
  * @example
  * ```typescript
  * generateId(); // "a1b2c3d4"
@@ -190,8 +195,9 @@ export function truncate(text: string, maxLength: number): string {
  * ```
  */
 export function generateId(length: number = 8): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -200,10 +206,10 @@ export function generateId(length: number = 8): string {
 
 /**
  * Затримка виконання (sleep)
- * 
+ *
  * @param ms - Час затримки в мілісекундах
  * @returns Promise<void>
- * 
+ *
  * @example
  * ```typescript
  * await sleep(1000); // Затримка 1 секунда
@@ -215,17 +221,17 @@ export function sleep(ms: number): Promise<void> {
 
 /**
  * Debounce функція - відкладає виклик функції після останнього виклику
- * 
+ *
  * @param func - Функція для виклику
  * @param wait - Час очікування в мілісекундах
  * @returns Debounced функція
- * 
+ *
  * @example
  * ```typescript
  * const search = debounce((query) => {
  *   api.search(query);
  * }, 300);
- * 
+ *
  * // Викличе api.search через 300ms після останнього введення
  * search('query1');
  * search('query2'); // Попередній виклик скасовано
@@ -233,7 +239,7 @@ export function sleep(ms: number): Promise<void> {
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -252,24 +258,24 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 
 /**
  * Throttle функція - обмежує частоту викликів функції
- * 
+ *
  * @param func - Функція для виклику
  * @param limit - Мінімальний інтервал між викликами в мс
  * @returns Throttled функція
- * 
+ *
  * @example
  * ```typescript
  * const handleScroll = throttle(() => {
  *   updatePosition();
  * }, 100);
- * 
+ *
  * // Викличе updatePosition не частіше ніж раз на 100ms
  * window.addEventListener('scroll', handleScroll);
  * ```
  */
 export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean = false;
 
@@ -284,11 +290,11 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
 
 /**
  * Глибоке порівняння двох об'єктів
- * 
+ *
  * @param obj1 - Перший об'єкт
  * @param obj2 - Другий об'єкт
  * @returns true якщо об'єкти рівні
- * 
+ *
  * @example
  * ```typescript
  * deepEqual({ a: 1 }, { a: 1 }); // true
@@ -299,7 +305,12 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
 export function deepEqual(obj1: unknown, obj2: unknown): boolean {
   if (obj1 === obj2) return true;
 
-  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
+  if (
+    typeof obj1 !== "object" ||
+    typeof obj2 !== "object" ||
+    obj1 === null ||
+    obj2 === null
+  ) {
     return false;
   }
 

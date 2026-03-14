@@ -1,10 +1,16 @@
-import { getDb } from '../db/index.js';
+import { getDb } from "../db/index.js";
 
 /**
  * Сервіс для роботи з прайсами
  */
 
-const REQUIRED_PRICE_KEYS = ['supports', 'spans', 'vertical_supports', 'diagonal_brace', 'isolator'];
+const REQUIRED_PRICE_KEYS = [
+  "supports",
+  "spans",
+  "vertical_supports",
+  "diagonal_brace",
+  "isolator",
+];
 
 /**
  * Валідувати структуру прайсу
@@ -12,14 +18,14 @@ const REQUIRED_PRICE_KEYS = ['supports', 'spans', 'vertical_supports', 'diagonal
  * @returns {string|null} Повідомлення про помилку або null якщо валідно
  */
 export const validatePriceData = (data) => {
-  if (!data || typeof data !== 'object') {
-    return 'Invalid price data: must be an object';
+  if (!data || typeof data !== "object") {
+    return "Invalid price data: must be an object";
   }
 
-  const hasRequired = REQUIRED_PRICE_KEYS.some(key => key in data);
+  const hasRequired = REQUIRED_PRICE_KEYS.some((key) => key in data);
 
   if (!hasRequired) {
-    return `Invalid price structure: must contain at least one of ${REQUIRED_PRICE_KEYS.join(', ')}`;
+    return `Invalid price structure: must contain at least one of ${REQUIRED_PRICE_KEYS.join(", ")}`;
   }
 
   return null;
@@ -32,7 +38,9 @@ export const validatePriceData = (data) => {
 export const getPrice = async () => {
   const db = await getDb();
 
-  const priceRecord = db.prepare('SELECT data, updated_at FROM prices ORDER BY id DESC LIMIT 1').get();
+  const priceRecord = db
+    .prepare("SELECT data, updated_at FROM prices ORDER BY id DESC LIMIT 1")
+    .get();
 
   if (!priceRecord) {
     return null;
@@ -51,10 +59,12 @@ export const getPrice = async () => {
 export const getCurrentPriceData = async () => {
   const db = await getDb();
 
-  const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+  const priceRecord = db
+    .prepare("SELECT data FROM prices ORDER BY id DESC LIMIT 1")
+    .get();
 
   if (!priceRecord) {
-    throw new Error('Price data not found');
+    throw new Error("Price data not found");
   }
 
   return JSON.parse(priceRecord.data);
@@ -67,7 +77,9 @@ export const getCurrentPriceData = async () => {
 export const getPriceHistory = async () => {
   const db = await getDb();
 
-  const versions = db.prepare(`
+  const versions = db
+    .prepare(
+      `
     SELECT 
       id,
       updated_at as created_at,
@@ -75,12 +87,14 @@ export const getPriceHistory = async () => {
     FROM prices
     ORDER BY updated_at DESC
     LIMIT 50
-  `).all();
+  `,
+    )
+    .all();
 
-  return versions.map(v => ({
+  return versions.map((v) => ({
     id: v.id,
     created_at: v.created_at,
-    created_by: 'system', // Поки що немає користувача
+    created_by: "system", // Поки що немає користувача
     items_count: v.items_count || 0,
   }));
 };
@@ -93,7 +107,9 @@ export const getPriceHistory = async () => {
 export const getPriceVersion = async (versionId) => {
   const db = await getDb();
 
-  const version = db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(versionId);
+  const version = db
+    .prepare("SELECT data, updated_at FROM prices WHERE id = ?")
+    .get(versionId);
 
   if (!version) {
     return null;
@@ -115,16 +131,22 @@ export const restorePriceVersion = async (versionId) => {
   const db = await getDb();
 
   // Отримуємо дані версії
-  const version = db.prepare('SELECT data FROM prices WHERE id = ?').get(versionId);
+  const version = db
+    .prepare("SELECT data FROM prices WHERE id = ?")
+    .get(versionId);
 
   if (!version) {
-    throw new Error('Version not found');
+    throw new Error("Version not found");
   }
 
   // Створюємо новий запис з тими ж даними
-  const result = db.prepare('INSERT INTO prices (data) VALUES (?)').run(version.data);
+  const result = db
+    .prepare("INSERT INTO prices (data) VALUES (?)")
+    .run(version.data);
 
-  return db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(result.lastInsertRowid);
+  return db
+    .prepare("SELECT data, updated_at FROM prices WHERE id = ?")
+    .get(result.lastInsertRowid);
 };
 
 /**
@@ -135,9 +157,13 @@ export const restorePriceVersion = async (versionId) => {
 export const updatePrice = async (data) => {
   const db = await getDb();
 
-  const result = db.prepare('INSERT INTO prices (data) VALUES (?)').run(JSON.stringify(data));
+  const result = db
+    .prepare("INSERT INTO prices (data) VALUES (?)")
+    .run(JSON.stringify(data));
 
-  return db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(result.lastInsertRowid);
+  return db
+    .prepare("SELECT data, updated_at FROM prices WHERE id = ?")
+    .get(result.lastInsertRowid);
 };
 
 /**
@@ -148,9 +174,13 @@ export const updatePrice = async (data) => {
 export const uploadPrice = async (data) => {
   const db = await getDb();
 
-  const result = db.prepare('INSERT INTO prices (data) VALUES (?)').run(JSON.stringify(data));
+  const result = db
+    .prepare("INSERT INTO prices (data) VALUES (?)")
+    .run(JSON.stringify(data));
 
-  return db.prepare('SELECT data, updated_at FROM prices WHERE id = ?').get(result.lastInsertRowid);
+  return db
+    .prepare("SELECT data, updated_at FROM prices WHERE id = ?")
+    .get(result.lastInsertRowid);
 };
 
 export default {

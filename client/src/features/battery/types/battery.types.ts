@@ -2,8 +2,8 @@
  * Типи для feature: battery
  */
 
-import type { ComponentItem } from '@rack-calculator/shared';
-import type { RackPrice } from '@/shared/types';
+import type { ComponentItem } from "@rack-calculator/shared";
+import type { RackPrice } from "@/shared/types";
 
 // ===== Battery Types =====
 
@@ -37,7 +37,11 @@ export interface BatteryFormState {
 export interface BatteryFormActions {
   setBatteryType: (type: string) => void;
   setQuantity: (quantity: number) => void;
-  setDimensions: (dimensions: { length: number; width: number; height: number }) => void;
+  setDimensions: (dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  }) => void;
   setWeight: (weight: number) => void;
   setFormat: (format: string) => void;
   reset: () => void;

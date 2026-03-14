@@ -1,5 +1,5 @@
-import { getDb } from '../db/index.js';
-import dotenv from 'dotenv';
+import { getDb } from "../db/index.js";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -17,8 +17,10 @@ dotenv.config();
 /**
  * Отримати налаштування з .env
  */
-const getMaxVersions = () => parseInt(process.env.PRICE_HISTORY_MAX_VERSIONS || '100', 10);
-const getMaxDays = () => parseInt(process.env.PRICE_HISTORY_MAX_DAYS || '90', 10);
+const getMaxVersions = () =>
+  parseInt(process.env.PRICE_HISTORY_MAX_VERSIONS || "100", 10);
+const getMaxDays = () =>
+  parseInt(process.env.PRICE_HISTORY_MAX_DAYS || "90", 10);
 
 /**
  * Очистити старі версії прайсу
@@ -32,7 +34,9 @@ export const cleanupPriceHistory = async () => {
   const maxDays = getMaxDays();
 
   console.log(`[Price History Cleanup] Starting cleanup...`);
-  console.log(`[Price History Cleanup] Settings: maxVersions=${maxVersions}, maxDays=${maxDays}`);
+  console.log(
+    `[Price History Cleanup] Settings: maxVersions=${maxVersions}, maxDays=${maxDays}`,
+  );
 
   try {
     // Обчислюємо дату відсічення
@@ -53,7 +57,9 @@ export const cleanupPriceHistory = async () => {
       )
       .run(cutoffDateStr);
 
-    console.log(`[Price History Cleanup] Deleted ${oldVersionsResult.changes} versions older than ${maxDays} days`);
+    console.log(
+      `[Price History Cleanup] Deleted ${oldVersionsResult.changes} versions older than ${maxDays} days`,
+    );
 
     // Крок 2: Якщо залишилось більше ніж maxVersions, видаляємо найстаріші (крім поточної)
     const remainingCount = db
@@ -64,7 +70,9 @@ export const cleanupPriceHistory = async () => {
       )
       .get();
 
-    console.log(`[Price History Cleanup] Remaining versions: ${remainingCount.count}`);
+    console.log(
+      `[Price History Cleanup] Remaining versions: ${remainingCount.count}`,
+    );
 
     if (remainingCount.count > maxVersions) {
       const extraVersionsResult = db
@@ -89,7 +97,7 @@ export const cleanupPriceHistory = async () => {
     }
 
     // Крок 3: VACUUM для оптимізації БД
-    db.exec('VACUUM');
+    db.exec("VACUUM");
     console.log(`[Price History Cleanup] Database optimized (VACUUM)`);
 
     const finalCount = db.prepare(`SELECT COUNT(*) as count FROM prices`).get();
@@ -110,8 +118,8 @@ export const cleanupPriceHistory = async () => {
  * Ініціалізація Cron задачі для очищення
  */
 export const initPriceHistoryCleanup = async () => {
-  const cron = (await import('node-cron')).default;
-  const schedule = process.env.PRICE_HISTORY_CLEANUP_SCHEDULE || '0 3 * * 0'; // Щонеділі о 03:00
+  const cron = (await import("node-cron")).default;
+  const schedule = process.env.PRICE_HISTORY_CLEANUP_SCHEDULE || "0 3 * * 0"; // Щонеділі о 03:00
 
   console.log(`[Price History Cleanup] Scheduling cleanup: ${schedule}`);
 
@@ -121,7 +129,10 @@ export const initPriceHistoryCleanup = async () => {
       await cleanupPriceHistory();
       console.log(`[Price History Cleanup] Scheduled cleanup completed`);
     } catch (error) {
-      console.error(`[Price History Cleanup] Scheduled cleanup failed:`, error.message);
+      console.error(
+        `[Price History Cleanup] Scheduled cleanup failed:`,
+        error.message,
+      );
     }
   });
 

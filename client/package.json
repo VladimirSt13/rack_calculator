@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint src --ext js,jsx,ts,tsx",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css}\"",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "clean": "rmdir /S /Q dist node_modules\\.vite 2>nul || rm -rf dist node_modules/.vite"

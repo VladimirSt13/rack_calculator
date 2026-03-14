@@ -1,7 +1,7 @@
-import React from 'react';
-import { useRackSpansStore } from '@/features/rack/spansStore';
-import { Minus } from 'lucide-react';
-import { IconButton } from '@/shared/components';
+import React from "react";
+import { useRackSpansStore } from "@/features/rack/spansStore";
+import { Minus } from "lucide-react";
+import { IconButton } from "@/shared/components";
 
 interface SpanOption {
   value: string;
@@ -50,13 +50,15 @@ const SpanList: React.FC<SpanListProps> = ({ spanOptions }) => {
             type="number"
             min={1}
             value={span.quantity}
-            onChange={(e) => updateSpan(span.id, { quantity: Number(e.target.value) })}
+            onChange={(e) =>
+              updateSpan(span.id, { quantity: Number(e.target.value) })
+            }
             className="w-[72px] h-8 px-2 text-center text-sm font-mono border border-gray-300 rounded-md bg-card hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm md:ml-auto"
           />
 
           <IconButton
             icon={Minus}
-            variant='icon'
+            variant="icon"
             onClick={() => removeSpan(span.id)}
             aria-label="Видалити проліт"
           />

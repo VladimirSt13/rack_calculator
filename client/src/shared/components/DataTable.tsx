@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface DataTableProps<T = unknown> {
   columns: {
@@ -15,13 +15,9 @@ export interface DataTableProps<T = unknown> {
 /**
  * DataTable - універсальна таблиця даних
  */
-const DataTable: React.FC<DataTableProps> = ({
-  columns,
-  data,
-  className,
-}) => {
+const DataTable: React.FC<DataTableProps> = ({ columns, data, className }) => {
   return (
-    <div className={cn('table-wrapper', className)}>
+    <div className={cn("table-wrapper", className)}>
       <table className="data-table">
         <thead>
           <tr>
@@ -40,8 +36,11 @@ const DataTable: React.FC<DataTableProps> = ({
                   {col.render
                     ? col.render(row, rowIndex)
                     : col.key
-                    ? String((row as Record<string, unknown>)[col.key as string] ?? '')
-                    : null}
+                      ? String(
+                          (row as Record<string, unknown>)[col.key as string] ??
+                            "",
+                        )
+                      : null}
                 </td>
               ))}
             </tr>

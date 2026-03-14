@@ -2,8 +2,8 @@
  * Типи для feature: rack
  */
 
-import type { SpanItem, RackComponents } from '@rack-calculator/shared';
-import type { RackVariant } from '@/shared/types';
+import type { SpanItem, RackComponents } from "@rack-calculator/shared";
+import type { RackVariant } from "@/shared/types";
 
 // ===== Form Types =====
 
@@ -49,7 +49,7 @@ export interface SpanActions {
 
 // ===== Results Types =====
 
-export type CalculationState = 'idle' | 'calculating' | 'ready' | 'error';
+export type CalculationState = "idle" | "calculating" | "ready" | "error";
 
 export interface RackResults {
   name: string;
@@ -108,4 +108,4 @@ export type {
   SupportComponent,
   SpanComponent,
   VerticalSupportComponent,
-} from '@/features/rack/priceComponentsApi';
+} from "@/features/rack/priceComponentsApi";

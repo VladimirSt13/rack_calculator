@@ -1,13 +1,13 @@
 /**
  * Міграція 008: Оновлення ролі з 'other' на 'user'
- * 
+ *
  * Зміни:
  * - Змінити CHECK constraint для role
  */
 
 export const up = (db) => {
-  console.log('[Migration 008] Updating role constraint...');
-  
+  console.log("[Migration 008] Updating role constraint...");
+
   try {
     // Створюємо нову таблицю users з правильним CHECK constraint
     db.exec(`
@@ -22,8 +22,8 @@ export const up = (db) => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('[Migration 008] Created users_new table');
-    
+    console.log("[Migration 008] Created users_new table");
+
     // Копіюємо дані
     db.exec(`
       INSERT INTO users_new (id, email, password_hash, role, permissions, email_verified, verification_token, created_at)
@@ -32,31 +32,33 @@ export const up = (db) => {
              permissions, email_verified, verification_token, created_at
       FROM users
     `);
-    console.log('[Migration 008] Copied data');
-    
+    console.log("[Migration 008] Copied data");
+
     // Видаляємо стару таблицю
-    db.exec('DROP TABLE users');
-    console.log('[Migration 008] Dropped old users table');
-    
+    db.exec("DROP TABLE users");
+    console.log("[Migration 008] Dropped old users table");
+
     // Перейменовуємо нову таблицю
-    db.exec('ALTER TABLE users_new RENAME TO users');
-    console.log('[Migration 008] Renamed users_new to users');
-    
+    db.exec("ALTER TABLE users_new RENAME TO users");
+    console.log("[Migration 008] Renamed users_new to users");
+
     // Відновлюємо індекси
-    db.exec('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_users_verification_token ON users(verification_token)');
-    console.log('[Migration 008] Recreated indexes');
-    
-    console.log('[Migration 008] Completed successfully');
+    db.exec("CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)");
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_users_verification_token ON users(verification_token)",
+    );
+    console.log("[Migration 008] Recreated indexes");
+
+    console.log("[Migration 008] Completed successfully");
   } catch (error) {
-    console.error('[Migration 008] Error:', error.message);
+    console.error("[Migration 008] Error:", error.message);
     throw error;
   }
 };
 
 export const down = (db) => {
-  console.log('[Migration 008] Rolling back...');
-  
+  console.log("[Migration 008] Rolling back...");
+
   try {
     // Створюємо стару таблицю
     db.exec(`
@@ -71,7 +73,7 @@ export const down = (db) => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Копіюємо дані назад
     db.exec(`
       INSERT INTO users_backup (id, email, password_hash, role, permissions, email_verified, verification_token, created_at)
@@ -80,16 +82,16 @@ export const down = (db) => {
              permissions, email_verified, verification_token, created_at
       FROM users
     `);
-    
+
     // Видаляємо нову таблицю
-    db.exec('DROP TABLE users');
-    
+    db.exec("DROP TABLE users");
+
     // Перейменовуємо backup
-    db.exec('ALTER TABLE users_backup RENAME TO users');
-    
-    console.log('[Migration 008] Rollback completed');
+    db.exec("ALTER TABLE users_backup RENAME TO users");
+
+    console.log("[Migration 008] Rollback completed");
   } catch (error) {
-    console.error('[Migration 008] Rollback error:', error.message);
+    console.error("[Migration 008] Rollback error:", error.message);
     throw error;
   }
 };

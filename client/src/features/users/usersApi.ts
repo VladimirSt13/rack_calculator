@@ -1,9 +1,9 @@
-import api from '@/features/auth/authApi';
+import api from "@/features/auth/authApi";
 
 export interface User {
   id: number;
   email: string;
-  role: 'admin' | 'manager' | 'user';
+  role: "admin" | "manager" | "user";
   permissions?: {
     price_types: string[];
   };
@@ -31,7 +31,7 @@ export const usersApi = {
     page?: number;
     limit?: number;
   }) => {
-    const { data } = await api.get('/users', { params });
+    const { data } = await api.get("/users", { params });
     return data as UsersResponse;
   },
 
@@ -53,20 +53,23 @@ export const usersApi = {
     permissions?: object;
     price_types?: string[];
   }) => {
-    const { data } = await api.post('/users', userData);
+    const { data } = await api.post("/users", userData);
     return data;
   },
 
   /**
    * Оновити користувача
    */
-  update: async (id: number, userData: {
-    email?: string;
-    role?: string;
-    permissions?: object;
-    price_types?: string[];
-    password?: string;
-  }) => {
+  update: async (
+    id: number,
+    userData: {
+      email?: string;
+      role?: string;
+      permissions?: object;
+      price_types?: string[];
+      password?: string;
+    },
+  ) => {
     const { data } = await api.put(`/users/${id}`, userData);
     return data;
   },

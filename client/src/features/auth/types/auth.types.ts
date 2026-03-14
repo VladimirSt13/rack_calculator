@@ -4,7 +4,7 @@
 
 // ===== User Types =====
 
-export type UserRole = 'admin' | 'manager' | 'user' | 'other';
+export type UserRole = "admin" | "manager" | "user" | "other";
 
 export interface User {
   id: number;

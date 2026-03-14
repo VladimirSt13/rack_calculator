@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { Button } from './Button';
-import { Alert } from './Alert';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { Button } from "./Button";
+import { Alert } from "./Alert";
+import { cn } from "@/lib/utils";
 
 export interface CalculationControlsProps {
   isLoading: boolean;
@@ -18,13 +18,13 @@ export interface CalculationControlsProps {
 const CalculationControls: React.FC<CalculationControlsProps> = ({
   isLoading,
   error,
-  submitText = 'Розрахувати',
-  loadingText = 'Розрахунок...',
+  submitText = "Розрахувати",
+  loadingText = "Розрахунок...",
   onSubmit,
   className,
 }) => {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn("space-y-2", className)}>
       <Button
         variant="default"
         className="w-full"

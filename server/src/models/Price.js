@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel.js';
+import { BaseModel } from "./BaseModel.js";
 
 /**
  * Модель прайс-листа
@@ -12,7 +12,7 @@ export class Price extends BaseModel {
   }
 
   static get tableName() {
-    return 'prices';
+    return "prices";
   }
 
   /**
@@ -21,7 +21,9 @@ export class Price extends BaseModel {
    */
   static async getCurrent() {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM prices ORDER BY id DESC LIMIT 1').get();
+    const row = db
+      .prepare("SELECT * FROM prices ORDER BY id DESC LIMIT 1")
+      .get();
     return row ? new Price(row) : null;
   }
 
@@ -32,7 +34,7 @@ export class Price extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM prices WHERE id = ?').get(id);
+    const row = db.prepare("SELECT * FROM prices WHERE id = ?").get(id);
     return row ? new Price(row) : null;
   }
 
@@ -46,7 +48,7 @@ export class Price extends BaseModel {
   static async getHistory(options = {}) {
     const { limit = 20, offset = 0 } = options;
     return await BaseModel.findAll(Price.tableName, {
-      orderBy: 'id DESC',
+      orderBy: "id DESC",
       limit,
       offset,
     });
@@ -59,9 +61,13 @@ export class Price extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       INSERT INTO prices (data) VALUES (?)
-    `).run(JSON.stringify(data));
+    `,
+      )
+      .run(JSON.stringify(data));
 
     return this.findById(result.lastInsertRowid);
   }

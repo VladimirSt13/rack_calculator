@@ -5,12 +5,17 @@
 /**
  * Категорії прайсу
  */
-export type PriceCategory = 'supports' | 'spans' | 'vertical_supports' | 'diagonal_brace' | 'isolator';
+export type PriceCategory =
+  | "supports"
+  | "spans"
+  | "vertical_supports"
+  | "diagonal_brace"
+  | "isolator";
 
 /**
  * Тип опори (для supports)
  */
-export type SupportType = 'edge' | 'intermediate';
+export type SupportType = "edge" | "intermediate";
 
 /**
  * Окрема позиція прайсу (базова)
@@ -28,7 +33,7 @@ export interface BasePriceItem {
  * Позиція для опор (з вкладеними edge/intermediate)
  */
 export interface SupportPriceItem extends BasePriceItem {
-  category: 'supports';
+  category: "supports";
   edge: {
     name: string;
     price: number;
@@ -45,7 +50,7 @@ export interface SupportPriceItem extends BasePriceItem {
  * Позиція для інших категорій (плоска структура)
  */
 export interface SimplePriceItem extends BasePriceItem {
-  category: 'spans' | 'vertical_supports' | 'diagonal_brace' | 'isolator';
+  category: "spans" | "vertical_supports" | "diagonal_brace" | "isolator";
 }
 
 /**
@@ -125,4 +130,10 @@ export interface PriceHistoryProps {
 /**
  * Статус завантаження прайсу
  */
-export type PriceUploadStatus = 'idle' | 'parsing' | 'preview' | 'uploading' | 'success' | 'error';
+export type PriceUploadStatus =
+  | "idle"
+  | "parsing"
+  | "preview"
+  | "uploading"
+  | "success"
+  | "error";

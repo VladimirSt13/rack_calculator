@@ -1,5 +1,9 @@
-import { create } from 'zustand';
-import type { SupportComponent, SpanComponent, VerticalSupportComponent } from './priceComponentsApi';
+import { create } from "zustand";
+import type {
+  SupportComponent,
+  SpanComponent,
+  VerticalSupportComponent,
+} from "./priceComponentsApi";
 
 export interface RackComponentsState {
   supports: SupportComponent[];
@@ -28,7 +32,9 @@ const initialState: RackComponentsState = {
   error: null,
 };
 
-export const useRackComponentsStore = create<RackComponentsState & RackComponentsActions>((set) => ({
+export const useRackComponentsStore = create<
+  RackComponentsState & RackComponentsActions
+>((set) => ({
   ...initialState,
 
   setComponents: ({ supports, spans, verticalSupports }) =>

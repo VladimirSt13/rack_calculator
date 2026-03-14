@@ -7,70 +7,84 @@
  * - Створити індекси для оптимізації
  */
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
 export const up = (db) => {
-  console.log('[Migration 015] Adding soft delete and spans_hash fields...');
+  console.log("[Migration 015] Adding soft delete and spans_hash fields...");
 
   try {
     // ============================================
     // 1. Додати поля deleted до rack_sets
     // ============================================
-    console.log('[Migration 015] Adding deleted fields to rack_sets...');
+    console.log("[Migration 015] Adding deleted fields to rack_sets...");
 
     try {
       db.exec(`
         ALTER TABLE rack_sets ADD COLUMN deleted BOOLEAN DEFAULT 0
       `);
-      console.log('[Migration 015] Added deleted column');
+      console.log("[Migration 015] Added deleted column");
     } catch (e) {
-      console.log('[Migration 015] deleted column already exists');
+      console.log("[Migration 015] deleted column already exists");
     }
 
     try {
       db.exec(`
         ALTER TABLE rack_sets ADD COLUMN deleted_at DATETIME
       `);
-      console.log('[Migration 015] Added deleted_at column');
+      console.log("[Migration 015] Added deleted_at column");
     } catch (e) {
-      console.log('[Migration 015] deleted_at column already exists');
+      console.log("[Migration 015] deleted_at column already exists");
     }
 
     // Створити індекс для deleted
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_rack_sets_deleted ON rack_sets(deleted)
     `);
-    console.log('[Migration 015] Created index on deleted');
+    console.log("[Migration 015] Created index on deleted");
 
     // ============================================
     // 2. Додати поле spans_hash до rack_configurations
     // ============================================
-    console.log('[Migration 015] Adding spans_hash to rack_configurations...');
+    console.log("[Migration 015] Adding spans_hash to rack_configurations...");
 
     try {
       db.exec(`
         ALTER TABLE rack_configurations ADD COLUMN spans_hash TEXT
       `);
-      console.log('[Migration 015] Added spans_hash column');
+      console.log("[Migration 015] Added spans_hash column");
     } catch (e) {
-      console.log('[Migration 015] spans_hash column already exists');
+      console.log("[Migration 015] spans_hash column already exists");
     }
 
     // ============================================
     // 3. Заповнити spans_hash для існуючих записів
     // ============================================
-    console.log('[Migration 015] Populating spans_hash for existing records...');
+    console.log(
+      "[Migration 015] Populating spans_hash for existing records...",
+    );
 
-    const configs = db.prepare('SELECT id, spans FROM rack_configurations WHERE spans IS NOT NULL').all();
-    const update = db.prepare('UPDATE rack_configurations SET spans_hash = ? WHERE id = ?');
+    const configs = db
+      .prepare(
+        "SELECT id, spans FROM rack_configurations WHERE spans IS NOT NULL",
+      )
+      .all();
+    const update = db.prepare(
+      "UPDATE rack_configurations SET spans_hash = ? WHERE id = ?",
+    );
 
     for (const config of configs) {
       try {
         const spans = JSON.parse(config.spans);
-        const spansHash = crypto.createHash('sha256').update(JSON.stringify(spans)).digest('hex');
+        const spansHash = crypto
+          .createHash("sha256")
+          .update(JSON.stringify(spans))
+          .digest("hex");
         update.run(spansHash, config.id);
       } catch (e) {
-        console.warn(`[Migration 015] Error processing config ${config.id}:`, e.message);
+        console.warn(
+          `[Migration 015] Error processing config ${config.id}:`,
+          e.message,
+        );
       }
     }
 
@@ -79,7 +93,7 @@ export const up = (db) => {
     // ============================================
     // 4. Створити унікальний індекс з spans_hash
     // ============================================
-    console.log('[Migration 015] Creating unique index with spans_hash...');
+    console.log("[Migration 015] Creating unique index with spans_hash...");
 
     // SQLite не дозволяє змінити існуючий UNIQUE constraint,
     // тому створюємо нову таблицю
@@ -98,7 +112,7 @@ export const up = (db) => {
         UNIQUE(floors, rows, beams_per_row, supports, vertical_supports, spans_hash, braces)
       )
     `);
-    console.log('[Migration 015] Created rack_configurations_new table');
+    console.log("[Migration 015] Created rack_configurations_new table");
 
     // Перенести дані (фільтруємо записи з NULL spans)
     db.exec(`
@@ -108,15 +122,17 @@ export const up = (db) => {
       FROM rack_configurations
       WHERE spans IS NOT NULL OR spans_hash IS NOT NULL
     `);
-    console.log('[Migration 015] Migrated data');
+    console.log("[Migration 015] Migrated data");
 
     // Видалити стару таблицю
-    db.exec('DROP TABLE IF EXISTS rack_configurations');
-    console.log('[Migration 015] Dropped old table');
+    db.exec("DROP TABLE IF EXISTS rack_configurations");
+    console.log("[Migration 015] Dropped old table");
 
     // Перейменувати
-    db.exec('ALTER TABLE rack_configurations_new RENAME TO rack_configurations');
-    console.log('[Migration 015] Renamed table');
+    db.exec(
+      "ALTER TABLE rack_configurations_new RENAME TO rack_configurations",
+    );
+    console.log("[Migration 015] Renamed table");
 
     // ============================================
     // 5. Створити індекси
@@ -124,27 +140,27 @@ export const up = (db) => {
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_rack_config_spans_hash ON rack_configurations(spans_hash)
     `);
-    console.log('[Migration 015] Created index on spans_hash');
+    console.log("[Migration 015] Created index on spans_hash");
 
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_rack_configurations_created_at ON rack_configurations(created_at)
     `);
-    console.log('[Migration 015] Created index on created_at');
+    console.log("[Migration 015] Created index on created_at");
 
-    console.log('[Migration 015] Completed successfully');
+    console.log("[Migration 015] Completed successfully");
   } catch (error) {
-    console.error('[Migration 015] Error:', error.message);
+    console.error("[Migration 015] Error:", error.message);
     throw error;
   }
 };
 
 export const down = (db) => {
-  console.log('[Migration 015] Rolling back...');
+  console.log("[Migration 015] Rolling back...");
 
   try {
     // Видалити індекси
-    db.exec('DROP INDEX IF EXISTS idx_rack_sets_deleted');
-    db.exec('DROP INDEX IF EXISTS idx_rack_config_spans_hash');
+    db.exec("DROP INDEX IF EXISTS idx_rack_sets_deleted");
+    db.exec("DROP INDEX IF EXISTS idx_rack_config_spans_hash");
 
     // Видалити поля з rack_sets
     // SQLite не підтримує DROP COLUMN, тому створюємо нову таблицю
@@ -169,8 +185,8 @@ export const down = (db) => {
       FROM rack_sets
     `);
 
-    db.exec('DROP TABLE IF EXISTS rack_sets');
-    db.exec('ALTER TABLE rack_sets_new RENAME TO rack_sets');
+    db.exec("DROP TABLE IF EXISTS rack_sets");
+    db.exec("ALTER TABLE rack_sets_new RENAME TO rack_sets");
 
     // Відновити індекси
     db.exec(`
@@ -203,8 +219,10 @@ export const down = (db) => {
       FROM rack_configurations
     `);
 
-    db.exec('DROP TABLE IF EXISTS rack_configurations');
-    db.exec('ALTER TABLE rack_configurations_new RENAME TO rack_configurations');
+    db.exec("DROP TABLE IF EXISTS rack_configurations");
+    db.exec(
+      "ALTER TABLE rack_configurations_new RENAME TO rack_configurations",
+    );
 
     // Відновити індекси
     db.exec(`
@@ -214,9 +232,9 @@ export const down = (db) => {
       CREATE INDEX IF NOT EXISTS idx_rack_configurations_created_at ON rack_configurations(created_at)
     `);
 
-    console.log('[Migration 015] Rollback completed');
+    console.log("[Migration 015] Rollback completed");
   } catch (error) {
-    console.error('[Migration 015] Rollback error:', error.message);
+    console.error("[Migration 015] Rollback error:", error.message);
     throw error;
   }
 };

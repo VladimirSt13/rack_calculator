@@ -18,10 +18,12 @@ export const formatPriceComponents = (price) => {
 
   // Опоры (supports)
   if (price.supports) {
-    components.supports = Object.entries(price.supports).map(([code, data]) => ({
-      code,
-      name: data.name || `Опора ${code}`,
-    }));
+    components.supports = Object.entries(price.supports).map(
+      ([code, data]) => ({
+        code,
+        name: data.name || `Опора ${code}`,
+      }),
+    );
   }
 
   // Балки (spans)
@@ -34,26 +36,32 @@ export const formatPriceComponents = (price) => {
 
   // Вертикальные опоры (vertical_supports)
   if (price.vertical_supports) {
-    components.verticalSupports = Object.entries(price.vertical_supports).map(([code, data]) => ({
-      code,
-      name: data.name || `Верт. опора ${code}`,
-    }));
+    components.verticalSupports = Object.entries(price.vertical_supports).map(
+      ([code, data]) => ({
+        code,
+        name: data.name || `Верт. опора ${code}`,
+      }),
+    );
   }
 
   // Раскосы (diagonal_brace)
   if (price.diagonal_brace) {
-    components.diagonalBrace = Object.entries(price.diagonal_brace).map(([code, data]) => ({
-      code,
-      name: data.name || `Раскос ${code}`,
-    }));
+    components.diagonalBrace = Object.entries(price.diagonal_brace).map(
+      ([code, data]) => ({
+        code,
+        name: data.name || `Раскос ${code}`,
+      }),
+    );
   }
 
   // Изоляторы (isolator)
   if (price.isolator) {
-    components.isolator = Object.entries(price.isolator).map(([code, data]) => ({
-      code,
-      name: data.name || `Изолятор ${code}`,
-    }));
+    components.isolator = Object.entries(price.isolator).map(
+      ([code, data]) => ({
+        code,
+        name: data.name || `Изолятор ${code}`,
+      }),
+    );
   }
 
   return components;

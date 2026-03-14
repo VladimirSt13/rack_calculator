@@ -1,4 +1,4 @@
-import api from '@/features/auth/authApi';
+import api from "@/features/auth/authApi";
 
 export interface AuditLog {
   id: number;
@@ -39,7 +39,7 @@ export const auditApi = {
    * Отримати останні записи аудиту (для адміна)
    */
   getRecent: async (limit = 100) => {
-    const { data } = await api.get('/audit/recent', { params: { limit } });
+    const { data } = await api.get("/audit/recent", { params: { limit } });
     return data as AuditLog[];
   },
 
@@ -47,7 +47,9 @@ export const auditApi = {
    * Отримати історію аудиту для сутності
    */
   getByEntity: async (entityType: string, entityId: number, limit = 50) => {
-    const { data } = await api.get(`/audit/${entityType}/${entityId}`, { params: { limit } });
+    const { data } = await api.get(`/audit/${entityType}/${entityId}`, {
+      params: { limit },
+    });
     return data as AuditLog[];
   },
 
@@ -55,7 +57,9 @@ export const auditApi = {
    * Отримати історію аудиту користувача
    */
   getByUser: async (userId: number, limit = 50) => {
-    const { data } = await api.get(`/audit/user/${userId}`, { params: { limit } });
+    const { data } = await api.get(`/audit/user/${userId}`, {
+      params: { limit },
+    });
     return data as AuditLog[];
   },
 
@@ -63,15 +67,23 @@ export const auditApi = {
    * Отримати аудит з фільтрами
    */
   getAll: async (filters?: AuditFilters) => {
-    const { data } = await api.get('/audit', { params: filters });
-    return data as { logs: AuditLog[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+    const { data } = await api.get("/audit", { params: filters });
+    return data as {
+      logs: AuditLog[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    };
   },
 
   /**
    * Отримати статистику аудиту
    */
   getStatistics: async () => {
-    const { data } = await api.get('/audit/statistics');
+    const { data } = await api.get("/audit/statistics");
     return data as AuditStatistics;
   },
 
@@ -79,7 +91,7 @@ export const auditApi = {
    * Очистити записи старіше вказаного періоду
    */
   cleanup: async (days: number) => {
-    const { data } = await api.post('/audit/cleanup', { days });
+    const { data } = await api.post("/audit/cleanup", { days });
     return data as { message: string; deleted: number; days: number };
   },
 };

@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js';
-import crypto from 'crypto';
+import { BaseModel } from "./BaseModel.js";
+import crypto from "crypto";
 
 /**
  * Модель refresh токена
@@ -16,7 +16,7 @@ export class RefreshToken extends BaseModel {
   }
 
   static get tableName() {
-    return 'refresh_tokens';
+    return "refresh_tokens";
   }
 
   /**
@@ -26,7 +26,9 @@ export class RefreshToken extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new RefreshToken(row) : null;
   }
 
@@ -36,7 +38,7 @@ export class RefreshToken extends BaseModel {
    * @returns {string}
    */
   static hashToken(token) {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 
   /**
@@ -46,7 +48,9 @@ export class RefreshToken extends BaseModel {
    */
   static async findByTokenHash(tokenHash) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM refresh_tokens WHERE token_hash = ?').get(tokenHash);
+    const row = db
+      .prepare("SELECT * FROM refresh_tokens WHERE token_hash = ?")
+      .get(tokenHash);
     return row ? new RefreshToken(row) : null;
   }
 
@@ -58,12 +62,16 @@ export class RefreshToken extends BaseModel {
   static async findActiveByUser(userId) {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM refresh_tokens 
       WHERE user_id = ? AND expires_at > ? AND revoked = 0 
       ORDER BY created_at DESC
-    `).all(userId, now);
-    return rows.map(row => new RefreshToken(row));
+    `,
+      )
+      .all(userId, now);
+    return rows.map((row) => new RefreshToken(row));
   }
 
   /**
@@ -77,11 +85,15 @@ export class RefreshToken extends BaseModel {
   static async create(data) {
     const db = await this.getDb();
     const tokenHash = this.hashToken(data.token);
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
       VALUES (?, ?, ?)
-    `).run(data.userId, tokenHash, data.expiresAt.toISOString());
+    `,
+      )
+      .run(data.userId, tokenHash, data.expiresAt.toISOString());
 
     return this.findById(result.lastInsertRowid);
   }
@@ -92,9 +104,11 @@ export class RefreshToken extends BaseModel {
    */
   async revoke() {
     const db = await this.getDb();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE refresh_tokens SET revoked = 1 WHERE id = ?
-    `).run(this.id);
+    `,
+    ).run(this.id);
     this.revoked = true;
   }
 
@@ -105,9 +119,13 @@ export class RefreshToken extends BaseModel {
    */
   static async revokeAllForUser(userId) {
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ? AND revoked = 0
-    `).run(userId);
+    `,
+      )
+      .run(userId);
     return result.changes;
   }
 
@@ -128,9 +146,13 @@ export class RefreshToken extends BaseModel {
   static async cleanupExpired() {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       DELETE FROM refresh_tokens WHERE expires_at < ?
-    `).run(now);
+    `,
+      )
+      .run(now);
     return result.changes;
   }
 }

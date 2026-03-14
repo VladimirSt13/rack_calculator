@@ -1,7 +1,10 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
-export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface PageHeaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   title: React.ReactNode;
   description?: React.ReactNode;
   /** Дії праворуч (кнопки, перемикачі, інструменти) */
@@ -24,15 +27,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 mb-6 sm:mb-8',
-        'sm:flex-row sm:items-start sm:justify-between',
-        className
+        "flex flex-col gap-4 mb-6 sm:mb-8",
+        "sm:flex-row sm:items-start sm:justify-between",
+        className,
       )}
       {...props}
     >
       {/* Title + Description (left) */}
       <div className="space-y-1 flex-1 min-w-0">
-        {typeof title === 'string' ? (
+        {typeof title === "string" ? (
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">
             {title}
           </h1>

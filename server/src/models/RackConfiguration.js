@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js';
-import crypto from 'crypto';
+import { BaseModel } from "./BaseModel.js";
+import crypto from "crypto";
 
 /**
  * Модель конфигурации стеллажа
@@ -20,7 +20,7 @@ export class RackConfiguration extends BaseModel {
   }
 
   static get tableName() {
-    return 'rack_configurations';
+    return "rack_configurations";
   }
 
   /**
@@ -30,7 +30,7 @@ export class RackConfiguration extends BaseModel {
    */
   static hashSpans(spans) {
     const json = JSON.stringify(spans);
-    return crypto.createHash('sha256').update(json).digest('hex');
+    return crypto.createHash("sha256").update(json).digest("hex");
   }
 
   /**
@@ -41,8 +41,10 @@ export class RackConfiguration extends BaseModel {
   static async findByUniqueParams(params) {
     const db = await this.getDb();
     const spansHash = this.hashSpans(params.spans);
-    
-    const row = db.prepare(`
+
+    const row = db
+      .prepare(
+        `
       SELECT * FROM rack_configurations
       WHERE floors = ? 
         AND rows = ? 
@@ -51,16 +53,18 @@ export class RackConfiguration extends BaseModel {
         AND vertical_supports = ?
         AND spans_hash = ?
         AND braces = ?
-    `).get(
-      params.floors,
-      params.rows,
-      params.beamsPerRow,
-      params.supports || null,
-      params.verticalSupports || null,
-      spansHash,
-      params.braces || null
-    );
-    
+    `,
+      )
+      .get(
+        params.floors,
+        params.rows,
+        params.beamsPerRow,
+        params.supports || null,
+        params.verticalSupports || null,
+        spansHash,
+        params.braces || null,
+      );
+
     return row ? new RackConfiguration(row) : null;
   }
 
@@ -71,7 +75,9 @@ export class RackConfiguration extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(id);
+    const row = db
+      .prepare("SELECT * FROM rack_configurations WHERE id = ?")
+      .get(id);
     return row ? new RackConfiguration(row) : null;
   }
 
@@ -84,22 +90,26 @@ export class RackConfiguration extends BaseModel {
     const db = await this.getDb();
     const spansJson = JSON.stringify(params.spans);
     const spansHash = this.hashSpans(params.spans);
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO rack_configurations 
         (floors, rows, beams_per_row, supports, vertical_supports, spans, spans_hash, braces)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      params.floors,
-      params.rows,
-      params.beamsPerRow,
-      params.supports || null,
-      params.verticalSupports || null,
-      spansJson,
-      spansHash,
-      params.braces || null
-    );
-    
+    `,
+      )
+      .run(
+        params.floors,
+        params.rows,
+        params.beamsPerRow,
+        params.supports || null,
+        params.verticalSupports || null,
+        spansJson,
+        spansHash,
+        params.braces || null,
+      );
+
     return this.findById(result.lastInsertRowid);
   }
 
@@ -122,9 +132,9 @@ export class RackConfiguration extends BaseModel {
    */
   getSpans() {
     // Если spans хранится как [600, 600, 750] (числа)
-    if (Array.isArray(this.spans) && typeof this.spans[0] === 'number') {
+    if (Array.isArray(this.spans) && typeof this.spans[0] === "number") {
       const spansMap = new Map();
-      this.spans.forEach(span => {
+      this.spans.forEach((span) => {
         const key = String(span);
         spansMap.set(key, (spansMap.get(key) || 0) + 1);
       });
@@ -133,7 +143,7 @@ export class RackConfiguration extends BaseModel {
         quantity,
       }));
     }
-    
+
     // Если spans уже в формате [{item, quantity}]
     return this.spans;
   }
@@ -160,8 +170,8 @@ export class RackConfiguration extends BaseModel {
    * @returns {string}
    */
   getSupportType() {
-    if (!this.supports) return 'straight';
-    return this.supports.includes('C') ? 'step' : 'straight';
+    if (!this.supports) return "straight";
+    return this.supports.includes("C") ? "step" : "straight";
   }
 }
 

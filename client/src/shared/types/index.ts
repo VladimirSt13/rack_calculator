@@ -7,7 +7,13 @@
  * Використовуються в rack та battery features
  */
 export interface RackPrice {
-  type: 'базова' | 'без_ізоляторів' | 'нульова' | 'base' | 'no_isolators' | 'zero';
+  type:
+    | "базова"
+    | "без_ізоляторів"
+    | "нульова"
+    | "base"
+    | "no_isolators"
+    | "zero";
   value: number;
   label: string;
 }

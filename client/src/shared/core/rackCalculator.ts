@@ -23,7 +23,10 @@ export interface RackConfig {
 }
 
 export interface PriceData {
-  supports: Record<string, { edge: { price: number }; intermediate: { price: number } }>;
+  supports: Record<
+    string,
+    { edge: { price: number }; intermediate: { price: number } }
+  >;
   spans: Record<string, { price: number }>;
   vertical_supports: Record<string, { price: number }>;
   diagonal_brace: Record<string, { price: number }>;
@@ -48,30 +51,39 @@ export type RackComponents = Record<string, ComponentItem | ComponentItem[]>;
 export const generateRackName = (config: RackConfig): string => {
   const { floors, rows, spans, supports } = config;
 
-  const totalLength = spans?.reduce(
-    (sum, s) => sum + (parseInt(s.item) || 0) * (s.quantity || 0),
-    0,
-  ) || 0;
+  const totalLength =
+    spans?.reduce(
+      (sum, s) => sum + (parseInt(s.item) || 0) * (s.quantity || 0),
+      0,
+    ) || 0;
 
-  const hasC = supports?.includes('C') || false;
-  const cleanSupports = supports?.replace('C', '') || '';
-  const abbreviation = `L${floors}A${rows}${hasC ? 'C' : ''}-${totalLength}/${cleanSupports}`;
+  const hasC = supports?.includes("C") || false;
+  const cleanSupports = supports?.replace("C", "") || "";
+  const abbreviation = `L${floors}A${rows}${hasC ? "C" : ""}-${totalLength}/${cleanSupports}`;
 
   const floorsWords = [
-    '',
-    'одноповерховий',
-    'двоповерховий',
-    'трьохповерховий',
-    'чотириповерховий',
+    "",
+    "одноповерховий",
+    "двоповерховий",
+    "трьохповерховий",
+    "чотириповерховий",
     "п'ятиповерховий",
   ];
-  const rowsWords = ['', 'однорядний', 'двохрядний', 'трьохрядний', 'чотирьохрядний'];
+  const rowsWords = [
+    "",
+    "однорядний",
+    "двохрядний",
+    "трьохрядний",
+    "чотирьохрядний",
+  ];
 
   const description = [
     `Стелаж ${floorsWords[floors] || `${floors}-поверховий`}`,
     rowsWords[rows] || `${rows}-рядний`,
-    hasC ? 'ступінчатий' : '',
-  ].filter(Boolean).join(' ');
+    hasC ? "ступінчатий" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return `${description} ${abbreviation}`;
 };
@@ -95,12 +107,13 @@ export const generateBatteryRackName = ({
   rackLength: number;
   spans: number[];
 }): string => {
-  const supportMarker = supportType === 'step' ? 'C' : '';
+  const supportMarker = supportType === "step" ? "C" : "";
   const prefix = `L${floors}A${rows}${supportMarker}`;
   const spansSum = spans.reduce((a, b) => a + b, 0);
   const base = `${prefix}-${spansSum}/${rackWidth}`;
-  const spansDetail = spans.join('+');
-  const detail = floors > 1 ? ` (${spansDetail} - ${rackLength})` : ` (${spansDetail})`;
+  const spansDetail = spans.join("+");
+  const detail =
+    floors > 1 ? ` (${spansDetail} - ${rackLength})` : ` (${spansDetail})`;
 
   return base + detail;
 };
@@ -109,11 +122,14 @@ export const generateBatteryRackName = ({
  * Генерація HTML таблиці компонентів (тільки для rack page)
  * Тільки UI функція - не використовується для розрахунків
  */
-export const generateComponentsTable = (components: RackComponents, showPrices = true): string => {
+export const generateComponentsTable = (
+  components: RackComponents,
+  showPrices = true,
+): string => {
   const rows: string[] = [];
-  const priceVisibilityClass = showPrices ? '' : ' rack__prices-hidden';
-  const checkboxCheckedAttr = showPrices ? 'checked' : '';
-  const toggleLabelText = showPrices ? 'Приховати ціни' : 'Показати ціни';
+  const priceVisibilityClass = showPrices ? "" : " rack__prices-hidden";
+  const checkboxCheckedAttr = showPrices ? "checked" : "";
+  const toggleLabelText = showPrices ? "Приховати ціни" : "Показати ціни";
 
   for (const items of Object.values(components)) {
     const itemsArray = Array.isArray(items) ? items : [items];
@@ -156,7 +172,7 @@ export const generateComponentsTable = (components: RackComponents, showPrices =
           </tr>
         </thead>
         <tbody class="table__body">
-          ${rows.join('')}
+          ${rows.join("")}
         </tbody>
       </table>
     </div>

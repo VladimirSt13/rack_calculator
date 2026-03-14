@@ -1,7 +1,7 @@
-import * as React from 'react';
-import type { BatterySetItem } from '@/features/battery/setStore';
-import { useBatterySetModal } from './useBatterySetModal';
-import { SetModalContent } from '@/shared/components/SetModalContent';
+import * as React from "react";
+import type { BatterySetItem } from "@/features/battery/setStore";
+import { useBatterySetModal } from "./useBatterySetModal";
+import { SetModalContent } from "@/shared/components/SetModalContent";
 
 interface BatterySetModalProps {
   isOpen?: boolean;

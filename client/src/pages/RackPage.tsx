@@ -1,10 +1,10 @@
-import React from 'react';
-import { CalculationControls } from '@/shared/components';
-import { CalculatorPage } from '@/shared/layout';
-import RackForm from '@/features/rack/components/RackForm';
-import RackResults from '@/features/rack/components/RackResults';
-import RackSetCard from '@/features/rack/components/RackSetCard';
-import { useRackCalculator } from '@/features/rack/useRackCalculator';
+import React from "react";
+import { CalculationControls } from "@/shared/components";
+import { CalculatorPage } from "@/shared/layout";
+import RackForm from "@/features/rack/components/RackForm";
+import RackResults from "@/features/rack/components/RackResults";
+import RackSetCard from "@/features/rack/components/RackSetCard";
+import { useRackCalculator } from "@/features/rack/useRackCalculator";
 
 /**
  * Rack Page - сторінка розрахунку стелажа
@@ -35,13 +35,9 @@ const RackPage: React.FC = () => {
     </>
   );
 
-  const resultsContent = (
-    <RackResults isLoading={isLoading} />
-  );
+  const resultsContent = <RackResults isLoading={isLoading} />;
 
-  const setPanelContent = (
-    <RackSetCard />
-  );
+  const setPanelContent = <RackSetCard />;
 
   return (
     <CalculatorPage

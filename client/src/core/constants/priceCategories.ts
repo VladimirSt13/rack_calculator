@@ -4,11 +4,11 @@
  */
 
 export const CATEGORY_NAMES = {
-  supports: 'Опори',
-  spans: 'Балки',
-  vertical_supports: 'Вертикальні опори',
-  diagonal_brace: 'Розкоси',
-  isolator: 'Ізолятори',
+  supports: "Опори",
+  spans: "Балки",
+  vertical_supports: "Вертикальні опори",
+  diagonal_brace: "Розкоси",
+  isolator: "Ізолятори",
 } as const;
 
 /**
@@ -26,4 +26,6 @@ export function isValidPriceCategory(key: string): key is PriceCategory {
 /**
  * Масив всіх категорій
  */
-export const PRICE_CATEGORIES_ARRAY = Object.keys(CATEGORY_NAMES) as PriceCategory[];
+export const PRICE_CATEGORIES_ARRAY = Object.keys(
+  CATEGORY_NAMES,
+) as PriceCategory[];

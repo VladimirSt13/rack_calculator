@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import * as rackController from '../controllers/rackController.js';
-import { authenticate } from '../middleware/auth.js';
+import { Router } from "express";
+import * as rackController from "../controllers/rackController.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -34,7 +34,7 @@ const router = Router();
  *       401:
  *         description: Неавторизовано
  */
-router.post('/calculate', authenticate, rackController.calculateRack);
+router.post("/calculate", authenticate, rackController.calculateRack);
 
 /**
  * @swagger
@@ -74,6 +74,10 @@ router.post('/calculate', authenticate, rackController.calculateRack);
  *       401:
  *         description: Неавторизовано
  */
-router.post('/calculate-batch', authenticate, rackController.calculateRackBatch);
+router.post(
+  "/calculate-batch",
+  authenticate,
+  rackController.calculateRackBatch,
+);
 
 export default router;

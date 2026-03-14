@@ -1,5 +1,5 @@
-import { getDb } from '../db/index.js';
-import { logAudit, ENTITY_TYPES } from '../helpers/audit.js';
+import { getDb } from "../db/index.js";
+import { logAudit, ENTITY_TYPES } from "../helpers/audit.js";
 
 /**
  * Сервис для работы с журналом аудита
@@ -95,12 +95,12 @@ export const cleanupAuditLogs = async (userId, days) => {
   const db = await getDb();
 
   if (days < 1 || days > 365) {
-    return { error: 'Days must be between 1 and 365' };
+    return { error: "Days must be between 1 and 365" };
   }
 
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
-  const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+  const cutoffDateStr = cutoffDate.toISOString().split("T")[0];
 
   // Посчитаем сколько записей будет удалено
   const { count } = db
@@ -150,13 +150,13 @@ export const cleanupAuditLogs = async (userId, days) => {
   }
 
   // Оптимизируем базу данных после удаления
-  db.exec('VACUUM');
+  db.exec("VACUUM");
 
   // Запишем в аудит факт очистки
   await logAudit({
     userId,
-    action: 'AUDIT_CLEANUP',
-    entityType: 'audit_log',
+    action: "AUDIT_CLEANUP",
+    entityType: "audit_log",
     newValue: { days, deletedCount: deletedTotal },
   });
 
@@ -173,7 +173,16 @@ export const cleanupAuditLogs = async (userId, days) => {
  * @returns {Object} Записи аудита и пагинация
  */
 export const getAuditLogs = async (filters) => {
-  const { userId, action, entityType, entityId, dateFrom, dateTo, page = 1, limit = 50 } = filters;
+  const {
+    userId,
+    action,
+    entityType,
+    entityId,
+    dateFrom,
+    dateTo,
+    page = 1,
+    limit = 50,
+  } = filters;
 
   const db = await getDb();
 
@@ -191,38 +200,38 @@ export const getAuditLogs = async (filters) => {
 
   // Фильтры
   if (userId) {
-    query += ' AND a.user_id = ?';
+    query += " AND a.user_id = ?";
     params.push(userId);
   }
 
   if (action) {
-    query += ' AND a.action = ?';
+    query += " AND a.action = ?";
     params.push(action);
   }
 
   if (entityType) {
-    query += ' AND a.entity_type = ?';
+    query += " AND a.entity_type = ?";
     params.push(entityType);
   }
 
   if (entityId) {
-    query += ' AND a.entity_id = ?';
+    query += " AND a.entity_id = ?";
     params.push(entityId);
   }
 
   if (dateFrom) {
-    query += ' AND a.created_at >= ?';
+    query += " AND a.created_at >= ?";
     params.push(dateFrom);
   }
 
   if (dateTo) {
-    query += ' AND a.created_at <= ?';
+    query += " AND a.created_at <= ?";
     params.push(dateTo);
   }
 
   // Пагинация
   const offset = (page - 1) * limit;
-  query += ' ORDER BY a.created_at DESC LIMIT ? OFFSET ?';
+  query += " ORDER BY a.created_at DESC LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
 
   const logs = db.prepare(query).all(...params);
@@ -232,27 +241,27 @@ export const getAuditLogs = async (filters) => {
   const countParams = [];
 
   if (userId) {
-    countQuery += ' AND user_id = ?';
+    countQuery += " AND user_id = ?";
     countParams.push(userId);
   }
   if (action) {
-    countQuery += ' AND action = ?';
+    countQuery += " AND action = ?";
     countParams.push(action);
   }
   if (entityType) {
-    countQuery += ' AND entity_type = ?';
+    countQuery += " AND entity_type = ?";
     countParams.push(entityType);
   }
   if (entityId) {
-    countQuery += ' AND entity_id = ?';
+    countQuery += " AND entity_id = ?";
     countParams.push(entityId);
   }
   if (dateFrom) {
-    countQuery += ' AND created_at >= ?';
+    countQuery += " AND created_at >= ?";
     countParams.push(dateFrom);
   }
   if (dateTo) {
-    countQuery += ' AND created_at <= ?';
+    countQuery += " AND created_at <= ?";
     countParams.push(dateTo);
   }
 
@@ -307,7 +316,7 @@ export const getAuditByEntity = async (entityType, entityId, limit = 50) => {
 
   // Проверка типа сущности
   if (!Object.values(ENTITY_TYPES).includes(entityType)) {
-    throw new Error('Invalid entity type');
+    throw new Error("Invalid entity type");
   }
 
   const logs = db

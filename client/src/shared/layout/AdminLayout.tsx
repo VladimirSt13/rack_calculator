@@ -21,7 +21,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   return (
     <div className="min-h-screen pt-16">
       {/* Admin Grid: sidebar fixed width, content flexible */}
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6" style={{ maxWidth: '1600px' }}>
+      <div
+        className="mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        style={{ maxWidth: "1600px" }}
+      >
         <div
           className="grid grid-cols-1 gap-6 lg:grid-cols-[256px_minmax(0,1fr)]"
           style={{
@@ -42,7 +45,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               {/* Header */}
               {(title || description) && (
                 <div className="mb-2">
-                  {title && <h1 className="text-3xl font-bold mb-2">{title}</h1>}
+                  {title && (
+                    <h1 className="text-3xl font-bold mb-2">{title}</h1>
+                  )}
                   {description && (
                     <p className="text-muted-foreground">{description}</p>
                   )}

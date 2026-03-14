@@ -1,6 +1,14 @@
-import { getDb } from '../db/index.js';
-import { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } from '../../../shared/rackCalculator.js';
-import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpers/roles.js';
+import { getDb } from "../db/index.js";
+import {
+  calculateRackComponents,
+  calculateTotalCost,
+  calculateTotalWithoutIsolators,
+  generateRackName,
+} from "../../../shared/rackCalculator.js";
+import {
+  filterPriceArrayByPermissions,
+  getUserPricePermissions,
+} from "../helpers/roles.js";
 
 /**
  * Сервіс для розрахунку цін на стелажі
@@ -19,12 +27,18 @@ import { filterPriceArrayByPermissions, getUserPricePermissions } from '../helpe
  * @param {Object} priceData - Дані прайсу (опціонально, якщо не передано - береться останній з БД)
  * @returns {Object} { components, prices, totalCost, name }
  */
-export const calculateRackPrices = async (rackConfig, user, priceData = null) => {
+export const calculateRackPrices = async (
+  rackConfig,
+  user,
+  priceData = null,
+) => {
   const db = await getDb();
 
   // Отримати актуальний прайс, якщо не передано
   if (!priceData) {
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    const priceRecord = db
+      .prepare("SELECT data FROM prices ORDER BY id DESC LIMIT 1")
+      .get();
     priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
   }
 
@@ -39,9 +53,13 @@ export const calculateRackPrices = async (rackConfig, user, priceData = null) =>
   // Сформувати масив цін
   // "Без ізоляторів" = базова ціна мінус вартість ізоляторів (а не знижка 10%)
   const prices = [
-    { type: 'базова', label: 'Базова', value: totalCost },
-    { type: 'без_ізоляторів', label: 'Без ізоляторів', value: totalWithoutIsolators },
-    { type: 'нульова', label: 'Нульова', value: totalCost * 1.44 },
+    { type: "базова", label: "Базова", value: totalCost },
+    {
+      type: "без_ізоляторів",
+      label: "Без ізоляторів",
+      value: totalWithoutIsolators,
+    },
+    { type: "нульова", label: "Нульова", value: totalCost * 1.44 },
   ];
 
   // Відфільтрувати за дозволами
@@ -63,41 +81,57 @@ export const calculateRackPrices = async (rackConfig, user, priceData = null) =>
  * @param {Object} priceData - Дані прайсу (опціонально)
  * @returns {Array} Масив стелажів з розрахованими цінами
  */
-export const calculateRackSetPrices = async (racksData, user, priceData = null) => {
+export const calculateRackSetPrices = async (
+  racksData,
+  user,
+  priceData = null,
+) => {
   const db = await getDb();
 
   // Перевірка на масив
   if (!Array.isArray(racksData)) {
-    console.error('calculateRackSetPrices: очікується масив racksData, отримано:', racksData);
+    console.error(
+      "calculateRackSetPrices: очікується масив racksData, отримано:",
+      racksData,
+    );
     return [];
   }
 
   // Отримати актуальний прайс, якщо не передано
   if (!priceData) {
-    const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+    const priceRecord = db
+      .prepare("SELECT data FROM prices ORDER BY id DESC LIMIT 1")
+      .get();
     priceData = priceRecord ? JSON.parse(priceRecord.data) : null;
   }
 
   // Розрахувати ціни для кожного стелажа
-  return racksData.map(rack => {
+  return racksData.map((rack) => {
     // Якщо вже є components і prices (збережені повні дані) - використовуємо їх
     // Це важливо для експорту, щоб не втрачати дані
-    if (rack.components && Object.keys(rack.components).length > 0 && 
-        rack.prices && rack.prices.length > 0 && 
-        rack.totalCost !== undefined && rack.totalCost !== 0) {
+    if (
+      rack.components &&
+      Object.keys(rack.components).length > 0 &&
+      rack.prices &&
+      rack.prices.length > 0 &&
+      rack.totalCost !== undefined &&
+      rack.totalCost !== 0
+    ) {
       // Дані вже розраховані - повертаємо як є
       return {
         ...rack,
         components: rack.components,
         prices: rack.prices,
         totalCost: rack.totalCost,
-        name: rack.name || 'Стелаж',
+        name: rack.name || "Стелаж",
       };
     }
 
     // Нова структура: { rackConfigId, quantity } без components і prices
     if (rack.rackConfigId && priceData) {
-      const config = db.prepare('SELECT * FROM rack_configurations WHERE id = ?').get(rack.rackConfigId);
+      const config = db
+        .prepare("SELECT * FROM rack_configurations WHERE id = ?")
+        .get(rack.rackConfigId);
       if (config) {
         const rackConfig = {
           floors: config.floors,
@@ -118,13 +152,15 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
         };
       } else {
         // Конфігурацію не знайдено - повертаємо rack з попередженням
-        console.warn(`[pricingService] Конфігурацію rackConfigId=${rack.rackConfigId} не знайдено`);
+        console.warn(
+          `[pricingService] Конфігурацію rackConfigId=${rack.rackConfigId} не знайдено`,
+        );
         return {
           ...rack,
           components: rack.components || {},
           prices: rack.prices || [],
           totalCost: rack.totalCost || 0,
-          name: rack.name || 'Невідома конфігурація',
+          name: rack.name || "Невідома конфігурація",
         };
       }
     }
@@ -160,12 +196,16 @@ export const calculateRackSetPrices = async (racksData, user, priceData = null) 
 export const calculateRackSetTotal = (racksWithPrices) => {
   // Перевірка на масив для уникнення помилки "reduce is not a function"
   if (!Array.isArray(racksWithPrices)) {
-    console.error('calculateRackSetTotal: очікується масив, отримано:', racksWithPrices);
+    console.error(
+      "calculateRackSetTotal: очікується масив, отримано:",
+      racksWithPrices,
+    );
     return 0;
   }
 
   return racksWithPrices.reduce(
-    (sum, rack) => sum + ((rack.totalCost || 0) * (rack.quantity || 1)), 0
+    (sum, rack) => sum + (rack.totalCost || 0) * (rack.quantity || 1),
+    0,
   );
 };
 

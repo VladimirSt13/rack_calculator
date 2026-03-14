@@ -1,5 +1,5 @@
-import * as rackService from '../services/rackService.js';
-import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from '../helpers/audit.js';
+import * as rackService from "../services/rackService.js";
+import { logAudit, AUDIT_ACTIONS, ENTITY_TYPES } from "../helpers/audit.js";
 
 /**
  * POST /api/rack/calculate
@@ -20,13 +20,13 @@ export const calculateRack = async (req, res, next) => {
         entityType: ENTITY_TYPES.CALCULATION,
         newValue: { config, totalCost: result.total },
         ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
+        userAgent: req.get("user-agent"),
       });
     }
 
     res.json(result);
   } catch (error) {
-    if (error.message === 'Price data not found') {
+    if (error.message === "Price data not found") {
       return res.status(404).json({ error: error.message });
     }
     next(error);
@@ -45,7 +45,10 @@ export const calculateRackBatch = async (req, res, next) => {
 
     res.json({ results });
   } catch (error) {
-    if (error.message === 'Racks array is required and cannot be empty' || error.message === 'Price data not found') {
+    if (
+      error.message === "Racks array is required and cannot be empty" ||
+      error.message === "Price data not found"
+    ) {
       return res.status(400).json({ error: error.message });
     }
     next(error);

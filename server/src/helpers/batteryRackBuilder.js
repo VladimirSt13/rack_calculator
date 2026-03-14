@@ -5,7 +5,7 @@
 
 export const CONSTANTS = {
   beamsRange: [2, 3, 4, 5, 6],
-  rackLengthTolerance: 200,  // Increased for better variant selection
+  rackLengthTolerance: 200, // Increased for better variant selection
 };
 
 // Cache for calcRackSpans results
@@ -24,7 +24,13 @@ export const checkSpanWeight = ({ span, accLength, accWeight, gap, beams }) => {
 /**
  * Generate available spans with weight filtering
  */
-export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRange = CONSTANTS.beamsRange }) => {
+export const generateSpanOptions = ({
+  accLength,
+  accWeight,
+  gap,
+  spans,
+  beamsRange = CONSTANTS.beamsRange,
+}) => {
   const results = [];
   const spansSorted = [...spans].sort((a, b) => b.length - a.length);
 
@@ -36,7 +42,8 @@ export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRan
         break;
       }
     }
-    if (beamsFound) results.push({ spanLength: span.length, beams: beamsFound });
+    if (beamsFound)
+      results.push({ spanLength: span.length, beams: beamsFound });
   }
 
   return results;
@@ -45,7 +52,11 @@ export const generateSpanOptions = ({ accLength, accWeight, gap, spans, beamsRan
 /**
  * Generate span combinations using backtracking (no duplicates)
  */
-export const generateSpanCombinations = ({ rackLength, spans, limit = 100 }) => {
+export const generateSpanCombinations = ({
+  rackLength,
+  spans,
+  limit = 100,
+}) => {
   const results = [];
   const maxLength = rackLength + CONSTANTS.rackLengthTolerance;
   if (!spans.length) return results;
@@ -74,9 +85,15 @@ export const generateSpanCombinations = ({ rackLength, spans, limit = 100 }) => 
 /**
  * Find all valid spans with early filtering and memoization
  */
-export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardSpans }) => {
+export const calcRackSpans = ({
+  rackLength,
+  accLength,
+  accWeight,
+  gap,
+  standardSpans,
+}) => {
   const cacheKey = `${rackLength}:${accLength}:${accWeight}:${gap}`;
-  
+
   if (spanCache.has(cacheKey)) {
     return spanCache.get(cacheKey);
   }
@@ -86,7 +103,7 @@ export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardS
   // Filter spans by weight capacity
   const viableSpans = standardSpans.filter((span) => {
     return CONSTANTS.beamsRange.some((beams) =>
-      checkSpanWeight({ span, beams, accLength, accWeight, gap })
+      checkSpanWeight({ span, beams, accLength, accWeight, gap }),
     );
   });
 
@@ -98,14 +115,20 @@ export const calcRackSpans = ({ rackLength, accLength, accWeight, gap, standardS
   // Find minimum beams for each viable span
   const spanWithBeams = viableSpans.map((span) => {
     const beams = CONSTANTS.beamsRange.find((b) =>
-      checkSpanWeight({ span, beams: b, accLength, accWeight, gap })
+      checkSpanWeight({ span, beams: b, accLength, accWeight, gap }),
     );
     return { spanLength: span.length, beams };
   });
 
   // Generate combinations once for all lengths
-  const allSpanLengths = spanWithBeams.map((s) => s.spanLength).sort((a, b) => b - a);
-  const combinations = generateSpanCombinations({ rackLength, spans: allSpanLengths, limit: 200 });
+  const allSpanLengths = spanWithBeams
+    .map((s) => s.spanLength)
+    .sort((a, b) => b - a);
+  const combinations = generateSpanCombinations({
+    rackLength,
+    spans: allSpanLengths,
+    limit: 200,
+  });
 
   // Use max span to determine beams for each combination
   for (const combo of combinations) {
@@ -164,7 +187,13 @@ const enrichVariant = (r, rackLength, price) => {
  * Optimize rack variants, select TOP-N best
  * Criteria: fewer beams, fewer spans, uniform spans, symmetry, lower price, less overlength
  */
-export const optimizeRacks = (variants, rackLength, maxAllowedSpan, topN = 5, price = null) => {
+export const optimizeRacks = (
+  variants,
+  rackLength,
+  maxAllowedSpan,
+  topN = 5,
+  price = null,
+) => {
   if (!variants.length) return [];
 
   // Filter: keep variants with min beams (+1 reserve)
@@ -174,20 +203,23 @@ export const optimizeRacks = (variants, rackLength, maxAllowedSpan, topN = 5, pr
   // Filter: keep variants with min spans (+1)
   const minSpanCount = Math.min(...filtered.map((v) => v.combination.length));
   const furtherFiltered = filtered.filter(
-    (v) => v.combination.length <= minSpanCount + 1
+    (v) => v.combination.length <= minSpanCount + 1,
   );
 
   // Enrich all filtered variants
-  const enriched = furtherFiltered.map((v) => enrichVariant(v, rackLength, price));
+  const enriched = furtherFiltered.map((v) =>
+    enrichVariant(v, rackLength, price),
+  );
 
   // Sort by priority criteria
   const sorted = enriched.sort((a, b) => {
-    if (a.beams !== b.beams) return a.beams - b.beams;  // Fewer beams
-    if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount;  // Fewer spans
-    if (a.lengthDiff !== b.lengthDiff) return a.lengthDiff - b.lengthDiff;  // Uniform spans
-    if (a.symmetryPairs !== b.symmetryPairs) return b.symmetryPairs - a.symmetryPairs;  // More symmetry
-    if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost;  // Lower price
-    return a.overLength - b.overLength;  // Less overlength
+    if (a.beams !== b.beams) return a.beams - b.beams; // Fewer beams
+    if (a.spanCount !== b.spanCount) return a.spanCount - b.spanCount; // Fewer spans
+    if (a.lengthDiff !== b.lengthDiff) return a.lengthDiff - b.lengthDiff; // Uniform spans
+    if (a.symmetryPairs !== b.symmetryPairs)
+      return b.symmetryPairs - a.symmetryPairs; // More symmetry
+    if (price && a.beamsCost !== b.beamsCost) return a.beamsCost - b.beamsCost; // Lower price
+    return a.overLength - b.overLength; // Less overlength
   });
 
   return sorted.slice(0, topN);

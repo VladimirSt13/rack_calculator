@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel.js';
+import { BaseModel } from "./BaseModel.js";
 
 /**
  * Модель пользователя
@@ -17,7 +17,7 @@ export class User extends BaseModel {
   }
 
   static get tableName() {
-    return 'users';
+    return "users";
   }
 
   /**
@@ -27,7 +27,9 @@ export class User extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new User(row) : null;
   }
 
@@ -38,7 +40,7 @@ export class User extends BaseModel {
    */
   static async findByEmail(email) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const row = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
     return row ? new User(row) : null;
   }
 
@@ -49,7 +51,9 @@ export class User extends BaseModel {
    */
   static async findByVerificationToken(token) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM users WHERE verification_token = ?').get(token);
+    const row = db
+      .prepare("SELECT * FROM users WHERE verification_token = ?")
+      .get(token);
     return row ? new User(row) : null;
   }
 
@@ -60,8 +64,10 @@ export class User extends BaseModel {
    */
   static async findByRole(role) {
     const db = await this.getDb();
-    const rows = db.prepare('SELECT * FROM users WHERE role = ? ORDER BY created_at DESC').all(role);
-    return rows.map(row => new User(row));
+    const rows = db
+      .prepare("SELECT * FROM users WHERE role = ? ORDER BY created_at DESC")
+      .all(role);
+    return rows.map((row) => new User(row));
   }
 
   /**
@@ -77,24 +83,28 @@ export class User extends BaseModel {
     const userData = {
       email: data.email,
       password_hash: data.passwordHash,
-      role: data.role || 'user',
+      role: data.role || "user",
       permissions: data.permissions ? JSON.stringify(data.permissions) : null,
       email_verified: data.emailVerified ? 1 : 0,
       verification_token: data.verificationToken || null,
     };
 
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       INSERT INTO users (email, password_hash, role, permissions, email_verified, verification_token)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      userData.email,
-      userData.password_hash,
-      userData.role,
-      userData.permissions,
-      userData.email_verified,
-      userData.verification_token
-    );
+    `,
+      )
+      .run(
+        userData.email,
+        userData.password_hash,
+        userData.role,
+        userData.permissions,
+        userData.email_verified,
+        userData.verification_token,
+      );
 
     return this.findById(result.lastInsertRowid);
   }
@@ -108,11 +118,15 @@ export class User extends BaseModel {
     const updateData = {};
 
     if (data.email !== undefined) updateData.email = data.email;
-    if (data.passwordHash !== undefined) updateData.password_hash = data.passwordHash;
+    if (data.passwordHash !== undefined)
+      updateData.password_hash = data.passwordHash;
     if (data.role !== undefined) updateData.role = data.role;
-    if (data.permissions !== undefined) updateData.permissions = JSON.stringify(data.permissions);
-    if (data.emailVerified !== undefined) updateData.email_verified = data.emailVerified ? 1 : 0;
-    if (data.verificationToken !== undefined) updateData.verification_token = data.verificationToken;
+    if (data.permissions !== undefined)
+      updateData.permissions = JSON.stringify(data.permissions);
+    if (data.emailVerified !== undefined)
+      updateData.email_verified = data.emailVerified ? 1 : 0;
+    if (data.verificationToken !== undefined)
+      updateData.verification_token = data.verificationToken;
 
     const updated = await BaseModel.update(User.tableName, this.id, updateData);
     Object.assign(this, updated);

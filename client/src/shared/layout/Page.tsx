@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -8,15 +8,13 @@ export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Page - основний контейнер для всієї сторінки
  */
-export const Page: React.FC<PageProps> = ({ className, children, ...props }) => {
+export const Page: React.FC<PageProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
-    <div
-      className={cn(
-        'min-h-screen bg-background',
-        className
-      )}
-      {...props}
-    >
+    <div className={cn("min-h-screen bg-background", className)} {...props}>
       {children}
     </div>
   );
@@ -35,13 +33,7 @@ export const PageContent: React.FC<PageContentProps> = ({
   ...props
 }) => {
   return (
-    <div
-      className={cn(
-        'flex-1 py-6 sm:py-8',
-        className
-      )}
-      {...props}
-    >
+    <div className={cn("flex-1 py-6 sm:py-8", className)} {...props}>
       {children}
     </div>
   );

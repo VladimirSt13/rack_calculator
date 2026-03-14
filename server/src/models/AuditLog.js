@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel.js';
+import { BaseModel } from "./BaseModel.js";
 
 /**
  * Модель лога аудита
@@ -19,7 +19,7 @@ export class AuditLog extends BaseModel {
   }
 
   static get tableName() {
-    return 'audit_log';
+    return "audit_log";
   }
 
   /**
@@ -29,7 +29,9 @@ export class AuditLog extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new AuditLog(row) : null;
   }
 
@@ -48,20 +50,24 @@ export class AuditLog extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       INSERT INTO audit_log 
         (user_id, action, entity_type, entity_id, old_value, new_value, ip_address, user_agent)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      data.userId || null,
-      data.action,
-      data.entityType,
-      data.entityId || null,
-      data.oldValue ? JSON.stringify(data.oldValue) : null,
-      data.newValue ? JSON.stringify(data.newValue) : null,
-      data.ipAddress || null,
-      data.userAgent || null
-    );
+    `,
+      )
+      .run(
+        data.userId || null,
+        data.action,
+        data.entityType,
+        data.entityId || null,
+        data.oldValue ? JSON.stringify(data.oldValue) : null,
+        data.newValue ? JSON.stringify(data.newValue) : null,
+        data.ipAddress || null,
+        data.userAgent || null,
+      );
 
     return this.findById(result.lastInsertRowid);
   }
@@ -76,13 +82,17 @@ export class AuditLog extends BaseModel {
   static async findByUser(userId, options = {}) {
     const { limit = 50 } = options;
     const db = await this.getDb();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM audit_log 
       WHERE user_id = ? 
       ORDER BY created_at DESC 
       LIMIT ?
-    `).all(userId, limit);
-    return rows.map(row => new AuditLog(row));
+    `,
+      )
+      .all(userId, limit);
+    return rows.map((row) => new AuditLog(row));
   }
 
   /**
@@ -93,12 +103,16 @@ export class AuditLog extends BaseModel {
    */
   static async findByEntity(entityType, entityId) {
     const db = await this.getDb();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM audit_log 
       WHERE entity_type = ? AND entity_id = ? 
       ORDER BY created_at DESC
-    `).all(entityType, entityId);
-    return rows.map(row => new AuditLog(row));
+    `,
+      )
+      .all(entityType, entityId);
+    return rows.map((row) => new AuditLog(row));
   }
 
   /**
@@ -111,13 +125,17 @@ export class AuditLog extends BaseModel {
   static async findByAction(action, options = {}) {
     const { limit = 50 } = options;
     const db = await this.getDb();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM audit_log 
       WHERE action = ? 
       ORDER BY created_at DESC 
       LIMIT ?
-    `).all(action, limit);
-    return rows.map(row => new AuditLog(row));
+    `,
+      )
+      .all(action, limit);
+    return rows.map((row) => new AuditLog(row));
   }
 
   /**
@@ -131,13 +149,17 @@ export class AuditLog extends BaseModel {
   static async findByPeriod(options = {}) {
     const { startDate, endDate, limit = 100 } = options;
     const db = await this.getDb();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM audit_log 
       WHERE created_at BETWEEN ? AND ? 
       ORDER BY created_at DESC 
       LIMIT ?
-    `).all(startDate, endDate, limit);
-    return rows.map(row => new AuditLog(row));
+    `,
+      )
+      .all(startDate, endDate, limit);
+    return rows.map((row) => new AuditLog(row));
   }
 
   /**
@@ -149,12 +171,16 @@ export class AuditLog extends BaseModel {
     const db = await this.getDb();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       DELETE FROM audit_log 
       WHERE created_at < ?
-    `).run(cutoffDate.toISOString());
-    
+    `,
+      )
+      .run(cutoffDate.toISOString());
+
     return result.changes;
   }
 }

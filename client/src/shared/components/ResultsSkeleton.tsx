@@ -1,6 +1,6 @@
-import React from 'react';
-import { Skeleton } from './Skeleton';
-import { Separator } from './Separator';
+import React from "react";
+import { Skeleton } from "./Skeleton";
+import { Separator } from "./Separator";
 
 export interface ResultsSkeletonProps {
   /** Кількість рядків для відображення (за замовчуванням 3) */
@@ -21,19 +21,19 @@ export const ResultsSkeleton: React.FC<ResultsSkeletonProps> = ({
   withSeparators = true,
 }) => {
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {withHeader && (
-        <div className='space-y-2'>
-          <Skeleton className='h-4 w-32' />
-          <Skeleton className='h-6 w-full' />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-6 w-full" />
         </div>
       )}
 
       {withSeparators && <Separator />}
 
-      <div className='space-y-4'>
+      <div className="space-y-4">
         {Array.from({ length: rows }).map((_, i) => (
-          <Skeleton key={i} className='h-10 w-full' />
+          <Skeleton key={i} className="h-10 w-full" />
         ))}
       </div>
     </div>

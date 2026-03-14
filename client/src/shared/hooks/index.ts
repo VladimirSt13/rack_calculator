@@ -1,2 +1,6 @@
-export { useSetModal, defaultSetSchema } from './useSetModal';
-export type { UseSetModalProps, UseSetModalReturn, BaseSetItemWithPrices } from './useSetModal';
+export { useSetModal, defaultSetSchema } from "./useSetModal";
+export type {
+  UseSetModalProps,
+  UseSetModalReturn,
+  BaseSetItemWithPrices,
+} from "./useSetModal";

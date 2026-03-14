@@ -1,5 +1,5 @@
-import React from 'react';
-import type { ComponentItem } from '@rack-calculator/shared';
+import React from "react";
+import type { ComponentItem } from "@rack-calculator/shared";
 
 interface RackItemDisplayProps {
   rack: {
@@ -31,18 +31,24 @@ interface RackItemDisplayProps {
  * - admin/RackSetsList.tsx (перегляд комплекту)
  * - MyRackSetsPage.tsx (перегляд комплекту)
  */
-export const RackItemDisplay: React.FC<RackItemDisplayProps> = ({ rack, showDetails = false }) => {
+export const RackItemDisplay: React.FC<RackItemDisplayProps> = ({
+  rack,
+  showDetails = false,
+}) => {
   // Визначаємо конфігурацію з нової або старої структури
-  const rackConfig = rack.config || rack.form || {
-    floors: 0,
-    rows: 0,
-    beamsPerRow: 0,
-  };
+  const rackConfig = rack.config ||
+    rack.form || {
+      floors: 0,
+      rows: 0,
+      beamsPerRow: 0,
+    };
 
   // Знаходимо ціну з типу "нульова" або "zero"
-  const rackPrice = rack.prices?.find((p) =>
-    p.type === 'нульова' || p.type === 'zero'
-  )?.value || rack.totalCost || 0;
+  const rackPrice =
+    rack.prices?.find((p) => p.type === "нульова" || p.type === "zero")
+      ?.value ||
+    rack.totalCost ||
+    0;
   const totalRackPrice = rackPrice * (rack.quantity || 1);
 
   return (
@@ -50,22 +56,22 @@ export const RackItemDisplay: React.FC<RackItemDisplayProps> = ({ rack, showDeta
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <p className="font-medium">
-            {rack.name || `Стелаж ${rackConfig.floors}х${rackConfig.rows}х${rackConfig.beamsPerRow}`}
+            {rack.name ||
+              `Стелаж ${rackConfig.floors}х${rackConfig.rows}х${rackConfig.beamsPerRow}`}
           </p>
           <p className="text-sm text-muted-foreground">
-            Кількість:{' '}
-            <span className="font-medium">
-              {rack.quantity || 1} од.
-            </span>
+            Кількість:{" "}
+            <span className="font-medium">{rack.quantity || 1} од.</span>
           </p>
-          
+
           {/* Деталі показуємо тільки якщо showDetails = true */}
           {showDetails && (
             <>
               <p className="text-xs text-muted-foreground mt-1">
-                Розміри: {rackConfig.floors || 0} пов. × {rackConfig.rows || 0} рядів × {rackConfig.beamsPerRow || 0} балок
+                Розміри: {rackConfig.floors || 0} пов. × {rackConfig.rows || 0}{" "}
+                рядів × {rackConfig.beamsPerRow || 0} балок
               </p>
-              
+
               {/* Компоненти - перші 6 */}
               {rack.components && Object.keys(rack.components).length > 0 && (
                 <div className="mt-3 pt-3 border-t">
@@ -80,33 +86,31 @@ export const RackItemDisplay: React.FC<RackItemDisplayProps> = ({ rack, showDeta
                               name: item.name,
                               amount: item.amount,
                             }))
-                          : []
+                          : [],
                       )
                       .slice(0, 6)
-                      .map((comp: { name: string; amount: number }, i: number) => (
-                        <div key={i} className="flex justify-between">
-                          <span className="text-muted-foreground truncate">
-                            {comp.name}:
-                          </span>
-                          <span className="font-medium">
-                            {comp.amount} од.
-                          </span>
-                        </div>
-                      ))}
+                      .map(
+                        (comp: { name: string; amount: number }, i: number) => (
+                          <div key={i} className="flex justify-between">
+                            <span className="text-muted-foreground truncate">
+                              {comp.name}:
+                            </span>
+                            <span className="font-medium">
+                              {comp.amount} од.
+                            </span>
+                          </div>
+                        ),
+                      )}
                   </div>
                 </div>
               )}
             </>
           )}
         </div>
-        
+
         <div className="text-right ml-4">
-          <p className="text-sm text-muted-foreground">
-            Вартість:
-          </p>
-          <p className="font-semibold">
-            {totalRackPrice.toFixed(2)} ₴
-          </p>
+          <p className="text-sm text-muted-foreground">Вартість:</p>
+          <p className="font-semibold">{totalRackPrice.toFixed(2)} ₴</p>
         </div>
       </div>
     </div>

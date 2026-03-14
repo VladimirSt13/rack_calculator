@@ -1,21 +1,21 @@
-import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/features/auth/authStore';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
-import { Label } from '@/shared/components/Label';
-import { Loader2, Mail } from 'lucide-react';
-import { toast } from 'sonner';
-import { PUBLIC_ROUTES } from '@/core/constants/routes';
+import { useState, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/features/auth/authStore";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
+import { Label } from "@/shared/components/Label";
+import { Loader2, Mail } from "lucide-react";
+import { toast } from "sonner";
+import { PUBLIC_ROUTES } from "@/core/constants/routes";
 
-const ALLOWED_DOMAINS = ['accu-energo.com.ua', 'vs.com'];
+const ALLOWED_DOMAINS = ["accu-energo.com.ua", "vs.com"];
 const COOLDOWN_MS = 60000; // 1 хвилина між запитами
 
 const forgotSchema = z.object({
-  email: z.string().email('Невірний формат email'),
+  email: z.string().email("Невірний формат email"),
 });
 
 type ForgotForm = z.infer<typeof forgotSchema>;
@@ -34,56 +34,69 @@ export const ForgotPasswordPage: React.FC = () => {
     resolver: zodResolver(forgotSchema),
   });
 
-  const onSubmit = useCallback(async (data: ForgotForm) => {
-    // Rate limiting на клієнті
-    const now = Date.now();
-    if (now - lastSubmit < COOLDOWN_MS) {
-      const remainingTime = Math.ceil((COOLDOWN_MS - (now - lastSubmit)) / 1000);
-      toast.error(`Зачекайте ${remainingTime} секунд перед наступним запитом`);
-      return;
-    }
-
-    // Валідація домену
-    const domain = data.email.split('@')[1]?.toLowerCase();
-    if (!ALLOWED_DOMAINS.includes(domain)) {
-      toast.error(`Використовуйте корпоративну пошту: ${ALLOWED_DOMAINS.join(', ')}`);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setLastSubmit(now);
-    clearError();
-
-    try {
-      await forgotPassword(data.email);
-      setIsSent(true);
-      toast.success('Лист зі скиданням пароля відправлено');
-    } catch (err) {
-      const errorMessage =
-        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка відправки';
-      
-      // Перевірка на мережеву помилку для retry
-      if ((err as any).code === 'NETWORK_ERROR' || !(err as any).response) {
-        toast.info('Спробуємо ще раз через 5 секунд...');
-        setTimeout(async () => {
-          try {
-            await forgotPassword(data.email);
-            setIsSent(true);
-            toast.success('Лист зі скиданням пароля відправлено');
-          } catch (retryErr) {
-            toast.error((retryErr as any).response?.data?.error || 'Помилка відправки');
-          } finally {
-            setIsSubmitting(false);
-          }
-        }, 5000);
+  const onSubmit = useCallback(
+    async (data: ForgotForm) => {
+      // Rate limiting на клієнті
+      const now = Date.now();
+      if (now - lastSubmit < COOLDOWN_MS) {
+        const remainingTime = Math.ceil(
+          (COOLDOWN_MS - (now - lastSubmit)) / 1000,
+        );
+        toast.error(
+          `Зачекайте ${remainingTime} секунд перед наступним запитом`,
+        );
         return;
       }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [forgotPassword, lastSubmit, clearError]);
+
+      // Валідація домену
+      const domain = data.email.split("@")[1]?.toLowerCase();
+      if (!ALLOWED_DOMAINS.includes(domain)) {
+        toast.error(
+          `Використовуйте корпоративну пошту: ${ALLOWED_DOMAINS.join(", ")}`,
+        );
+        return;
+      }
+
+      setIsSubmitting(true);
+      setLastSubmit(now);
+      clearError();
+
+      try {
+        await forgotPassword(data.email);
+        setIsSent(true);
+        toast.success("Лист зі скиданням пароля відправлено");
+      } catch (err) {
+        const errorMessage =
+          (err as any).response?.data?.error ||
+          (err as any).response?.data?.message ||
+          "Помилка відправки";
+
+        // Перевірка на мережеву помилку для retry
+        if ((err as any).code === "NETWORK_ERROR" || !(err as any).response) {
+          toast.info("Спробуємо ще раз через 5 секунд...");
+          setTimeout(async () => {
+            try {
+              await forgotPassword(data.email);
+              setIsSent(true);
+              toast.success("Лист зі скиданням пароля відправлено");
+            } catch (retryErr) {
+              toast.error(
+                (retryErr as any).response?.data?.error || "Помилка відправки",
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          }, 5000);
+          return;
+        }
+
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [forgotPassword, lastSubmit, clearError],
+  );
 
   if (isSent) {
     return (
@@ -94,7 +107,9 @@ export const ForgotPasswordPage: React.FC = () => {
               <Mail className="w-12 h-12 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-green-600">Лист відправлено!</h1>
+          <h1 className="text-3xl font-bold text-green-600">
+            Лист відправлено!
+          </h1>
           <p className="text-muted-foreground">
             Перевірте свою пошту для інструкцій зі скидання пароля
           </p>
@@ -131,8 +146,8 @@ export const ForgotPasswordPage: React.FC = () => {
               type="email"
               placeholder="your@email.com"
               autoComplete="email"
-              className={errors.email?.message ? 'border-destructive' : ''}
-              {...register('email')}
+              className={errors.email?.message ? "border-destructive" : ""}
+              {...register("email")}
               disabled={isSubmitting}
             />
             {errors.email?.message && (
@@ -157,14 +172,17 @@ export const ForgotPasswordPage: React.FC = () => {
                 Відправка...
               </>
             ) : (
-              'Відправити посилання'
+              "Відправити посилання"
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Згадали пароль? </span>
-          <Link to={PUBLIC_ROUTES.LOGIN} className="text-primary hover:underline font-medium">
+          <Link
+            to={PUBLIC_ROUTES.LOGIN}
+            className="text-primary hover:underline font-medium"
+          >
             Увійти
           </Link>
         </div>

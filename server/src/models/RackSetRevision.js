@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel.js';
+import { BaseModel } from "./BaseModel.js";
 
 /**
  * Модель ревизии (истории изменений) комплекта стеллажей
@@ -9,7 +9,9 @@ export class RackSetRevision extends BaseModel {
     this.id = data.id;
     this.rackSetId = data.rack_set_id;
     this.userId = data.user_id;
-    this.racksSnapshot = data.racks_snapshot ? JSON.parse(data.racks_snapshot) : [];
+    this.racksSnapshot = data.racks_snapshot
+      ? JSON.parse(data.racks_snapshot)
+      : [];
     this.totalCostSnapshot = data.total_cost_snapshot;
     this.changeType = data.change_type;
     this.changeDescription = data.change_description;
@@ -17,7 +19,7 @@ export class RackSetRevision extends BaseModel {
   }
 
   static get tableName() {
-    return 'rack_set_revisions';
+    return "rack_set_revisions";
   }
 
   /**
@@ -28,16 +30,20 @@ export class RackSetRevision extends BaseModel {
    * @returns {Promise<RackSetRevision[]>}
    */
   static async findByRackSetId(rackSetId, options = {}) {
-    const { orderBy = 'created_at DESC' } = options;
-    
+    const { orderBy = "created_at DESC" } = options;
+
     const db = await this.getDb();
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM rack_set_revisions
       WHERE rack_set_id = ?
       ORDER BY ${orderBy}
-    `).all(rackSetId);
-    
-    return rows.map(row => new RackSetRevision(row));
+    `,
+      )
+      .all(rackSetId);
+
+    return rows.map((row) => new RackSetRevision(row));
   }
 
   /**
@@ -47,7 +53,9 @@ export class RackSetRevision extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new RackSetRevision(row) : null;
   }
 
@@ -64,20 +72,24 @@ export class RackSetRevision extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO rack_set_revisions 
         (rack_set_id, user_id, racks_snapshot, total_cost_snapshot, change_type, change_description)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      data.rackSetId,
-      data.userId,
-      JSON.stringify(data.racksSnapshot),
-      data.totalCostSnapshot || 0,
-      data.changeType || 'update',
-      data.changeDescription || null
-    );
-    
+    `,
+      )
+      .run(
+        data.rackSetId,
+        data.userId,
+        JSON.stringify(data.racksSnapshot),
+        data.totalCostSnapshot || 0,
+        data.changeType || "update",
+        data.changeDescription || null,
+      );
+
     return this.findById(result.lastInsertRowid);
   }
 
@@ -97,7 +109,7 @@ export class RackSetRevision extends BaseModel {
       userId: data.userId,
       racksSnapshot: data.racksSnapshot,
       totalCostSnapshot: data.totalCostSnapshot,
-      changeType: 'update',
+      changeType: "update",
       changeDescription: data.comment || null,
     });
   }
@@ -108,7 +120,10 @@ export class RackSetRevision extends BaseModel {
    * @returns {Promise<RackSetRevision|null>}
    */
   static async findLatest(rackSetId) {
-    const revisions = await this.findByRackSetId(rackSetId, { orderBy: 'created_at DESC', limit: 1 });
+    const revisions = await this.findByRackSetId(rackSetId, {
+      orderBy: "created_at DESC",
+      limit: 1,
+    });
     return revisions[0] || null;
   }
 
@@ -121,12 +136,16 @@ export class RackSetRevision extends BaseModel {
     const db = await this.getDb();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       DELETE FROM rack_set_revisions
       WHERE created_at < ?
-    `).run(cutoffDate.toISOString());
-    
+    `,
+      )
+      .run(cutoffDate.toISOString());
+
     return result.changes;
   }
 

@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel.js';
+import { BaseModel } from "./BaseModel.js";
 
 /**
  * Модель разрешения
@@ -14,7 +14,7 @@ export class Permission extends BaseModel {
   }
 
   static get tableName() {
-    return 'permissions';
+    return "permissions";
   }
 
   /**
@@ -24,7 +24,9 @@ export class Permission extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new Permission(row) : null;
   }
 
@@ -35,7 +37,9 @@ export class Permission extends BaseModel {
    */
   static async findByName(name) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM permissions WHERE name = ?').get(name);
+    const row = db
+      .prepare("SELECT * FROM permissions WHERE name = ?")
+      .get(name);
     return row ? new Permission(row) : null;
   }
 
@@ -46,8 +50,10 @@ export class Permission extends BaseModel {
    */
   static async findByCategory(category) {
     const db = await this.getDb();
-    const rows = db.prepare('SELECT * FROM permissions WHERE category = ? ORDER BY id').all(category);
-    return rows.map(row => new Permission(row));
+    const rows = db
+      .prepare("SELECT * FROM permissions WHERE category = ? ORDER BY id")
+      .all(category);
+    return rows.map((row) => new Permission(row));
   }
 
   /**
@@ -56,8 +62,10 @@ export class Permission extends BaseModel {
    */
   static async findAll() {
     const db = await this.getDb();
-    const rows = db.prepare('SELECT * FROM permissions ORDER BY category, id').all();
-    return rows.map(row => new Permission(row));
+    const rows = db
+      .prepare("SELECT * FROM permissions ORDER BY category, id")
+      .all();
+    return rows.map((row) => new Permission(row));
   }
 
   /**
@@ -70,10 +78,14 @@ export class Permission extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       INSERT INTO permissions (name, label, category)
       VALUES (?, ?, ?)
-    `).run(data.name, data.label, data.category || null);
+    `,
+      )
+      .run(data.name, data.label, data.category || null);
 
     return this.findById(result.lastInsertRowid);
   }
@@ -89,7 +101,11 @@ export class Permission extends BaseModel {
     if (data.label !== undefined) updateData.label = data.label;
     if (data.category !== undefined) updateData.category = data.category;
 
-    const updated = await BaseModel.update(Permission.tableName, this.id, updateData);
+    const updated = await BaseModel.update(
+      Permission.tableName,
+      this.id,
+      updateData,
+    );
     Object.assign(this, updated);
     return this;
   }

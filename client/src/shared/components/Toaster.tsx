@@ -1,5 +1,5 @@
-import React from 'react';
-import { Toaster as Sonner } from 'sonner';
+import React from "react";
+import { Toaster as Sonner } from "sonner";
 
 /**
  * Toaster - глобальний контейнер toast-сповіщень

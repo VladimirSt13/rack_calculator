@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authApi } from './authApi';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authApi } from "./authApi";
 
 /**
  * Інтерфейс користувача
@@ -15,7 +15,7 @@ import { authApi } from './authApi';
 export interface User {
   id: number;
   email: string;
-  role: 'admin' | 'manager' | 'user';
+  role: "admin" | "manager" | "user";
   permissions?: {
     price_types: string[];
   };
@@ -60,7 +60,10 @@ export interface AuthState {
   resendVerification: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
   refreshAuth: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
@@ -114,8 +117,8 @@ export const useAuthStore = create<AuthState>()(
           const newRefreshToken = response.refreshToken;
 
           // Явне збереження в localStorage для надійності
-          localStorage.setItem('accessToken', newAccessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
+          localStorage.setItem("accessToken", newAccessToken);
+          localStorage.setItem("refreshToken", newRefreshToken);
 
           set({
             user: newUser,
@@ -126,8 +129,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка входу',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка входу",
             isLoading: false,
           });
           throw error;
@@ -147,8 +150,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка реєстрації',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка реєстрації",
             isLoading: false,
           });
           throw error;
@@ -162,8 +165,8 @@ export const useAuthStore = create<AuthState>()(
           // Ігноруємо помилки logout
         } finally {
           // Явне очищення localStorage
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
 
           set({
             user: null,
@@ -182,8 +185,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка підтвердження',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка підтвердження",
             isLoading: false,
           });
           throw error;
@@ -198,8 +201,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка відправки',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка відправки",
             isLoading: false,
           });
           throw error;
@@ -214,8 +217,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка відправки',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка відправки",
             isLoading: false,
           });
           throw error;
@@ -230,8 +233,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка скидання пароля',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка скидання пароля",
             isLoading: false,
           });
           throw error;
@@ -246,8 +249,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
-              'Помилка зміни пароля',
+              (error as unknown as { response?: { data?: { error?: string } } })
+                .response?.data?.error || "Помилка зміни пароля",
             isLoading: false,
           });
           throw error;
@@ -284,7 +287,7 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

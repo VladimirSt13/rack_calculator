@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface PriceDisplayProps {
   /** Сума для відображення */
@@ -13,16 +13,16 @@ export interface PriceDisplayProps {
   /** Додаткові класи */
   className?: string;
   /** Розмір тексту (за замовчуванням 'sm') */
-  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl';
+  size?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl";
 }
 
 const sizeClasses = {
-  xs: 'text-xs',
-  sm: 'text-sm',
-  base: 'text-base',
-  lg: 'text-lg',
-  xl: 'text-xl',
-  '2xl': 'text-2xl',
+  xs: "text-xs",
+  sm: "text-sm",
+  base: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
 };
 
 /**
@@ -32,20 +32,16 @@ const sizeClasses = {
 export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   value,
   withCurrency = true,
-  currency = '₴',
+  currency = "₴",
   decimals = 2,
   className,
-  size = 'sm',
+  size = "sm",
 }) => {
   // Якщо value null/undefined - показуємо прочерк
   if (value == null) {
     return (
       <span
-        className={cn(
-          'font-mono tabular-nums',
-          sizeClasses[size],
-          className
-        )}
+        className={cn("font-mono tabular-nums", sizeClasses[size], className)}
       >
         -
       </span>
@@ -56,14 +52,10 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   return (
     <span
-      className={cn(
-        'font-mono tabular-nums',
-        sizeClasses[size],
-        className
-      )}
+      className={cn("font-mono tabular-nums", sizeClasses[size], className)}
     >
       {formattedValue}
-      {withCurrency && <span className='ml-0.5'>{currency}</span>}
+      {withCurrency && <span className="ml-0.5">{currency}</span>}
     </span>
   );
 };

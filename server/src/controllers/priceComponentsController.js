@@ -1,5 +1,5 @@
-import * as priceService from '../services/priceService.js';
-import { formatPriceComponents } from '../services/priceComponentsService.js';
+import * as priceService from "../services/priceService.js";
+import { formatPriceComponents } from "../services/priceComponentsService.js";
 
 /**
  * GET /api/price/components
@@ -13,7 +13,7 @@ export const getPriceComponents = async (req, res, next) => {
     const price = await priceService.getPrice();
 
     if (!price) {
-      return res.status(404).json({ error: 'Price data not found' });
+      return res.status(404).json({ error: "Price data not found" });
     }
 
     // Форматування комплектуючих

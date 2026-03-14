@@ -5,8 +5,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from './Dialog';
-import { Button } from './Button';
+} from "./Dialog";
+import { Button } from "./Button";
 
 interface DeleteDialogProps {
   isOpen: boolean;
@@ -30,9 +30,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
           <Button
@@ -49,7 +47,7 @@ export const DeleteDialog: React.FC<DeleteDialogProps> = ({
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? 'Видалення...' : 'Видалити'}
+            {isDeleting ? "Видалення..." : "Видалити"}
           </Button>
         </DialogFooter>
       </DialogContent>

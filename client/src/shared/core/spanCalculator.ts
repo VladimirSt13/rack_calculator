@@ -1,4 +1,4 @@
-import { beamsRange, rackLengthTolerance } from './constants';
+import { beamsRange, rackLengthTolerance } from "./constants";
 
 /**
  * Кеш для мемоізації calcRackSpans
@@ -60,7 +60,8 @@ export const generateSpanOptions = ({
         break;
       }
     }
-    if (beamsFound) results.push({ spanLength: span.length, beams: beamsFound });
+    if (beamsFound)
+      results.push({ spanLength: span.length, beams: beamsFound });
   }
 
   return results;
@@ -140,7 +141,7 @@ export const calcRackSpans = ({
 }): { combination: number[]; beams: number }[] => {
   // Створюємо унікальний ключ для кешу
   const cacheKey = `${rackLength}:${accLength}:${accWeight}:${gap}`;
-  
+
   // Перевіряємо кеш
   if (spanCache.has(cacheKey)) {
     return spanCache.get(cacheKey)!;
@@ -151,7 +152,7 @@ export const calcRackSpans = ({
   // 1. Фільтруємо спани, які взагалі не підходять по вантажопідйомності
   const viableSpans = standardSpans.filter((span) => {
     return beamsRange.some((beams) =>
-      checkSpanWeight({ span, beams, accLength, accWeight, gap })
+      checkSpanWeight({ span, beams, accLength, accWeight, gap }),
     );
   });
 
@@ -163,14 +164,20 @@ export const calcRackSpans = ({
   // 2. Для кожного життєздатного спану визначаємо мінімальну кількість балок
   const spanWithBeams = viableSpans.map((span) => {
     const beams = beamsRange.find((b) =>
-      checkSpanWeight({ span, beams: b, accLength, accWeight, gap })
+      checkSpanWeight({ span, beams: b, accLength, accWeight, gap }),
     )!;
     return { spanLength: span.length, beams };
   });
 
   // 3. Генеруємо комбінації тільки один раз для всіх доступних довжин
-  const allSpanLengths = spanWithBeams.map((s) => s.spanLength).sort((a, b) => b - a);
-  const combinations = generateSpanCombinations({ rackLength, spans: allSpanLengths, limit: 100 });
+  const allSpanLengths = spanWithBeams
+    .map((s) => s.spanLength)
+    .sort((a, b) => b - a);
+  const combinations = generateSpanCombinations({
+    rackLength,
+    spans: allSpanLengths,
+    limit: 100,
+  });
 
   // 4. Для кожної комбінації беремо максимальний проліт і відповідну кількість балок
   for (const combo of combinations) {

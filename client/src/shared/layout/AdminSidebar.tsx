@@ -1,6 +1,6 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,7 @@ import {
   Package,
   FileText,
   Sheet,
-} from 'lucide-react';
+} from "lucide-react";
 
 export interface AdminSidebarProps {
   className?: string;
@@ -18,33 +18,33 @@ export interface AdminSidebarProps {
 
 const menuItems = [
   {
-    path: '/admin',
-    label: 'Дашборд',
+    path: "/admin",
+    label: "Дашборд",
     icon: LayoutDashboard,
   },
   {
-    path: '/admin/users',
-    label: 'Користувачі',
+    path: "/admin/users",
+    label: "Користувачі",
     icon: Users,
   },
   {
-    path: '/admin/roles',
-    label: 'Ролі та дозволи',
+    path: "/admin/roles",
+    label: "Ролі та дозволи",
     icon: Settings,
   },
   {
-    path: '/admin/price',
-    label: 'Прайс',
+    path: "/admin/price",
+    label: "Прайс",
     icon: Sheet,
   },
   {
-    path: '/admin/rack-sets',
-    label: 'Комплекти стелажів',
+    path: "/admin/rack-sets",
+    label: "Комплекти стелажів",
     icon: Package,
   },
   {
-    path: '/admin/audit',
-    label: 'Журнал аудиту',
+    path: "/admin/audit",
+    label: "Журнал аудиту",
     icon: FileText,
   },
 ];
@@ -60,25 +60,45 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <aside
       className={cn(
-        'w-64 bg-card border-r border-border flex flex-col',
-        'transition-all duration-300 ease-in-out',
-        collapsed && 'w-0 lg:w-16',
-        className
+        "w-64 bg-card border-r border-border flex flex-col",
+        "transition-all duration-300 ease-in-out",
+        collapsed && "w-0 lg:w-16",
+        className,
       )}
     >
       {/* Toggle button для мобільних */}
       <button
         onClick={onToggle}
         className="lg:hidden absolute -right-3 top-4 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md"
-        aria-label={collapsed ? 'Відкрити меню' : 'Закрити меню'}
+        aria-label={collapsed ? "Відкрити меню" : "Закрити меню"}
       >
         {collapsed ? (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         ) : (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         )}
       </button>
@@ -91,17 +111,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             to={item.path}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                'text-sm font-medium',
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                "text-sm font-medium",
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                collapsed && 'justify-center px-2'
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                collapsed && "justify-center px-2",
               )
             }
             title={collapsed ? item.label : undefined}
           >
-            <item.icon className={cn('w-5 h-5 flex-shrink-0', collapsed && 'w-6 h-6')} />
+            <item.icon
+              className={cn("w-5 h-5 flex-shrink-0", collapsed && "w-6 h-6")}
+            />
             {!collapsed && <span>{item.label}</span>}
           </NavLink>
         ))}

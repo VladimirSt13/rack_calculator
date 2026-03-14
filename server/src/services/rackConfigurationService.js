@@ -1,5 +1,5 @@
-import { getDb } from '../db/index.js';
-import { calculateRackPrices } from './pricingService.js';
+import { getDb } from "../db/index.js";
+import { calculateRackPrices } from "./pricingService.js";
 
 /**
  * Сервіс для роботи з конфігураціями стелажів
@@ -13,14 +13,18 @@ import { calculateRackPrices } from './pricingService.js';
 export const findOrCreateConfiguration = async (config) => {
   const db = await getDb();
 
-  const supports = config.supports || '';
-  const verticalSupports = config.verticalSupports || '';
-  const spans = config.spans ? JSON.stringify(config.spans) : '[]';
+  const supports = config.supports || "";
+  const verticalSupports = config.verticalSupports || "";
+  const spans = config.spans ? JSON.stringify(config.spans) : "[]";
 
-  const crypto = await import('crypto');
-  const spansHash = spans ? crypto.createHash('sha256').update(spans).digest('hex') : '';
+  const crypto = await import("crypto");
+  const spansHash = spans
+    ? crypto.createHash("sha256").update(spans).digest("hex")
+    : "";
 
-  const existing = db.prepare(`
+  const existing = db
+    .prepare(
+      `
     SELECT id FROM rack_configurations
     WHERE floors = ?
       AND rows = ?
@@ -29,36 +33,46 @@ export const findOrCreateConfiguration = async (config) => {
       AND vertical_supports = ?
       AND spans = ?
       AND spans_hash = ?
-  `).get(
-    config.floors,
-    config.rows,
-    config.beamsPerRow,
-    supports,
-    verticalSupports,
-    spans,
-    spansHash
-  );
+  `,
+    )
+    .get(
+      config.floors,
+      config.rows,
+      config.beamsPerRow,
+      supports,
+      verticalSupports,
+      spans,
+      spansHash,
+    );
 
   if (existing) {
-    console.log(`[RackConfigService] Found existing configuration: ${existing.id}`);
+    console.log(
+      `[RackConfigService] Found existing configuration: ${existing.id}`,
+    );
     return existing.id;
   }
 
-  const result = db.prepare(`
+  const result = db
+    .prepare(
+      `
     INSERT INTO rack_configurations (
       floors, rows, beams_per_row, supports, vertical_supports, spans, spans_hash
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    config.floors,
-    config.rows,
-    config.beamsPerRow,
-    supports,
-    verticalSupports,
-    spans,
-    spansHash
-  );
+  `,
+    )
+    .run(
+      config.floors,
+      config.rows,
+      config.beamsPerRow,
+      supports,
+      verticalSupports,
+      spans,
+      spansHash,
+    );
 
-  console.log(`[RackConfigService] Created new configuration: ${result.lastInsertRowid}`);
+  console.log(
+    `[RackConfigService] Created new configuration: ${result.lastInsertRowid}`,
+  );
   return result.lastInsertRowid;
 };
 
@@ -70,9 +84,13 @@ export const findOrCreateConfiguration = async (config) => {
 export const getConfigurationById = async (id) => {
   const db = await getDb();
 
-  const config = db.prepare(`
+  const config = db
+    .prepare(
+      `
     SELECT * FROM rack_configurations WHERE id = ?
-  `).get(id);
+  `,
+    )
+    .get(id);
 
   if (!config) {
     return null;
@@ -81,7 +99,9 @@ export const getConfigurationById = async (id) => {
   return {
     ...config,
     supports: config.supports ? JSON.parse(config.supports) : null,
-    vertical_supports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+    vertical_supports: config.vertical_supports
+      ? JSON.parse(config.vertical_supports)
+      : null,
     spans: config.spans ? JSON.parse(config.spans) : null,
   };
 };
@@ -93,21 +113,31 @@ export const getConfigurationById = async (id) => {
  * @param {number} quantity - Кількість стелажів
  * @returns {Promise<Object>} Результат розрахунку
  */
-export const calculatePricesForConfiguration = async (configId, user, quantity = 1) => {
+export const calculatePricesForConfiguration = async (
+  configId,
+  user,
+  quantity = 1,
+) => {
   const db = await getDb();
 
-  const config = db.prepare(`
+  const config = db
+    .prepare(
+      `
     SELECT * FROM rack_configurations WHERE id = ?
-  `).get(configId);
+  `,
+    )
+    .get(configId);
 
   if (!config) {
-    throw new Error('Configuration not found');
+    throw new Error("Configuration not found");
   }
 
-  const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+  const priceRecord = db
+    .prepare("SELECT data FROM prices ORDER BY id DESC LIMIT 1")
+    .get();
 
   if (!priceRecord) {
-    throw new Error('Price data not found');
+    throw new Error("Price data not found");
   }
 
   const priceData = JSON.parse(priceRecord.data);
@@ -117,11 +147,17 @@ export const calculatePricesForConfiguration = async (configId, user, quantity =
     rows: config.rows,
     beamsPerRow: config.beams_per_row,
     supports: config.supports ? JSON.parse(config.supports) : null,
-    verticalSupports: config.vertical_supports ? JSON.parse(config.vertical_supports) : null,
+    verticalSupports: config.vertical_supports
+      ? JSON.parse(config.vertical_supports)
+      : null,
     spans: config.spans ? JSON.parse(config.spans) : null,
   };
 
-  const { components, prices, totalCost } = await calculateRackPrices(rackConfig, user, priceData);
+  const { components, prices, totalCost } = await calculateRackPrices(
+    rackConfig,
+    user,
+    priceData,
+  );
 
   return {
     rackConfigId: configId,
@@ -142,10 +178,12 @@ export const findOrCreateConfigurationWithPrices = async (config, user) => {
   const configId = await findOrCreateConfiguration(config);
 
   const db = await getDb();
-  const priceRecord = db.prepare('SELECT data FROM prices ORDER BY id DESC LIMIT 1').get();
+  const priceRecord = db
+    .prepare("SELECT data FROM prices ORDER BY id DESC LIMIT 1")
+    .get();
 
   if (!priceRecord) {
-    throw new Error('Price data not found');
+    throw new Error("Price data not found");
   }
 
   const priceData = JSON.parse(priceRecord.data);
@@ -159,7 +197,11 @@ export const findOrCreateConfigurationWithPrices = async (config, user) => {
     spans: config.spans,
   };
 
-  const { components, prices, totalCost, name } = await calculateRackPrices(rackConfig, user, priceData);
+  const { components, prices, totalCost, name } = await calculateRackPrices(
+    rackConfig,
+    user,
+    priceData,
+  );
 
   return {
     rackConfigId: configId,

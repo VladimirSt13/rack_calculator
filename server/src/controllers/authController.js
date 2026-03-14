@@ -1,17 +1,20 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import validator from 'validator';
-import { User } from '../models/User.js';
-import { Role } from '../models/Role.js';
-import { RefreshToken } from '../models/RefreshToken.js';
-import { EmailVerification } from '../models/EmailVerification.js';
-import { PasswordReset } from '../models/PasswordReset.js';
-import { AuditLog } from '../models/AuditLog.js';
-import { ROLE_PERMISSIONS, USER_ROLES } from '../helpers/roles.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../helpers/email.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import validator from "validator";
+import { User } from "../models/User.js";
+import { Role } from "../models/Role.js";
+import { RefreshToken } from "../models/RefreshToken.js";
+import { EmailVerification } from "../models/EmailVerification.js";
+import { PasswordReset } from "../models/PasswordReset.js";
+import { AuditLog } from "../models/AuditLog.js";
+import { ROLE_PERMISSIONS, USER_ROLES } from "../helpers/roles.js";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "../helpers/email.js";
 
-const ALLOWED_DOMAIN = '@accu-energo.com.ua';
+const ALLOWED_DOMAIN = "@accu-energo.com.ua";
 
 /**
  * Генерація access token
@@ -22,10 +25,10 @@ export const generateAccessToken = (user) => {
       userId: user.id,
       email: user.email,
       role: user.role,
-      permissions: user.permissions || ROLE_PERMISSIONS[user.role]
+      permissions: user.permissions || ROLE_PERMISSIONS[user.role],
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || "15m" },
   );
 };
 
@@ -33,7 +36,7 @@ export const generateAccessToken = (user) => {
  * Генерація refresh token
  */
 export const generateRefreshToken = () => {
-  return crypto.randomBytes(64).toString('hex');
+  return crypto.randomBytes(64).toString("hex");
 };
 
 /**
@@ -47,15 +50,15 @@ export const register = async (req, res, next) => {
     // Валідація
     if (!email || !password) {
       return res.status(400).json({
-        error: 'Email and password are required',
-        code: 'VALIDATION_ERROR'
+        error: "Email and password are required",
+        code: "VALIDATION_ERROR",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
-        error: 'Password must be at least 6 characters',
-        code: 'WEAK_PASSWORD'
+        error: "Password must be at least 6 characters",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -63,7 +66,7 @@ export const register = async (req, res, next) => {
     if (!email.endsWith(ALLOWED_DOMAIN)) {
       return res.status(403).json({
         error: `Registration is only allowed with ${ALLOWED_DOMAIN} email`,
-        code: 'INVALID_DOMAIN'
+        code: "INVALID_DOMAIN",
       });
     }
 
@@ -71,21 +74,22 @@ export const register = async (req, res, next) => {
     const existing = await User.findByEmail(email);
     if (existing) {
       return res.status(409).json({
-        error: 'User already exists',
-        code: 'USER_EXISTS'
+        error: "User already exists",
+        code: "USER_EXISTS",
       });
     }
 
     // Визначення ролі (перший користувач - адмін, інші - user)
     const db = await User.getDb();
-    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+    const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
     const role = userCount.count === 0 ? USER_ROLES.ADMIN : USER_ROLES.USER;
 
     // Хешування пароля
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Генерація токену підтвердження email
-    const { verification, token: verificationToken } = await EmailVerification.createWithToken(0);
+    const { verification, token: verificationToken } =
+      await EmailVerification.createWithToken(0);
 
     // Створення користувача
     const user = await User.create({
@@ -103,40 +107,44 @@ export const register = async (req, res, next) => {
     await RefreshToken.create({
       userId: user.id,
       token: refreshToken,
-      expiresAt: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     // Оновлення verification з правильним userId
     await EmailVerification.create({
       userId: user.id,
       token: verificationToken,
-      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     // Відправка email з підтвердженням
     try {
       await sendVerificationEmail(email, verificationToken);
     } catch (emailError) {
-      console.error('[Auth] Failed to send verification email:', emailError.message);
+      console.error(
+        "[Auth] Failed to send verification email:",
+        emailError.message,
+      );
     }
 
     // Audit log
     await AuditLog.create({
       userId: user.id,
-      action: 'create',
-      entityType: 'user',
+      action: "create",
+      entityType: "user",
       entityId: user.id,
       newValue: { email, role },
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get("user-agent"),
     });
 
     res.status(201).json({
-      message: 'Registration successful. Please check your email to verify your account.',
+      message:
+        "Registration successful. Please check your email to verify your account.",
       user: user.toSafeObject(),
       accessToken,
       refreshToken,
-      emailVerified: false
+      emailVerified: false,
     });
   } catch (error) {
     next(error);
@@ -153,8 +161,8 @@ export const login = async (req, res, next) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        error: 'Email and password are required',
-        code: 'VALIDATION_ERROR'
+        error: "Email and password are required",
+        code: "VALIDATION_ERROR",
       });
     }
 
@@ -163,8 +171,8 @@ export const login = async (req, res, next) => {
 
     if (!user) {
       return res.status(401).json({
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
+        error: "Invalid credentials",
+        code: "INVALID_CREDENTIALS",
       });
     }
 
@@ -172,16 +180,16 @@ export const login = async (req, res, next) => {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       return res.status(401).json({
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
+        error: "Invalid credentials",
+        code: "INVALID_CREDENTIALS",
       });
     }
 
     // Перевірка підтвердження email
     if (!user.emailVerified) {
       return res.status(403).json({
-        error: 'Please verify your email before logging in',
-        code: 'EMAIL_NOT_VERIFIED'
+        error: "Please verify your email before logging in",
+        code: "EMAIL_NOT_VERIFIED",
       });
     }
 
@@ -192,25 +200,25 @@ export const login = async (req, res, next) => {
     await RefreshToken.create({
       userId: user.id,
       token: refreshToken,
-      expiresAt: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     // Audit log
     await AuditLog.create({
       userId: user.id,
-      action: 'login',
-      entityType: 'user',
+      action: "login",
+      entityType: "user",
       entityId: user.id,
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get("user-agent"),
     });
 
     res.json({
-      message: 'Login successful',
+      message: "Login successful",
       user: user.toSafeObject(),
       accessToken,
       refreshToken,
-      emailVerified: true
+      emailVerified: true,
     });
   } catch (error) {
     next(error);
@@ -227,14 +235,14 @@ export const logout = async (req, res, next) => {
 
     if (!refreshToken) {
       return res.status(400).json({
-        error: 'Refresh token is required',
-        code: 'VALIDATION_ERROR'
+        error: "Refresh token is required",
+        code: "VALIDATION_ERROR",
       });
     }
 
     const tokenHash = RefreshToken.hashToken(refreshToken);
     const token = await RefreshToken.findByTokenHash(tokenHash);
-    
+
     if (token) {
       await token.revoke();
     }
@@ -243,15 +251,15 @@ export const logout = async (req, res, next) => {
     if (req.user) {
       await AuditLog.create({
         userId: req.user.userId,
-        action: 'logout',
-        entityType: 'user',
+        action: "logout",
+        entityType: "user",
         entityId: req.user.userId,
         ipAddress: req.ip,
-        userAgent: req.get('user-agent')
+        userAgent: req.get("user-agent"),
       });
     }
 
-    res.json({ message: 'Logged out successfully' });
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
   }
@@ -267,8 +275,8 @@ export const refreshToken = async (req, res, next) => {
 
     if (!refreshToken) {
       return res.status(400).json({
-        error: 'Refresh token is required',
-        code: 'VALIDATION_ERROR'
+        error: "Refresh token is required",
+        code: "VALIDATION_ERROR",
       });
     }
 
@@ -277,16 +285,16 @@ export const refreshToken = async (req, res, next) => {
 
     if (!token || !token.isValid()) {
       return res.status(401).json({
-        error: 'Invalid or expired refresh token',
-        code: 'INVALID_REFRESH_TOKEN'
+        error: "Invalid or expired refresh token",
+        code: "INVALID_REFRESH_TOKEN",
       });
     }
 
     const user = await User.findById(token.userId);
     if (!user) {
       return res.status(401).json({
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -299,12 +307,12 @@ export const refreshToken = async (req, res, next) => {
     await RefreshToken.create({
       userId: user.id,
       token: newRefreshToken,
-      expiresAt: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     res.json({
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     next(error);
@@ -321,8 +329,8 @@ export const verifyEmail = async (req, res, next) => {
 
     if (!token) {
       return res.status(400).json({
-        error: 'Verification token is required',
-        code: 'VALIDATION_ERROR'
+        error: "Verification token is required",
+        code: "VALIDATION_ERROR",
       });
     }
 
@@ -330,22 +338,22 @@ export const verifyEmail = async (req, res, next) => {
 
     if (!verification) {
       return res.status(404).json({
-        error: 'Invalid verification token',
-        code: 'INVALID_TOKEN'
+        error: "Invalid verification token",
+        code: "INVALID_TOKEN",
       });
     }
 
     if (verification.verified) {
       return res.status(400).json({
-        error: 'Email already verified',
-        code: 'ALREADY_VERIFIED'
+        error: "Email already verified",
+        code: "ALREADY_VERIFIED",
       });
     }
 
     if (!verification.isValid()) {
       return res.status(400).json({
-        error: 'Verification token expired',
-        code: 'TOKEN_EXPIRED'
+        error: "Verification token expired",
+        code: "TOKEN_EXPIRED",
       });
     }
 
@@ -361,13 +369,13 @@ export const verifyEmail = async (req, res, next) => {
     // Audit log
     await AuditLog.create({
       userId: verification.userId,
-      action: 'update',
-      entityType: 'user',
+      action: "update",
+      entityType: "user",
       entityId: verification.userId,
-      newValue: { email_verified: true }
+      newValue: { email_verified: true },
     });
 
-    res.json({ message: 'Email verified successfully' });
+    res.json({ message: "Email verified successfully" });
   } catch (error) {
     next(error);
   }
@@ -383,8 +391,8 @@ export const resendVerification = async (req, res, next) => {
 
     if (!email) {
       return res.status(400).json({
-        error: 'Email is required',
-        code: 'VALIDATION_ERROR'
+        error: "Email is required",
+        code: "VALIDATION_ERROR",
       });
     }
 
@@ -392,36 +400,40 @@ export const resendVerification = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
     if (user.emailVerified) {
       return res.status(400).json({
-        error: 'Email already verified',
-        code: 'ALREADY_VERIFIED'
+        error: "Email already verified",
+        code: "ALREADY_VERIFIED",
       });
     }
 
     // Генерація нового токену
-    const { token: verificationToken } = await EmailVerification.createWithToken(
-      user.id,
-      24 // години
-    );
+    const { token: verificationToken } =
+      await EmailVerification.createWithToken(
+        user.id,
+        24, // години
+      );
 
     // Відправка email
     try {
       await sendVerificationEmail(email, verificationToken);
     } catch (emailError) {
-      console.error('[Auth] Failed to send verification email:', emailError.message);
+      console.error(
+        "[Auth] Failed to send verification email:",
+        emailError.message,
+      );
       return res.status(500).json({
-        error: 'Failed to send verification email',
-        code: 'EMAIL_SEND_ERROR'
+        error: "Failed to send verification email",
+        code: "EMAIL_SEND_ERROR",
       });
     }
 
-    res.json({ message: 'Verification email sent successfully' });
+    res.json({ message: "Verification email sent successfully" });
   } catch (error) {
     next(error);
   }
@@ -437,8 +449,8 @@ export const getCurrentUser = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -459,15 +471,15 @@ export const adminCreateUser = async (req, res, next) => {
     // Валідація
     if (!email || !password) {
       return res.status(400).json({
-        error: 'Email and password are required',
-        code: 'VALIDATION_ERROR'
+        error: "Email and password are required",
+        code: "VALIDATION_ERROR",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
-        error: 'Password must be at least 6 characters',
-        code: 'WEAK_PASSWORD'
+        error: "Password must be at least 6 characters",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -475,8 +487,8 @@ export const adminCreateUser = async (req, res, next) => {
     const validRoles = [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({
-        error: 'Invalid role',
-        code: 'INVALID_ROLE'
+        error: "Invalid role",
+        code: "INVALID_ROLE",
       });
     }
 
@@ -484,8 +496,8 @@ export const adminCreateUser = async (req, res, next) => {
     const existing = await User.findByEmail(email);
     if (existing) {
       return res.status(409).json({
-        error: 'User already exists',
-        code: 'USER_EXISTS'
+        error: "User already exists",
+        code: "USER_EXISTS",
       });
     }
 
@@ -504,17 +516,17 @@ export const adminCreateUser = async (req, res, next) => {
     // Audit log
     await AuditLog.create({
       userId: req.user.userId,
-      action: 'create',
-      entityType: 'user',
+      action: "create",
+      entityType: "user",
       entityId: user.id,
       newValue: { email, role, permissions },
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get("user-agent"),
     });
 
     res.status(201).json({
-      message: 'User created successfully',
-      user: user.toSafeObject()
+      message: "User created successfully",
+      user: user.toSafeObject(),
     });
   } catch (error) {
     next(error);
@@ -531,8 +543,8 @@ export const forgotPassword = async (req, res, next) => {
 
     if (!email || !validator.isEmail(email)) {
       return res.status(400).json({
-        error: 'Invalid email format',
-        code: 'VALIDATION_ERROR'
+        error: "Invalid email format",
+        code: "VALIDATION_ERROR",
       });
     }
 
@@ -542,8 +554,8 @@ export const forgotPassword = async (req, res, next) => {
     // Не показуємо чи існує користувач (безпека)
     if (!user) {
       return res.json({
-        message: 'If the email exists, a password reset link has been sent',
-        code: 'EMAIL_SENT'
+        message: "If the email exists, a password reset link has been sent",
+        code: "EMAIL_SENT",
       });
     }
 
@@ -551,30 +563,31 @@ export const forgotPassword = async (req, res, next) => {
     await PasswordReset.cleanupExpired();
 
     // Генерація токену скидання пароля
-    const { passwordReset, token: resetToken } = await PasswordReset.createWithToken(
-      user.id,
-      1 // година
-    );
+    const { passwordReset, token: resetToken } =
+      await PasswordReset.createWithToken(
+        user.id,
+        1, // година
+      );
 
     // Audit log
     AuditLog.create({
       userId: user.id,
-      action: 'update',
-      entityType: 'user',
+      action: "update",
+      entityType: "user",
       entityId: user.id,
       newValue: { password_reset_requested: true },
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    }).catch(err => console.error('[Auth] Audit log error:', err));
+      userAgent: req.get("user-agent"),
+    }).catch((err) => console.error("[Auth] Audit log error:", err));
 
     // Відправка email
-    sendPasswordResetEmail(normalizedEmail, resetToken).catch(emailError => {
-      console.error('[Auth] Password reset email failed:', emailError.message);
+    sendPasswordResetEmail(normalizedEmail, resetToken).catch((emailError) => {
+      console.error("[Auth] Password reset email failed:", emailError.message);
     });
 
     res.json({
-      message: 'If the email exists, a password reset link has been sent',
-      code: 'EMAIL_SENT'
+      message: "If the email exists, a password reset link has been sent",
+      code: "EMAIL_SENT",
     });
   } catch (error) {
     next(error);
@@ -591,16 +604,16 @@ export const resetPassword = async (req, res, next) => {
 
     if (!token || !newPassword) {
       return res.status(400).json({
-        error: 'Token and new password are required',
-        code: 'VALIDATION_ERROR'
+        error: "Token and new password are required",
+        code: "VALIDATION_ERROR",
       });
     }
 
     // Валідація складності пароля
     if (newPassword.length < 8) {
       return res.status(400).json({
-        error: 'Password must be at least 8 characters',
-        code: 'WEAK_PASSWORD'
+        error: "Password must be at least 8 characters",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -610,8 +623,8 @@ export const resetPassword = async (req, res, next) => {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
       return res.status(400).json({
-        error: 'Password must contain uppercase, lowercase and number',
-        code: 'WEAK_PASSWORD'
+        error: "Password must contain uppercase, lowercase and number",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -620,8 +633,8 @@ export const resetPassword = async (req, res, next) => {
 
     if (!passwordReset || !passwordReset.isValid()) {
       return res.status(400).json({
-        error: 'Invalid or expired reset token',
-        code: 'INVALID_TOKEN'
+        error: "Invalid or expired reset token",
+        code: "INVALID_TOKEN",
       });
     }
 
@@ -643,14 +656,14 @@ export const resetPassword = async (req, res, next) => {
     // Audit log
     AuditLog.create({
       userId: passwordReset.userId,
-      action: 'password_change',
-      entityType: 'user',
+      action: "password_change",
+      entityType: "user",
       entityId: passwordReset.userId,
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    }).catch(err => console.error('[Auth] Audit log error:', err));
+      userAgent: req.get("user-agent"),
+    }).catch((err) => console.error("[Auth] Audit log error:", err));
 
-    res.json({ message: 'Password reset successfully' });
+    res.json({ message: "Password reset successfully" });
   } catch (error) {
     next(error);
   }
@@ -667,16 +680,16 @@ export const changePassword = async (req, res, next) => {
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: 'Current password and new password are required',
-        code: 'VALIDATION_ERROR'
+        error: "Current password and new password are required",
+        code: "VALIDATION_ERROR",
       });
     }
 
     // Валідація складності пароля
     if (newPassword.length < 8) {
       return res.status(400).json({
-        error: 'Password must be at least 8 characters',
-        code: 'WEAK_PASSWORD'
+        error: "Password must be at least 8 characters",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -686,8 +699,8 @@ export const changePassword = async (req, res, next) => {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
       return res.status(400).json({
-        error: 'Password must contain uppercase, lowercase and number',
-        code: 'WEAK_PASSWORD'
+        error: "Password must contain uppercase, lowercase and number",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -695,8 +708,8 @@ export const changePassword = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -704,8 +717,8 @@ export const changePassword = async (req, res, next) => {
     const valid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!valid) {
       return res.status(401).json({
-        error: 'Current password is incorrect',
-        code: 'INVALID_PASSWORD'
+        error: "Current password is incorrect",
+        code: "INVALID_PASSWORD",
       });
     }
 
@@ -719,14 +732,14 @@ export const changePassword = async (req, res, next) => {
     // Audit log
     AuditLog.create({
       userId,
-      action: 'password_change',
-      entityType: 'user',
+      action: "password_change",
+      entityType: "user",
       entityId: userId,
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
-    }).catch(err => console.error('[Auth] Audit log error:', err));
+      userAgent: req.get("user-agent"),
+    }).catch((err) => console.error("[Auth] Audit log error:", err));
 
-    res.json({ message: 'Password changed successfully' });
+    res.json({ message: "Password changed successfully" });
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { RackComponents, SpanItem } from '@rack-calculator/shared';
-import type { RackFormState } from './formStore';
+import { create } from "zustand";
+import type { RackComponents, SpanItem } from "@rack-calculator/shared";
+import type { RackFormState } from "./formStore";
 
 export interface PriceInfo {
   type: string;
@@ -43,7 +43,9 @@ const initialResultsState: RackResultsState = {
   error: null,
 };
 
-export const useRackResultsStore = create<RackResultsState & RackResultsActions>((set) => ({
+export const useRackResultsStore = create<
+  RackResultsState & RackResultsActions
+>((set) => ({
   ...initialResultsState,
 
   setResult: (result) => set({ result, isLoading: false, error: null }),

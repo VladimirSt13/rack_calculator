@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js';
-import crypto from 'crypto';
+import { BaseModel } from "./BaseModel.js";
+import crypto from "crypto";
 
 /**
  * Модель подтверждения email
@@ -16,7 +16,7 @@ export class EmailVerification extends BaseModel {
   }
 
   static get tableName() {
-    return 'email_verifications';
+    return "email_verifications";
   }
 
   /**
@@ -26,7 +26,9 @@ export class EmailVerification extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new EmailVerification(row) : null;
   }
 
@@ -36,7 +38,7 @@ export class EmailVerification extends BaseModel {
    * @returns {string}
    */
   static hashToken(token) {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 
   /**
@@ -44,7 +46,7 @@ export class EmailVerification extends BaseModel {
    * @returns {string}
    */
   static generateToken() {
-    return crypto.randomBytes(32).toString('hex');
+    return crypto.randomBytes(32).toString("hex");
   }
 
   /**
@@ -54,7 +56,9 @@ export class EmailVerification extends BaseModel {
    */
   static async findByToken(token) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM email_verifications WHERE token = ?').get(token);
+    const row = db
+      .prepare("SELECT * FROM email_verifications WHERE token = ?")
+      .get(token);
     return row ? new EmailVerification(row) : null;
   }
 
@@ -66,12 +70,16 @@ export class EmailVerification extends BaseModel {
   static async findActiveByUser(userId) {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const row = db.prepare(`
+    const row = db
+      .prepare(
+        `
       SELECT * FROM email_verifications 
       WHERE user_id = ? AND expires_at > ? AND verified = 0 
       ORDER BY created_at DESC 
       LIMIT 1
-    `).get(userId, now);
+    `,
+      )
+      .get(userId, now);
     return row ? new EmailVerification(row) : null;
   }
 
@@ -85,17 +93,23 @@ export class EmailVerification extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    
+
     // Удалить старые активные верификации пользователя
-    db.prepare(`
+    db.prepare(
+      `
       DELETE FROM email_verifications 
       WHERE user_id = ? AND verified = 0
-    `).run(data.userId);
-    
-    const result = db.prepare(`
+    `,
+    ).run(data.userId);
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO email_verifications (user_id, token, expires_at)
       VALUES (?, ?, ?)
-    `).run(data.userId, data.token, data.expiresAt.toISOString());
+    `,
+      )
+      .run(data.userId, data.token, data.expiresAt.toISOString());
 
     return this.findById(result.lastInsertRowid);
   }
@@ -110,13 +124,13 @@ export class EmailVerification extends BaseModel {
     const token = this.generateToken();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
-    
+
     const verification = await this.create({
       userId,
       token,
       expiresAt,
     });
-    
+
     return { verification, token };
   }
 
@@ -126,9 +140,11 @@ export class EmailVerification extends BaseModel {
    */
   async markAsVerified() {
     const db = await this.getDb();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE email_verifications SET verified = 1 WHERE id = ?
-    `).run(this.id);
+    `,
+    ).run(this.id);
     this.verified = true;
   }
 
@@ -149,9 +165,13 @@ export class EmailVerification extends BaseModel {
   static async cleanupExpired() {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       DELETE FROM email_verifications WHERE expires_at < ?
-    `).run(now);
+    `,
+      )
+      .run(now);
     return result.changes;
   }
 }

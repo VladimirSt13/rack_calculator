@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { ComponentItem } from '@rack-calculator/shared';
+import type { ComponentItem } from "@rack-calculator/shared";
 
 export interface PriceInfo {
   type: string;
@@ -30,14 +30,14 @@ export interface BatteryVariant {
   span?: number;
   spansCount?: number;
   totalLength?: number;
-  combination: number[];  // Масив чисел [600, 600, 750]
+  combination: number[]; // Масив чисел [600, 600, 750]
   beams: number;
   batteriesPerRow?: number;
   excessLength?: number;
   isBest?: boolean;
   index?: number;
-  quantity?: number;  // Для комплектів
-  setId?: number;     // Для комплектів
+  quantity?: number; // Для комплектів
+  setId?: number; // Для комплектів
   // Додаткові поля з сервера
   supports?: string;
   verticalSupports?: string;
@@ -47,7 +47,7 @@ export interface BatteryVariant {
 export interface BatteryResultsState {
   variants: BatteryVariant[];
   selectedVariant: BatteryVariant | null;
-  requiredLength?: number;  // Розрахункова довжина стелажа
+  requiredLength?: number; // Розрахункова довжина стелажа
   isLoading: boolean;
   error: string | null;
 }
@@ -69,7 +69,9 @@ const initialResultsState: BatteryResultsState = {
   error: null,
 };
 
-export const useBatteryResultsStore = create<BatteryResultsState & BatteryResultsActions>((set) => ({
+export const useBatteryResultsStore = create<
+  BatteryResultsState & BatteryResultsActions
+>((set) => ({
   ...initialResultsState,
 
   setVariants: (variants) => set({ variants, isLoading: false, error: null }),

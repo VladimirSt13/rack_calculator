@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { RackCalculationResult, type PriceInfo } from './resultsStore';
+import { create } from "zustand";
+import { RackCalculationResult, type PriceInfo } from "./resultsStore";
 
 export interface RackSetItem extends RackCalculationResult {
   setId: number;
-  rackConfigId?: number;  // ID конфігурації в БД (новий підхід)
+  rackConfigId?: number; // ID конфігурації в БД (новий підхід)
   quantity: number;
 }
 
@@ -32,10 +32,10 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
   addRack: (rack, quantity = 1) =>
     set((state) => {
       // Перевіряємо чи вже існує такий самий стелаж (за назвою або rackConfigId)
-      const existingIndex = state.racks.findIndex((r) => 
-        r.rackConfigId 
-          ? r.rackConfigId === rack.rackConfigId 
-          : r.name === rack.name
+      const existingIndex = state.racks.findIndex((r) =>
+        r.rackConfigId
+          ? r.rackConfigId === rack.rackConfigId
+          : r.name === rack.name,
       );
 
       if (existingIndex !== -1) {
@@ -43,7 +43,7 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
         const updatedRacks = state.racks.map((r, index) =>
           index === existingIndex
             ? { ...r, quantity: r.quantity + quantity }
-            : r
+            : r,
         );
         return {
           racks: updatedRacks,
@@ -52,10 +52,7 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
 
       // Якщо не існує - додаємо новий
       return {
-        racks: [
-          ...state.racks,
-          { ...rack, setId: state.nextId, quantity },
-        ],
+        racks: [...state.racks, { ...rack, setId: state.nextId, quantity }],
         nextId: state.nextId + 1,
       };
     }),
@@ -63,7 +60,7 @@ export const useRackSetStore = create<RackSetState & RackSetActions>((set) => ({
   updateRackQuantity: (setId, quantity) =>
     set((state) => ({
       racks: state.racks.map((r) =>
-        r.setId === setId ? { ...r, quantity } : r
+        r.setId === setId ? { ...r, quantity } : r,
       ),
     })),
 

@@ -1,13 +1,13 @@
-import React from 'react';
-import { CalculationControls } from '@/shared/components';
-import { CalculatorPage } from '@/shared/layout';
-import BatteryForm from '@/features/battery/components/BatteryForm';
-import BatteryResults from '@/features/battery/components/BatteryResults';
-import BatterySetCard from '@/features/battery/components/BatterySetCard';
-import { useBatteryCalculator } from '@/features/battery/useBatteryCalculator';
-import { useBatteryFormStore } from '@/features/battery/formStore';
-import { useBatterySetStore } from '@/features/battery/setStore';
-import { RefreshCw } from 'lucide-react';
+import React from "react";
+import { CalculationControls } from "@/shared/components";
+import { CalculatorPage } from "@/shared/layout";
+import BatteryForm from "@/features/battery/components/BatteryForm";
+import BatteryResults from "@/features/battery/components/BatteryResults";
+import BatterySetCard from "@/features/battery/components/BatterySetCard";
+import { useBatteryCalculator } from "@/features/battery/useBatteryCalculator";
+import { useBatteryFormStore } from "@/features/battery/formStore";
+import { useBatterySetStore } from "@/features/battery/setStore";
+import { RefreshCw } from "lucide-react";
 
 /**
  * Battery Page - сторінка підбору стелажа для батареї
@@ -18,7 +18,8 @@ import { RefreshCw } from 'lucide-react';
  * - Отримує результат з сервера
  */
 const BatteryPage: React.FC = () => {
-  const { calculate, isLoading, error, calculationState, setCalculationState } = useBatteryCalculator();
+  const { calculate, isLoading, error, calculationState, setCalculationState } =
+    useBatteryCalculator();
   const formState = useBatteryFormStore();
   const { clear } = useBatterySetStore();
 
@@ -31,19 +32,19 @@ const BatteryPage: React.FC = () => {
   }, []);
 
   const handleCalculate = async () => {
-    setCalculationState('calculating');
+    setCalculationState("calculating");
     await calculate(formState);
   };
 
   const inputContent = (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       <BatteryForm />
 
       <CalculationControls
         isLoading={isLoading}
         error={error}
-        submitText='Підібрати'
-        loadingText='Розрахунок...'
+        submitText="Підібрати"
+        loadingText="Розрахунок..."
         onSubmit={handleCalculate}
       />
     </div>
@@ -51,15 +52,17 @@ const BatteryPage: React.FC = () => {
 
   const resultsContent = (
     <>
-      {calculationState === 'calculating' && (
-        <div className='flex items-center justify-center py-12'>
-          <RefreshCw className='w-8 h-8 animate-spin text-primary' />
+      {calculationState === "calculating" && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}
-      {calculationState === 'ready' && <BatteryResults isLoading={false} />}
-      {calculationState === 'idle' && (
-        <div className='flex items-center justify-center py-12 text-muted-foreground'>
-          <p>Заповніть форму та натисніть &quot;Підібрати&quot; для розрахунку</p>
+      {calculationState === "ready" && <BatteryResults isLoading={false} />}
+      {calculationState === "idle" && (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <p>
+            Заповніть форму та натисніть &quot;Підібрати&quot; для розрахунку
+          </p>
         </div>
       )}
     </>
@@ -70,8 +73,8 @@ const BatteryPage: React.FC = () => {
   return (
     <>
       <CalculatorPage
-        title='Підбір стелажа для батареї'
-        description='Вкажіть розміри та вагу акумулятора для пошуку'
+        title="Підбір стелажа для батареї"
+        description="Вкажіть розміри та вагу акумулятора для пошуку"
         input={inputContent}
         results={resultsContent}
         setPanel={setPanelContent}

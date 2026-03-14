@@ -3,9 +3,9 @@ import {
   calculateTotalCost,
   calculateTotalWithoutIsolators,
   generateRackName,
-} from '../../../shared/rackCalculator.js';
-import { getUserPermissions, PRICE_TYPES } from '../helpers/roles.js';
-import { getCurrentPriceData } from './priceService.js';
+} from "../../../shared/rackCalculator.js";
+import { getUserPermissions, PRICE_TYPES } from "../helpers/roles.js";
+import { getCurrentPriceData } from "./priceService.js";
 
 /**
  * Сервіс для розрахунку стелажів
@@ -14,7 +14,12 @@ import { getCurrentPriceData } from './priceService.js';
 /**
  * Форматування результату з урахуванням дозволів користувача
  */
-const formatResultWithPermissions = (components, totalCost, totalWithoutIsolators, permissions) => {
+const formatResultWithPermissions = (
+  components,
+  totalCost,
+  totalWithoutIsolators,
+  permissions,
+) => {
   const result = {
     components: {},
     prices: [],
@@ -25,8 +30,12 @@ const formatResultWithPermissions = (components, totalCost, totalWithoutIsolator
     result.components[type] = itemsArray.map((item) => ({
       name: item.name,
       amount: item.amount,
-      price: permissions.price_types?.includes(PRICE_TYPES.BASE) ? item.price : null,
-      total: permissions.price_types?.includes(PRICE_TYPES.BASE) ? item.total : null,
+      price: permissions.price_types?.includes(PRICE_TYPES.BASE)
+        ? item.price
+        : null,
+      total: permissions.price_types?.includes(PRICE_TYPES.BASE)
+        ? item.total
+        : null,
     }));
   }
 
@@ -34,24 +43,24 @@ const formatResultWithPermissions = (components, totalCost, totalWithoutIsolator
 
   if (permissions.price_types?.includes(PRICE_TYPES.BASE)) {
     result.prices.push({
-      type: 'базова',
-      label: 'Базова ціна',
+      type: "базова",
+      label: "Базова ціна",
       value: Math.round(totalCost * 100) / 100,
     });
   }
 
   if (permissions.price_types?.includes(PRICE_TYPES.NO_ISOLATORS)) {
     result.prices.push({
-      type: 'без_ізоляторів',
-      label: 'Без ізоляторів',
+      type: "без_ізоляторів",
+      label: "Без ізоляторів",
       value: Math.round(totalWithoutIsolators * 100) / 100,
     });
   }
 
   if (permissions.price_types?.includes(PRICE_TYPES.ZERO)) {
     result.prices.push({
-      type: 'нульова',
-      label: 'Нульова ціна',
+      type: "нульова",
+      label: "Нульова ціна",
       value: Math.round(zeroPrice * 100) / 100,
     });
   }
@@ -71,13 +80,18 @@ export const calculateRack = async (config, user) => {
 
   const permissions = await getUserPermissions(user);
 
-  const formattedResult = formatResultWithPermissions(components, totalCost, totalWithoutIsolators, permissions);
+  const formattedResult = formatResultWithPermissions(
+    components,
+    totalCost,
+    totalWithoutIsolators,
+    permissions,
+  );
 
   return {
     name: generateRackName(config),
     total: Math.round(totalCost * 100) / 100,
     totalWithoutIsolators: Math.round(totalWithoutIsolators * 100) / 100,
-    zeroBase: Math.round((totalCost * 1.44) * 100) / 100,
+    zeroBase: Math.round(totalCost * 1.44 * 100) / 100,
     ...formattedResult,
   };
 };
@@ -87,7 +101,7 @@ export const calculateRack = async (config, user) => {
  */
 export const calculateRackBatch = async (racks, user) => {
   if (!Array.isArray(racks) || racks.length === 0) {
-    throw new Error('Racks array is required and cannot be empty');
+    throw new Error("Racks array is required and cannot be empty");
   }
 
   const price = await getCurrentPriceData();
@@ -108,14 +122,22 @@ export const calculateRackBatch = async (racks, user) => {
             type,
             itemsArray.map((item) => ({
               ...item,
-              price: permissions.price_types?.includes(PRICE_TYPES.RETAIL) ? item.price : null,
-              total: permissions.price_types?.includes(PRICE_TYPES.RETAIL) ? item.total : null,
+              price: permissions.price_types?.includes(PRICE_TYPES.RETAIL)
+                ? item.price
+                : null,
+              total: permissions.price_types?.includes(PRICE_TYPES.RETAIL)
+                ? item.total
+                : null,
             })),
           ];
         }),
       ),
-      totalCost: permissions.price_types?.includes(PRICE_TYPES.RETAIL) ? totalCost : null,
-      totalWithoutIsolators: permissions.price_types?.includes(PRICE_TYPES.NO_ISOLATORS)
+      totalCost: permissions.price_types?.includes(PRICE_TYPES.RETAIL)
+        ? totalCost
+        : null,
+      totalWithoutIsolators: permissions.price_types?.includes(
+        PRICE_TYPES.NO_ISOLATORS,
+      )
         ? totalWithoutIsolators
         : null,
       totalZero: permissions.price_types?.includes(PRICE_TYPES.ZERO) ? 0 : null,

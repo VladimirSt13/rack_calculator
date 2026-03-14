@@ -1,7 +1,13 @@
 /**
  * Повертає найближче стандартне значення, яке більше або рівне заданому
  */
-export const getClosestLarger = ({ value, standards }: { value: number; standards: number[] }): number => {
+export const getClosestLarger = ({
+  value,
+  standards,
+}: {
+  value: number;
+  standards: number[];
+}): number => {
   const candidates = standards.filter((s) => s >= value);
   return candidates.length ? Math.min(...candidates) : Math.max(...standards);
 };
@@ -9,12 +15,14 @@ export const getClosestLarger = ({ value, standards }: { value: number; standard
 /**
  * Видаляє дублікати та дзеркальні комбінації спанів
  */
-export const removeDuplicateCombinations = (results: { combination: number[]; beams: number }[]): { combination: number[]; beams: number }[] => {
+export const removeDuplicateCombinations = (
+  results: { combination: number[]; beams: number }[],
+): { combination: number[]; beams: number }[] => {
   const seen = new Set<string>();
   const unique: { combination: number[]; beams: number }[] = [];
 
   results.forEach((r) => {
-    const key = `${[...r.combination].sort((a, b) => b - a).join('-')}-${r.beams}`;
+    const key = `${[...r.combination].sort((a, b) => b - a).join("-")}-${r.beams}`;
 
     if (!seen.has(key)) {
       seen.add(key);

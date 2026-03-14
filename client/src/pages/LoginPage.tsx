@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/features/auth/authStore';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
-import { Label } from '@/shared/components/Label';
-import { Loader2, LogIn } from 'lucide-react';
-import { toast } from 'sonner';
-import { DEFAULT_REDIRECT_ROUTE, PUBLIC_ROUTES } from '@/core/constants/routes';
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/features/auth/authStore";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
+import { Label } from "@/shared/components/Label";
+import { Loader2, LogIn } from "lucide-react";
+import { toast } from "sonner";
+import { DEFAULT_REDIRECT_ROUTE, PUBLIC_ROUTES } from "@/core/constants/routes";
 
 const loginSchema = z.object({
-  email: z.string().email('Невірний формат email'),
-  password: z.string().min(6, 'Пароль має бути не менше 6 символів'),
+  email: z.string().email("Невірний формат email"),
+  password: z.string().min(6, "Пароль має бути не менше 6 символів"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -24,7 +24,8 @@ export const LoginPage: React.FC = () => {
   const { login, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
+  const from = (location.state as { from?: { pathname: string } })?.from
+    ?.pathname;
 
   const {
     register,
@@ -40,19 +41,23 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login(data.email, data.password);
-      toast.success('Вхід успішний');
+      toast.success("Вхід успішний");
 
       // Визначаємо куди редиректити після логіну
       const redirectPath = from || DEFAULT_REDIRECT_ROUTE;
       navigate(redirectPath, { replace: true });
     } catch (err) {
       const errorMessage =
-        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка входу';
+        (err as any).response?.data?.error ||
+        (err as any).response?.data?.message ||
+        "Помилка входу";
 
       // Спеціальна обробка для непідтвердженого email
-      if ((err as any).response?.data?.code === 'EMAIL_NOT_VERIFIED') {
-        toast.error('Підтвердіть email будь ласка');
-        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, { replace: true });
+      if ((err as any).response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        toast.error("Підтвердіть email будь ласка");
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, {
+          replace: true,
+        });
       } else {
         toast.error(errorMessage);
       }
@@ -84,8 +89,8 @@ export const LoginPage: React.FC = () => {
               type="email"
               placeholder="your@email.com"
               autoComplete="email"
-              className={errors.email?.message ? 'border-destructive' : ''}
-              {...register('email')}
+              className={errors.email?.message ? "border-destructive" : ""}
+              {...register("email")}
               disabled={isSubmitting}
             />
             {errors.email?.message && (
@@ -108,12 +113,14 @@ export const LoginPage: React.FC = () => {
               type="password"
               placeholder="••••••••"
               autoComplete="current-password"
-              className={errors.password?.message ? 'border-destructive' : ''}
-              {...register('password')}
+              className={errors.password?.message ? "border-destructive" : ""}
+              {...register("password")}
               disabled={isSubmitting}
             />
             {errors.password?.message && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -134,14 +141,17 @@ export const LoginPage: React.FC = () => {
                 Вхід...
               </>
             ) : (
-              'Увійти'
+              "Увійти"
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Немає акаунту? </span>
-          <Link to={PUBLIC_ROUTES.REGISTER} className="text-primary hover:underline font-medium">
+          <Link
+            to={PUBLIC_ROUTES.REGISTER}
+            className="text-primary hover:underline font-medium"
+          >
             Зареєструватися
           </Link>
         </div>

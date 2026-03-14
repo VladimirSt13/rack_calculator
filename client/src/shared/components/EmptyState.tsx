@@ -1,6 +1,6 @@
-import React from 'react';
-import { CircleDashed } from 'lucide-react';
-import { Card, CardContent } from './Card';
+import React from "react";
+import { CircleDashed } from "lucide-react";
+import { Card, CardContent } from "./Card";
 
 export interface EmptyStateProps {
   /** Повідомлення для відображення */
@@ -22,10 +22,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <Card className={className}>
-      <CardContent className='flex items-center justify-center py-16 pt-16'>
-        <div className='text-center space-y-3'>
-          <Icon className='w-12 h-12 text-muted-foreground mx-auto' />
-          <p className='text-sm text-muted-foreground max-w-xs'>{message}</p>
+      <CardContent className="flex items-center justify-center py-16 pt-16">
+        <div className="text-center space-y-3">
+          <Icon className="w-12 h-12 text-muted-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground max-w-xs">{message}</p>
         </div>
       </CardContent>
     </Card>

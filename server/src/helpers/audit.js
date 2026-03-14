@@ -2,34 +2,34 @@
  * Helper для логування аудиту
  */
 
-import { getDb } from '../db/index.js';
+import { getDb } from "../db/index.js";
 
 /**
  * Типи дій для аудиту
  */
 export const AUDIT_ACTIONS = {
-  CREATE: 'CREATE',
-  UPDATE: 'UPDATE',
-  DELETE: 'DELETE',
-  LOGIN: 'LOGIN',
-  LOGOUT: 'LOGOUT',
-  PASSWORD_CHANGE: 'PASSWORD_CHANGE',
-  PERMISSION_CHANGE: 'PERMISSION_CHANGE',
-  PRICE_UPDATE: 'PRICE_UPDATE',
-  RACK_SET_CREATE: 'RACK_SET_CREATE',
-  RACK_SET_UPDATE: 'RACK_SET_UPDATE',
-  RACK_SET_DELETE: 'RACK_SET_DELETE',
+  CREATE: "CREATE",
+  UPDATE: "UPDATE",
+  DELETE: "DELETE",
+  LOGIN: "LOGIN",
+  LOGOUT: "LOGOUT",
+  PASSWORD_CHANGE: "PASSWORD_CHANGE",
+  PERMISSION_CHANGE: "PERMISSION_CHANGE",
+  PRICE_UPDATE: "PRICE_UPDATE",
+  RACK_SET_CREATE: "RACK_SET_CREATE",
+  RACK_SET_UPDATE: "RACK_SET_UPDATE",
+  RACK_SET_DELETE: "RACK_SET_DELETE",
 };
 
 /**
  * Типи сутностей
  */
 export const ENTITY_TYPES = {
-  USER: 'user',
-  PRICE: 'price',
-  RACK_SET: 'rack_set',
-  RACK_SET_REVISION: 'rack_set_revision',
-  CALCULATION: 'calculation',
+  USER: "user",
+  PRICE: "price",
+  RACK_SET: "rack_set",
+  RACK_SET_REVISION: "rack_set_revision",
+  CALCULATION: "calculation",
 };
 
 /**
@@ -56,8 +56,9 @@ export const logAudit = async ({
 }) => {
   try {
     const db = await getDb();
-    
-    db.prepare(`
+
+    db.prepare(
+      `
       INSERT INTO audit_log (
         user_id,
         action,
@@ -68,7 +69,8 @@ export const logAudit = async ({
         ip_address,
         user_agent
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `,
+    ).run(
       userId,
       action,
       entityType,
@@ -76,10 +78,10 @@ export const logAudit = async ({
       oldValue ? JSON.stringify(oldValue) : null,
       newValue ? JSON.stringify(newValue) : null,
       ipAddress,
-      userAgent
+      userAgent,
     );
   } catch (error) {
-    console.error('[Audit] Error logging audit entry:', error.message);
+    console.error("[Audit] Error logging audit entry:", error.message);
     // Не кидаємо помилку, щоб не ламати основний потік
   }
 };
@@ -93,8 +95,10 @@ export const logAudit = async ({
  */
 export const getAuditHistory = async (entityType, entityId, limit = 50) => {
   const db = await getDb();
-  
-  return db.prepare(`
+
+  return db
+    .prepare(
+      `
     SELECT 
       a.*,
       u.email as user_email
@@ -103,7 +107,9 @@ export const getAuditHistory = async (entityType, entityId, limit = 50) => {
     WHERE a.entity_type = ? AND a.entity_id = ?
     ORDER BY a.created_at DESC
     LIMIT ?
-  `).all(entityType, entityId, limit);
+  `,
+    )
+    .all(entityType, entityId, limit);
 };
 
 /**
@@ -113,8 +119,10 @@ export const getAuditHistory = async (entityType, entityId, limit = 50) => {
  */
 export const getRecentAuditEntries = async (limit = 100) => {
   const db = await getDb();
-  
-  return db.prepare(`
+
+  return db
+    .prepare(
+      `
     SELECT 
       a.*,
       u.email as user_email
@@ -122,7 +130,9 @@ export const getRecentAuditEntries = async (limit = 100) => {
     LEFT JOIN users u ON a.user_id = u.id
     ORDER BY a.created_at DESC
     LIMIT ?
-  `).all(limit);
+  `,
+    )
+    .all(limit);
 };
 
 /**
@@ -141,7 +151,13 @@ export const logPriceChange = async (userId, oldPrice, newPrice) => {
 /**
  * Helper для створення audit запису при зміні користувача
  */
-export const logUserChange = async (userId, action, userEmail, oldValue, newValue) => {
+export const logUserChange = async (
+  userId,
+  action,
+  userEmail,
+  oldValue,
+  newValue,
+) => {
   await logAudit({
     userId,
     action,

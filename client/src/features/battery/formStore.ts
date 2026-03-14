@@ -1,8 +1,8 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export enum SupportType {
-  Straight = 'straight',
-  Step = 'step',
+  Straight = "straight",
+  Step = "step",
 }
 
 export interface BatteryFormState {
@@ -42,7 +42,9 @@ const initialFormState: BatteryFormState = {
   supportType: SupportType.Straight,
 };
 
-export const useBatteryFormStore = create<BatteryFormState & BatteryFormActions>((set) => ({
+export const useBatteryFormStore = create<
+  BatteryFormState & BatteryFormActions
+>((set) => ({
   ...initialFormState,
 
   setLength: (length) => set({ length }),

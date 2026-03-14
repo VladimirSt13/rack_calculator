@@ -1,5 +1,5 @@
-import * as auditService from '../services/auditService.js';
-import { ENTITY_TYPES } from '../helpers/audit.js';
+import * as auditService from "../services/auditService.js";
+import { ENTITY_TYPES } from "../helpers/audit.js";
 
 /**
  * GET /api/audit/statistics
@@ -90,10 +90,14 @@ export const getAuditByEntity = async (req, res, next) => {
     const { entityType, entityId } = req.params;
     const { limit = 50 } = req.query;
 
-    const logs = await auditService.getAuditByEntity(entityType, entityId, parseInt(limit));
+    const logs = await auditService.getAuditByEntity(
+      entityType,
+      entityId,
+      parseInt(limit),
+    );
     res.json(logs);
   } catch (error) {
-    if (error.message === 'Invalid entity type') {
+    if (error.message === "Invalid entity type") {
       return res.status(400).json({ error: error.message });
     }
     next(error);

@@ -1,6 +1,11 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+  AxiosError,
+} from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 /**
  * Axios інстанс з автоматичним refresh token
@@ -25,7 +30,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true,
 });
@@ -78,7 +83,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
  */
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
 
     if (token) {
       // Гарантовано додаємо Authorization header
@@ -91,7 +96,7 @@ axiosInstance.interceptors.request.use(
     // Видаляємо Content-Type для FormData (axios сам встановить multipart/form-data з boundary)
     if (config.data instanceof FormData) {
       if (config.headers) {
-        delete config.headers['Content-Type'];
+        delete config.headers["Content-Type"];
       }
     }
 
@@ -114,11 +119,19 @@ axiosInstance.interceptors.request.use(
  */
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError & { config?: InternalAxiosRequestConfig & { _retry?: boolean } }) => {
+  async (
+    error: AxiosError & {
+      config?: InternalAxiosRequestConfig & { _retry?: boolean };
+    },
+  ) => {
     const originalRequest = error.config;
 
     // Якщо помилка 401 і запит ще не був retry
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
       // Якщо вже триває refresh, додаємо запит в чергу
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -137,27 +150,31 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = localStorage.getItem("refreshToken");
 
         if (!refreshToken) {
-          throw new Error('No refresh token');
+          throw new Error("No refresh token");
         }
 
         // Не редиректимо якщо вже на login
-        if (window.location.pathname === '/login') {
-          return Promise.reject(new Error('No refresh token'));
+        if (window.location.pathname === "/login") {
+          return Promise.reject(new Error("No refresh token"));
         }
 
         // Використовуємо axios.create без interceptor для запиту refresh
-        const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const refreshResponse = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          {
+            refreshToken,
+          },
+        );
 
-        const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data;
+        const { accessToken, refreshToken: newRefreshToken } =
+          refreshResponse.data;
 
         // Зберігаємо нові токени
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", newRefreshToken);
 
         // Обробляємо чергу запитів
         processQueue(null, accessToken);
@@ -170,11 +187,11 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         // Якщо refresh не вдався - очищаємо токени та редиректимо на login
         processQueue(refreshError as Error, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         // Не редиректимо якщо вже на login
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
         }
         return Promise.reject(refreshError);
       } finally {

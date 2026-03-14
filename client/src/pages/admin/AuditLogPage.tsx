@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { auditApi } from '@/features/audit/auditApi';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { auditApi } from "@/features/audit/auditApi";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/shared/components/Table';
+} from "@/shared/components/Table";
 import {
   Dialog,
   DialogContent,
@@ -18,53 +18,63 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/shared/components/Dialog';
-import { Loader2, FileText, User, Calendar, Activity, Trash2, TrendingUp, Database, Clock } from 'lucide-react';
-import { toast } from 'sonner';
-import { AdminLayout } from '@/shared/layout/AdminLayout';
+} from "@/shared/components/Dialog";
+import {
+  Loader2,
+  FileText,
+  User,
+  Calendar,
+  Activity,
+  Trash2,
+  TrendingUp,
+  Database,
+  Clock,
+} from "lucide-react";
+import { toast } from "sonner";
+import { AdminLayout } from "@/shared/layout/AdminLayout";
 
 const ACTION_LABELS: Record<string, string> = {
-  CREATE: 'Створення',
-  UPDATE: 'Оновлення',
-  DELETE: 'Видалення',
-  LOGIN: 'Вхід',
-  LOGOUT: 'Вихід',
-  PASSWORD_CHANGE: 'Зміна пароля',
-  PERMISSION_CHANGE: 'Зміна дозволів',
-  PRICE_UPDATE: 'Оновлення прайсу',
-  RACK_SET_CREATE: 'Створення комплекту',
-  RACK_SET_UPDATE: 'Оновлення комплекту',
-  RACK_SET_DELETE: 'Видалення комплекту',
+  CREATE: "Створення",
+  UPDATE: "Оновлення",
+  DELETE: "Видалення",
+  LOGIN: "Вхід",
+  LOGOUT: "Вихід",
+  PASSWORD_CHANGE: "Зміна пароля",
+  PERMISSION_CHANGE: "Зміна дозволів",
+  PRICE_UPDATE: "Оновлення прайсу",
+  RACK_SET_CREATE: "Створення комплекту",
+  RACK_SET_UPDATE: "Оновлення комплекту",
+  RACK_SET_DELETE: "Видалення комплекту",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
-  user: 'Користувач',
-  price: 'Прайс',
-  rack_set: 'Комплект стелажів',
-  rack_set_revision: 'Ревізія комплекту',
-  calculation: 'Розрахунок',
+  user: "Користувач",
+  price: "Прайс",
+  rack_set: "Комплект стелажів",
+  rack_set_revision: "Ревізія комплекту",
+  calculation: "Розрахунок",
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  CREATE: 'bg-green-100 text-green-800',
-  UPDATE: 'bg-blue-100 text-blue-800',
-  DELETE: 'bg-red-100 text-red-800',
-  LOGIN: 'bg-purple-100 text-purple-800',
-  LOGOUT: 'bg-gray-100 text-gray-800',
-  PASSWORD_CHANGE: 'bg-yellow-100 text-yellow-800',
-  PERMISSION_CHANGE: 'bg-indigo-100 text-indigo-800',
-  PRICE_UPDATE: 'bg-orange-100 text-orange-800',
-  RACK_SET_CREATE: 'bg-green-100 text-green-800',
-  RACK_SET_UPDATE: 'bg-blue-100 text-blue-800',
-  RACK_SET_DELETE: 'bg-red-100 text-red-800',
+  CREATE: "bg-green-100 text-green-800",
+  UPDATE: "bg-blue-100 text-blue-800",
+  DELETE: "bg-red-100 text-red-800",
+  LOGIN: "bg-purple-100 text-purple-800",
+  LOGOUT: "bg-gray-100 text-gray-800",
+  PASSWORD_CHANGE: "bg-yellow-100 text-yellow-800",
+  PERMISSION_CHANGE: "bg-indigo-100 text-indigo-800",
+  PRICE_UPDATE: "bg-orange-100 text-orange-800",
+  RACK_SET_CREATE: "bg-green-100 text-green-800",
+  RACK_SET_UPDATE: "bg-blue-100 text-blue-800",
+  RACK_SET_DELETE: "bg-red-100 text-red-800",
 };
 
 export const AuditLogPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
-    search: '',
-    action: '',
-    entityType: '',
+    search: "",
+    action: "",
+    entityType: "",
     page: 1,
     limit: 50,
   });
@@ -72,7 +82,7 @@ export const AuditLogPage: React.FC = () => {
   const [cleanupDays, setCleanupDays] = useState(90);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['audit', filters],
+    queryKey: ["audit", filters],
     queryFn: () =>
       auditApi.getAll({
         ...filters,
@@ -83,7 +93,7 @@ export const AuditLogPage: React.FC = () => {
   });
 
   const { data: statistics } = useQuery({
-    queryKey: ['audit-statistics'],
+    queryKey: ["audit-statistics"],
     queryFn: () => auditApi.getStatistics(),
     staleTime: 1000 * 60 * 5, // 5 хвилин
   });
@@ -91,25 +101,25 @@ export const AuditLogPage: React.FC = () => {
   const cleanupMutation = useMutation({
     mutationFn: (days: number) => auditApi.cleanup(days),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['audit'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-statistics"] });
       setIsCleanupOpen(false);
       toast.success(data.message);
     },
     onError: (error: Error) => {
-      toast.error((error as any).response?.data?.error || 'Помилка очищення');
+      toast.error((error as any).response?.data?.error || "Помилка очищення");
     },
   });
 
   const formatDateTime = (dateString: string) => {
     try {
-      return new Intl.DateTimeFormat('uk-UA', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      return new Intl.DateTimeFormat("uk-UA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       }).format(new Date(dateString));
     } catch {
       return dateString;
@@ -117,11 +127,11 @@ export const AuditLogPage: React.FC = () => {
   };
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const formatJson = (jsonString?: string) => {
@@ -135,10 +145,7 @@ export const AuditLogPage: React.FC = () => {
   };
 
   return (
-    <AdminLayout
-      title="Журнал аудиту"
-      description="Історія всіх дій у системі"
-    >
+    <AdminLayout title="Журнал аудиту" description="Історія всіх дій у системі">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -164,7 +171,9 @@ export const AuditLogPage: React.FC = () => {
               <Database className="w-8 h-8 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Всього записів</p>
-                <p className="text-2xl font-bold">{statistics.total.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {statistics.total.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -173,7 +182,9 @@ export const AuditLogPage: React.FC = () => {
               <Clock className="w-8 h-8 text-green-500" />
               <div>
                 <p className="text-sm text-muted-foreground">За 7 днів</p>
-                <p className="text-2xl font-bold">{statistics.last7days.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {statistics.last7days.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -182,7 +193,9 @@ export const AuditLogPage: React.FC = () => {
               <Calendar className="w-8 h-8 text-orange-500" />
               <div>
                 <p className="text-sm text-muted-foreground">За 30 днів</p>
-                <p className="text-2xl font-bold">{statistics.last30days.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {statistics.last30days.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -191,7 +204,9 @@ export const AuditLogPage: React.FC = () => {
               <TrendingUp className="w-8 h-8 text-purple-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Розмір БД</p>
-                <p className="text-2xl font-bold">{formatBytes(statistics.databaseSize)}</p>
+                <p className="text-2xl font-bold">
+                  {formatBytes(statistics.databaseSize)}
+                </p>
               </div>
             </div>
           </div>
@@ -278,7 +293,8 @@ export const AuditLogPage: React.FC = () => {
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          ACTION_COLORS[log.action] || 'bg-gray-100 text-gray-800'
+                          ACTION_COLORS[log.action] ||
+                          "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {ACTION_LABELS[log.action] || log.action}
@@ -299,7 +315,9 @@ export const AuditLogPage: React.FC = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">{log.user_email || `ID: ${log.user_id}`}</span>
+                        <span className="text-sm">
+                          {log.user_email || `ID: ${log.user_id}`}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -352,9 +370,7 @@ export const AuditLogPage: React.FC = () => {
         <div className="flex justify-center items-center gap-4 mt-6">
           <button
             className="px-4 py-2 rounded-md border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-            onClick={() =>
-              setFilters({ ...filters, page: filters.page - 1 })
-            }
+            onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
             disabled={filters.page === 1}
           >
             Попередня
@@ -364,9 +380,7 @@ export const AuditLogPage: React.FC = () => {
           </span>
           <button
             className="px-4 py-2 rounded-md border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-            onClick={() =>
-              setFilters({ ...filters, page: filters.page + 1 })
-            }
+            onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
             disabled={filters.page === data.pagination.totalPages}
           >
             Наступна
@@ -377,7 +391,8 @@ export const AuditLogPage: React.FC = () => {
       {/* Статистика */}
       {data && (
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          Всього записів: <span className="font-medium">{data.pagination.total}</span>
+          Всього записів:{" "}
+          <span className="font-medium">{data.pagination.total}</span>
         </div>
       )}
 
@@ -387,7 +402,8 @@ export const AuditLogPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Очищення журналу аудиту</DialogTitle>
             <DialogDescription>
-              Видалити всі записи аудиту старіше вказаного періоду. Цю дію не можна скасувати.
+              Видалити всі записи аудиту старіше вказаного періоду. Цю дію не
+              можна скасувати.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -403,7 +419,8 @@ export const AuditLogPage: React.FC = () => {
                 onChange={(e) => setCleanupDays(parseInt(e.target.value) || 90)}
               />
               <p className="text-xs text-muted-foreground">
-                Рекомендовано: 30-90 днів. Записи старіше цього періоду будуть видалені назавжди.
+                Рекомендовано: 30-90 днів. Записи старіше цього періоду будуть
+                видалені назавжди.
               </p>
             </div>
           </div>

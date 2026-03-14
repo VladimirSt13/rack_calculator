@@ -1,10 +1,15 @@
-import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import axios from '@/lib/axios';
+import {
+  useQuery,
+  useMutation,
+  UseQueryOptions,
+  UseMutationOptions,
+} from "@tanstack/react-query";
+import axios from "@/lib/axios";
 
 export interface Calculation {
   id: number;
   name: string | null;
-  type: 'rack' | 'battery';
+  type: "rack" | "battery";
   data: Record<string, unknown>;
   created_at: string;
 }
@@ -21,14 +26,14 @@ export interface CalculationResponse {
  * Отримати список розрахунків
  */
 export const useCalculations = (
-  type?: 'rack' | 'battery',
-  options?: Omit<UseQueryOptions<CalculationsResponse>, 'queryKey' | 'queryFn'>,
+  type?: "rack" | "battery",
+  options?: Omit<UseQueryOptions<CalculationsResponse>, "queryKey" | "queryFn">,
 ) => {
   return useQuery<CalculationsResponse>({
-    queryKey: ['calculations', type],
+    queryKey: ["calculations", type],
     queryFn: async () => {
       const params = type ? { type } : {};
-      const { data } = await axios.get('/calculations', { params });
+      const { data } = await axios.get("/calculations", { params });
       return data;
     },
     staleTime: 1000 * 60 * 2, // 2 хвилини
@@ -41,12 +46,12 @@ export const useCalculations = (
  */
 export const useCalculation = (
   id: number | null,
-  options?: Omit<UseQueryOptions<CalculationResponse>, 'queryKey' | 'queryFn'>,
+  options?: Omit<UseQueryOptions<CalculationResponse>, "queryKey" | "queryFn">,
 ) => {
   return useQuery<CalculationResponse>({
-    queryKey: ['calculations', id],
+    queryKey: ["calculations", id],
     queryFn: async () => {
-      if (!id) throw new Error('ID is required');
+      if (!id) throw new Error("ID is required");
       const { data } = await axios.get(`/calculations/${id}`);
       return data;
     },
@@ -62,12 +67,16 @@ export const useCreateCalculation = (
   options?: UseMutationOptions<
     Calculation,
     Error,
-    { name?: string; type: 'rack' | 'battery'; data: Record<string, unknown> }
+    { name?: string; type: "rack" | "battery"; data: Record<string, unknown> }
   >,
 ) => {
-  return useMutation<Calculation, Error, { name?: string; type: 'rack' | 'battery'; data: Record<string, unknown> }>({
+  return useMutation<
+    Calculation,
+    Error,
+    { name?: string; type: "rack" | "battery"; data: Record<string, unknown> }
+  >({
     mutationFn: async (calculationData) => {
-      const { data } = await axios.post('/calculations', calculationData);
+      const { data } = await axios.post("/calculations", calculationData);
       return data;
     },
     ...options,
@@ -77,7 +86,9 @@ export const useCreateCalculation = (
 /**
  * Видалити розрахунок
  */
-export const useDeleteCalculation = (options?: UseMutationOptions<number, Error, number>) => {
+export const useDeleteCalculation = (
+  options?: UseMutationOptions<number, Error, number>,
+) => {
   return useMutation<number, Error, number>({
     mutationFn: async (id) => {
       await axios.delete(`/calculations/${id}`);

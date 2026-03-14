@@ -1,8 +1,13 @@
-import { generateBatteryRackName } from '../../../shared/rackCalculator.js';
-import { calcRackSpans, optimizeRacks, checkSpanWeight, CONSTANTS } from '../helpers/batteryRackBuilder.js';
-import { getCurrentPriceData } from './priceService.js';
-import { findOrCreateConfiguration } from './rackConfigurationService.js';
-import { calculateRack } from './rackService.js';
+import { generateBatteryRackName } from "../../../shared/rackCalculator.js";
+import {
+  calcRackSpans,
+  optimizeRacks,
+  checkSpanWeight,
+  CONSTANTS,
+} from "../helpers/batteryRackBuilder.js";
+import { getCurrentPriceData } from "./priceService.js";
+import { findOrCreateConfiguration } from "./rackConfigurationService.js";
+import { calculateRack } from "./rackService.js";
 
 /**
  * Сервіс для розрахунку стелажів по батареї
@@ -27,7 +32,12 @@ import { calculateRack } from './rackService.js';
  * @param {number} params.supportHeight - Висота опори (за замовчуванням 100мм)
  * @returns {number} Висота стелажа
  */
-export const calcRackHeight = ({ elementHeight, floors, floorGap = 50, supportHeight = 100 }) => {
+export const calcRackHeight = ({
+  elementHeight,
+  floors,
+  floorGap = 50,
+  supportHeight = 100,
+}) => {
   return floors * elementHeight + floors * (supportHeight + floorGap);
 };
 
@@ -58,7 +68,9 @@ export const findVerticalSupport = ({ height, price }) => {
 
   // Якщо не знайдено більшої, беремо максимальну
   if (!closest && keys.length > 0) {
-    closest = keys.reduce((a, b) => (parseInt(a, 10) > parseInt(b, 10) ? a : b));
+    closest = keys.reduce((a, b) =>
+      parseInt(a, 10) > parseInt(b, 10) ? a : b,
+    );
   }
 
   return closest;
@@ -74,7 +86,13 @@ export const findVerticalSupport = ({ height, price }) => {
  * @param {string} params.supportType - Тип опори: 'straight' або 'step'
  * @returns {string} Назва опори (наприклад, '430С' для ступінчастого або '430' для прямої)
  */
-export const calcRackWidth = ({ elementWidth, rows, price, rowGap = 50, supportType = 'straight' }) => {
+export const calcRackWidth = ({
+  elementWidth,
+  rows,
+  price,
+  rowGap = 50,
+  supportType = "straight",
+}) => {
   // Отримуємо стандартні опори з прайсу
   const supports = price?.supports || {};
   const standardWidths = Object.keys(supports)
@@ -94,12 +112,13 @@ export const calcRackWidth = ({ elementWidth, rows, price, rowGap = 50, supportT
   const requiredWidth = elementWidth * rows + (rows - 1) * rowGap;
 
   // Знаходимо найблильшу більшу стандартну ширину
-  const selectedWidth = widths.find((w) => w >= requiredWidth) || widths[widths.length - 1];
+  const selectedWidth =
+    widths.find((w) => w >= requiredWidth) || widths[widths.length - 1];
 
   // Формуємо назву опори
   // Для ступінчастого стелажа: 430С, 600С (літера після цифр)
   // Для прямого стелажа: 430, 600 (тільки цифри)
-  if (supportType === 'step') {
+  if (supportType === "step") {
     return `${selectedWidth}С`; // Ступінчаста опора (літера після)
   } else {
     return `${selectedWidth}`; // Пряма опора (тільки цифри)
@@ -112,19 +131,25 @@ export const calcRackWidth = ({ elementWidth, rows, price, rowGap = 50, supportT
 export const findBestRackForBattery = async (batteryData, user) => {
   const { batteryDimensions, quantity, config } = batteryData;
 
-  if (!batteryDimensions || !batteryDimensions.length || !batteryDimensions.width) {
-    throw new Error('Battery dimensions are required');
+  if (
+    !batteryDimensions ||
+    !batteryDimensions.length ||
+    !batteryDimensions.width
+  ) {
+    throw new Error("Battery dimensions are required");
   }
 
   const price = await getCurrentPriceData();
 
-  const spanObjects = Object.entries(price.spans || {}).map(([length, data]) => ({
-    length: Number(length),
-    capacity: data.capacity || 1000,
-  }));
+  const spanObjects = Object.entries(price.spans || {}).map(
+    ([length, data]) => ({
+      length: Number(length),
+      capacity: data.capacity || 1000,
+    }),
+  );
 
   if (spanObjects.length === 0) {
-    throw new Error('No span options available in price data');
+    throw new Error("No span options available in price data");
   }
 
   const rows = config?.rows || 2;
@@ -133,7 +158,8 @@ export const findBestRackForBattery = async (batteryData, user) => {
 
   const batteryLength = batteryDimensions.length;
   const gap = batteryDimensions.gap || 0;
-  const requiredLength = batteriesPerRow * batteryLength + (batteriesPerRow - 1) * gap;
+  const requiredLength =
+    batteriesPerRow * batteryLength + (batteriesPerRow - 1) * gap;
 
   // ✅ Перевірка несучої здатності та підбір балок
   const spanCombinations = calcRackSpans({
@@ -145,14 +171,21 @@ export const findBestRackForBattery = async (batteryData, user) => {
   });
 
   const maxSpan = Math.max(...spanObjects.map((s) => s.length));
-  const optimizedVariants = optimizeRacks(spanCombinations, requiredLength, maxSpan, 5, price);
+  const optimizedVariants = optimizeRacks(
+    spanCombinations,
+    requiredLength,
+    maxSpan,
+    5,
+    price,
+  );
 
   const bestVariant = optimizedVariants[0];
   const rackLength = bestVariant?.totalLength || requiredLength;
-  const bracesType = rackLength >= 1500 ? 'D1500' : rackLength >= 1000 ? 'D1000' : 'D600';
+  const bracesType =
+    rackLength >= 1500 ? "D1500" : rackLength >= 1000 ? "D1000" : "D600";
 
   // Визначаємо тип опори
-  const supportType = config.supportType || 'straight';
+  const supportType = config.supportType || "straight";
 
   // ✅ Вибір опори з переліку стандартних (з прайсу)
   const supports = calcRackWidth({
@@ -199,7 +232,12 @@ export const findBestRackForBattery = async (batteryData, user) => {
   const variantsWithPrices = await Promise.all(
     optimizedVariants.map(async (v, index) => {
       const variantLength = v.totalLength || requiredLength;
-      const variantBraces = variantLength >= 1500 ? 'D1500' : variantLength >= 1000 ? 'D1000' : 'D600';
+      const variantBraces =
+        variantLength >= 1500
+          ? "D1500"
+          : variantLength >= 1000
+            ? "D1000"
+            : "D600";
 
       const variantConfig = {
         floors,
@@ -213,7 +251,7 @@ export const findBestRackForBattery = async (batteryData, user) => {
 
       // ✅ Використовуємо rackService для розрахунку кожного варіанту
       const variantRackResult = await calculateRack(variantConfig, user);
-      
+
       // ✅ Створюємо або знаходимо конфігурацію для кожного варіанту
       const variantConfigId = await findOrCreateConfiguration({
         floors,
@@ -229,7 +267,11 @@ export const findBestRackForBattery = async (batteryData, user) => {
         name: generateBatteryRackName({
           floors: variantConfig.floors,
           rows: variantConfig.rows,
-          supportType: variantConfig.supports?.includes('С') || variantConfig.supports?.includes('C') ? 'step' : 'edge',
+          supportType:
+            variantConfig.supports?.includes("С") ||
+            variantConfig.supports?.includes("C")
+              ? "step"
+              : "edge",
           rackWidth: parseInt(supports) || batteryDimensions.width, // ✅ Використовуємо розраховану ширину опори
           rackLength: batteryLength,
           spans: variantConfig.spansArray,
@@ -272,7 +314,8 @@ export const findBestRackForBattery = async (batteryData, user) => {
       name: generateBatteryRackName({
         floors: rackConfig.floors,
         rows: rackConfig.rows,
-        supportType: supports.includes('С') || supports.includes('C') ? 'step' : 'edge',
+        supportType:
+          supports.includes("С") || supports.includes("C") ? "step" : "edge",
         rackWidth: parseInt(supports), // ✅ Використовуємо розраховану ширину опори
         rackLength: batteryLength,
         spans: rackConfig.spansArray,
@@ -295,19 +338,22 @@ export const calculateBatteryRack = async (batteryData, user) => {
 
   const batteryLength = batteryDimensions.length;
   const gap = batteryDimensions.gap || 0;
-  const requiredLength = batteriesPerRow * batteryLength + (batteriesPerRow - 1) * gap;
+  const requiredLength =
+    batteriesPerRow * batteryLength + (batteriesPerRow - 1) * gap;
 
   // Підбір прольотів (якщо не передано готові)
   let spansArray = config.spansArray || [];
 
   if (spansArray.length === 0) {
-    const spanObjects = Object.entries(price.spans || {}).map(([length, data]) => ({
-      length: Number(length),
-      capacity: data.capacity || 1000,
-    }));
+    const spanObjects = Object.entries(price.spans || {}).map(
+      ([length, data]) => ({
+        length: Number(length),
+        capacity: data.capacity || 1000,
+      }),
+    );
 
     if (spanObjects.length === 0) {
-      throw new Error('No span options available in price data');
+      throw new Error("No span options available in price data");
     }
 
     // ✅ Перевірка несучої здатності та підбір балок
@@ -320,14 +366,20 @@ export const calculateBatteryRack = async (batteryData, user) => {
     });
 
     const maxSpan = Math.max(...spanObjects.map((s) => s.length));
-    const optimizedVariants = optimizeRacks(spanCombinations, requiredLength, maxSpan, 1, price);
+    const optimizedVariants = optimizeRacks(
+      spanCombinations,
+      requiredLength,
+      maxSpan,
+      1,
+      price,
+    );
     const bestVariant = optimizedVariants[0];
 
     spansArray = bestVariant?.combination || [];
   }
 
   // Визначаємо тип опори
-  const supportType = config.supportType || 'straight';
+  const supportType = config.supportType || "straight";
 
   // ✅ Вибір опори з переліку стандартних (з прайсу)
   const supports = calcRackWidth({
@@ -388,7 +440,8 @@ export const calculateBatteryRack = async (batteryData, user) => {
     name: generateBatteryRackName({
       floors: config.floors,
       rows: config.rows,
-      supportType: supports.includes('С') || supports.includes('C') ? 'step' : 'edge',
+      supportType:
+        supports.includes("С") || supports.includes("C") ? "step" : "edge",
       rackWidth: parseInt(supports) || batteryDimensions.width, // ✅ Використовуємо розраховану ширину опори
       rackLength: batteryDimensions?.length || 0,
       spans: spansArray,

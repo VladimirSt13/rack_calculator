@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import ExcelJS from "exceljs";
 
 /**
  * Сервіс для парсингу Excel файлів з прайсом
@@ -7,7 +7,13 @@ import ExcelJS from 'exceljs';
 /**
  * Валідні категорії прайсу
  */
-const VALID_CATEGORIES = new Set(['supports', 'spans', 'vertical_supports', 'diagonal_brace', 'isolator']);
+const VALID_CATEGORIES = new Set([
+  "supports",
+  "spans",
+  "vertical_supports",
+  "diagonal_brace",
+  "isolator",
+]);
 
 /**
  * Розпарсити Excel файл з прайсом
@@ -44,7 +50,7 @@ export const parsePriceExcel = async (buffer) => {
     const description = cells[6]; // Опис
 
     // Ігноруємо підсумковий рядок "Всього позицій"
-    if (name && name.toString().toLowerCase().includes('всього позицій')) {
+    if (name && name.toString().toLowerCase().includes("всього позицій")) {
       return;
     }
 
@@ -54,7 +60,12 @@ export const parsePriceExcel = async (buffer) => {
       // Змінюємо категорію тільки якщо вона відрізняється від поточної
       if (newCategory !== currentCategory) {
         currentCategory = newCategory;
-        console.log('[Parse] Category found:', currentCategory, 'at row', rowNumber);
+        console.log(
+          "[Parse] Category found:",
+          currentCategory,
+          "at row",
+          rowNumber,
+        );
       }
       // Не повертаємо, а продовжуємо обробку рядка з даними
     }
@@ -63,24 +74,45 @@ export const parsePriceExcel = async (buffer) => {
     if (!currentCategory || !name) return;
 
     // Для опор - логуємо назву
-    if (currentCategory === 'supports') {
+    if (currentCategory === "supports") {
       const nameStr = name.toString().toLowerCase();
-      const isEdge = nameStr.includes('крайн') || nameStr.includes('edge') || nameStr.includes(' кр');
+      const isEdge =
+        nameStr.includes("крайн") ||
+        nameStr.includes("edge") ||
+        nameStr.includes(" кр");
       const isIntermediate =
-        nameStr.includes('проміжн') || nameStr.includes('intermediate') || nameStr.includes(' пром');
-      console.log('[Parse] Support row:', { code, name, isEdge, isIntermediate });
+        nameStr.includes("проміжн") ||
+        nameStr.includes("intermediate") ||
+        nameStr.includes(" пром");
+      console.log("[Parse] Support row:", {
+        code,
+        name,
+        isEdge,
+        isIntermediate,
+      });
     }
 
     // Парсинг назви для отримання коду і типу (для опор)
     // Формат 1: "215 (Крайня)" або "215 (Проміжна)"
     // Формат 2: "Опора крайня" або "Проміжна опора" (з експорту)
     // Формат 3: "215 кр" або "215 пром" (короткий з експорту)
-    const nameMatch = name.match(/^(\d+|[A-Za-z0-9]+)\s*\((Крайня|Проміжна)\)?/i);
+    const nameMatch = name.match(
+      /^(\d+|[A-Za-z0-9]+)\s*\((Крайня|Проміжна)\)?/i,
+    );
     const nameStr = name.toString().toLowerCase();
-    const isEdge = nameStr.includes('крайн') || nameStr.includes('edge') || nameStr.includes(' кр');
-    const isIntermediate = nameStr.includes('проміжн') || nameStr.includes('intermediate') || nameStr.includes(' пром');
+    const isEdge =
+      nameStr.includes("крайн") ||
+      nameStr.includes("edge") ||
+      nameStr.includes(" кр");
+    const isIntermediate =
+      nameStr.includes("проміжн") ||
+      nameStr.includes("intermediate") ||
+      nameStr.includes(" пром");
 
-    if (currentCategory === 'supports' && (nameMatch || isEdge || isIntermediate)) {
+    if (
+      currentCategory === "supports" &&
+      (nameMatch || isEdge || isIntermediate)
+    ) {
       let codeStr;
       let typeShort;
 
@@ -88,12 +120,12 @@ export const parsePriceExcel = async (buffer) => {
         // Формат з дужками: "215 (Крайня)"
         codeStr = nameMatch[1];
         const type = nameMatch[2].toLowerCase();
-        typeShort = type.includes('крайн') ? 'edge' : 'intermediate';
+        typeShort = type.includes("крайн") ? "edge" : "intermediate";
       } else {
         // Формат з експорту: "Опора крайня" або "Проміжна опора"
         // Код береться з першого стовпчика
-        codeStr = code?.toString() || name.toString().split(' ')[0];
-        typeShort = isEdge ? 'edge' : 'intermediate';
+        codeStr = code?.toString() || name.toString().split(" ")[0];
+        typeShort = isEdge ? "edge" : "intermediate";
       }
 
       if (!result.supports[codeStr]) {
@@ -102,30 +134,33 @@ export const parsePriceExcel = async (buffer) => {
         result.supports[codeStr] = {
           code: codeStr,
           name: codeStr, // ← Назва = код
-          category: 'supports',
+          category: "supports",
           edge: {
             price: 0,
             weight: null,
-            name: 'Опора крайня',
-            description: '',
+            name: "Опора крайня",
+            description: "",
           },
           intermediate: {
             price: 0,
             weight: null,
-            name: 'Проміжна опора',
-            description: '',
+            name: "Проміжна опора",
+            description: "",
           },
         };
       }
 
       // Оновлюємо відповідну вкладену позицію
       result.supports[codeStr][typeShort].price = parseFloat(price) || 0;
-      result.supports[codeStr][typeShort].weight = weight ? parseFloat(weight) : null;
+      result.supports[codeStr][typeShort].weight = weight
+        ? parseFloat(weight)
+        : null;
       result.supports[codeStr][typeShort].name = name.toString();
 
       // Оновлюємо опис у вкладеній позиції
       if (description) {
-        result.supports[codeStr][typeShort].description = description.toString();
+        result.supports[codeStr][typeShort].description =
+          description.toString();
       }
     } else {
       // Звичайний елемент
@@ -136,7 +171,7 @@ export const parsePriceExcel = async (buffer) => {
         category: currentCategory,
         price: parseFloat(price) || 0,
         weight: weight ? parseFloat(weight) : null,
-        description: description?.toString() || '',
+        description: description?.toString() || "",
       };
     }
   });

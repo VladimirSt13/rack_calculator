@@ -1,26 +1,26 @@
-import { useState, useCallback } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/features/auth/authStore';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
-import { Label } from '@/shared/components/Label';
-import { Loader2, KeyRound } from 'lucide-react';
-import { toast } from 'sonner';
-import { PUBLIC_ROUTES } from '@/core/constants/routes';
+import { useState, useCallback } from "react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/features/auth/authStore";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
+import { Label } from "@/shared/components/Label";
+import { Loader2, KeyRound } from "lucide-react";
+import { toast } from "sonner";
+import { PUBLIC_ROUTES } from "@/core/constants/routes";
 
 const COOLDOWN_MS = 30000; // 30 секунд між запитами
 
 const resetSchema = z
   .object({
-    newPassword: z.string().min(6, 'Пароль має бути не менше 6 символів'),
+    newPassword: z.string().min(6, "Пароль має бути не менше 6 символів"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Паролі не співпадають',
-    path: ['confirmPassword'],
+    message: "Паролі не співпадають",
+    path: ["confirmPassword"],
   });
 
 type ResetForm = z.infer<typeof resetSchema>;
@@ -28,7 +28,7 @@ type ResetForm = z.infer<typeof resetSchema>;
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tokenFromUrl = searchParams.get('token');
+  const tokenFromUrl = searchParams.get("token");
 
   const { resetPassword, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,75 +42,89 @@ export const ResetPasswordPage: React.FC = () => {
     resolver: zodResolver(resetSchema),
   });
 
-  const onSubmit = useCallback(async (data: ResetForm) => {
-    if (!tokenFromUrl) {
-      toast.error('Токен не знайдено');
-      return;
-    }
-
-    // Rate limiting на клієнті
-    const now = Date.now();
-    if (now - lastSubmit < COOLDOWN_MS) {
-      const remainingTime = Math.ceil((COOLDOWN_MS - (now - lastSubmit)) / 1000);
-      toast.error(`Зачекайте ${remainingTime} секунд перед наступним запитом`);
-      return;
-    }
-
-    // Валідація складності пароля
-    if (data.newPassword.length < 8) {
-      toast.error('Пароль має бути не менше 8 символів');
-      return;
-    }
-
-    const hasUpperCase = /[A-Z]/.test(data.newPassword);
-    const hasLowerCase = /[a-z]/.test(data.newPassword);
-    const hasNumbers = /\d/.test(data.newPassword);
-
-    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      toast.error('Пароль повинен містити хоча б одну велику літеру, малу літеру та цифру');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setLastSubmit(now);
-    clearError();
-
-    try {
-      await resetPassword(tokenFromUrl, data.newPassword);
-      toast.success('Пароль змінено успішно');
-
-      // Через 2 секунди редірект на login
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-    } catch (err) {
-      const errorMessage =
-        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка скидання пароля';
-      
-      // Перевірка на мережеву помилку для retry
-      if ((err as any).code === 'NETWORK_ERROR' || !(err as any).response) {
-        toast.info('Спробуємо ще раз через 5 секунд...');
-        setTimeout(async () => {
-          try {
-            await resetPassword(tokenFromUrl, data.newPassword);
-            toast.success('Пароль змінено успішно');
-            setTimeout(() => {
-              navigate('/login');
-            }, 2000);
-          } catch (retryErr) {
-            toast.error((retryErr as any).response?.data?.error || 'Помилка скидання пароля');
-          } finally {
-            setIsSubmitting(false);
-          }
-        }, 5000);
+  const onSubmit = useCallback(
+    async (data: ResetForm) => {
+      if (!tokenFromUrl) {
+        toast.error("Токен не знайдено");
         return;
       }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [tokenFromUrl, resetPassword, lastSubmit, clearError, navigate]);
+
+      // Rate limiting на клієнті
+      const now = Date.now();
+      if (now - lastSubmit < COOLDOWN_MS) {
+        const remainingTime = Math.ceil(
+          (COOLDOWN_MS - (now - lastSubmit)) / 1000,
+        );
+        toast.error(
+          `Зачекайте ${remainingTime} секунд перед наступним запитом`,
+        );
+        return;
+      }
+
+      // Валідація складності пароля
+      if (data.newPassword.length < 8) {
+        toast.error("Пароль має бути не менше 8 символів");
+        return;
+      }
+
+      const hasUpperCase = /[A-Z]/.test(data.newPassword);
+      const hasLowerCase = /[a-z]/.test(data.newPassword);
+      const hasNumbers = /\d/.test(data.newPassword);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+        toast.error(
+          "Пароль повинен містити хоча б одну велику літеру, малу літеру та цифру",
+        );
+        return;
+      }
+
+      setIsSubmitting(true);
+      setLastSubmit(now);
+      clearError();
+
+      try {
+        await resetPassword(tokenFromUrl, data.newPassword);
+        toast.success("Пароль змінено успішно");
+
+        // Через 2 секунди редірект на login
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } catch (err) {
+        const errorMessage =
+          (err as any).response?.data?.error ||
+          (err as any).response?.data?.message ||
+          "Помилка скидання пароля";
+
+        // Перевірка на мережеву помилку для retry
+        if ((err as any).code === "NETWORK_ERROR" || !(err as any).response) {
+          toast.info("Спробуємо ще раз через 5 секунд...");
+          setTimeout(async () => {
+            try {
+              await resetPassword(tokenFromUrl, data.newPassword);
+              toast.success("Пароль змінено успішно");
+              setTimeout(() => {
+                navigate("/login");
+              }, 2000);
+            } catch (retryErr) {
+              toast.error(
+                (retryErr as any).response?.data?.error ||
+                  "Помилка скидання пароля",
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          }, 5000);
+          return;
+        }
+
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [tokenFromUrl, resetPassword, lastSubmit, clearError, navigate],
+  );
 
   if (!tokenFromUrl) {
     return (
@@ -121,14 +135,14 @@ export const ResetPasswordPage: React.FC = () => {
               <KeyRound className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-destructive">Невірний токен</h1>
+          <h1 className="text-3xl font-bold text-destructive">
+            Невірний токен
+          </h1>
           <p className="text-muted-foreground">
             Токен скидання пароля не знайдено в URL
           </p>
           <Link to="/forgot-password">
-            <Button className="mt-4">
-              Запросити нове посилання
-            </Button>
+            <Button className="mt-4">Запросити нове посилання</Button>
           </Link>
         </div>
       </div>
@@ -158,12 +172,16 @@ export const ResetPasswordPage: React.FC = () => {
               type="password"
               placeholder="••••••••"
               autoComplete="new-password"
-              className={errors.newPassword?.message ? 'border-destructive' : ''}
-              {...register('newPassword')}
+              className={
+                errors.newPassword?.message ? "border-destructive" : ""
+              }
+              {...register("newPassword")}
               disabled={isSubmitting}
             />
             {errors.newPassword?.message && (
-              <p className="text-sm text-destructive">{errors.newPassword.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.newPassword.message}
+              </p>
             )}
           </div>
 
@@ -174,12 +192,16 @@ export const ResetPasswordPage: React.FC = () => {
               type="password"
               placeholder="••••••••"
               autoComplete="new-password"
-              className={errors.confirmPassword?.message ? 'border-destructive' : ''}
-              {...register('confirmPassword')}
+              className={
+                errors.confirmPassword?.message ? "border-destructive" : ""
+              }
+              {...register("confirmPassword")}
               disabled={isSubmitting}
             />
             {errors.confirmPassword?.message && (
-              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
@@ -200,14 +222,17 @@ export const ResetPasswordPage: React.FC = () => {
                 Зміна пароля...
               </>
             ) : (
-              'Змінити пароль'
+              "Змінити пароль"
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Згадали старий пароль? </span>
-          <Link to={PUBLIC_ROUTES.LOGIN} className="text-primary hover:underline font-medium">
+          <Link
+            to={PUBLIC_ROUTES.LOGIN}
+            className="text-primary hover:underline font-medium"
+          >
             Увійти
           </Link>
         </div>

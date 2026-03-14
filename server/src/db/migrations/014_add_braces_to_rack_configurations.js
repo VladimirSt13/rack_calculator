@@ -7,7 +7,7 @@
  */
 
 export const up = (db) => {
-  console.log('[Migration 014] Adding braces column to rack_configurations...');
+  console.log("[Migration 014] Adding braces column to rack_configurations...");
 
   try {
     // Додати поле braces
@@ -15,9 +15,9 @@ export const up = (db) => {
       db.exec(`
         ALTER TABLE rack_configurations ADD COLUMN braces TEXT
       `);
-      console.log('[Migration 014] Added braces column');
+      console.log("[Migration 014] Added braces column");
     } catch (e) {
-      console.log('[Migration 014] braces column already exists');
+      console.log("[Migration 014] braces column already exists");
     }
 
     // Оновити унікальний індекс для врахування braces
@@ -36,7 +36,7 @@ export const up = (db) => {
         UNIQUE(floors, rows, beams_per_row, supports, vertical_supports, spans, braces)
       )
     `);
-    console.log('[Migration 014] Created rack_configurations_new table');
+    console.log("[Migration 014] Created rack_configurations_new table");
 
     // Перенести дані
     db.exec(`
@@ -44,15 +44,17 @@ export const up = (db) => {
       SELECT id, floors, rows, beams_per_row, supports, vertical_supports, spans, braces, created_at
       FROM rack_configurations
     `);
-    console.log('[Migration 014] Migrated data');
+    console.log("[Migration 014] Migrated data");
 
     // Видалити стару таблицю
-    db.exec('DROP TABLE IF EXISTS rack_configurations');
-    console.log('[Migration 014] Dropped old table');
+    db.exec("DROP TABLE IF EXISTS rack_configurations");
+    console.log("[Migration 014] Dropped old table");
 
     // Перейменувати
-    db.exec('ALTER TABLE rack_configurations_new RENAME TO rack_configurations');
-    console.log('[Migration 014] Renamed table');
+    db.exec(
+      "ALTER TABLE rack_configurations_new RENAME TO rack_configurations",
+    );
+    console.log("[Migration 014] Renamed table");
 
     // Відновити індекси
     db.exec(`
@@ -63,17 +65,17 @@ export const up = (db) => {
       CREATE INDEX IF NOT EXISTS idx_rack_configurations_created_at
       ON rack_configurations(created_at)
     `);
-    console.log('[Migration 014] Recreated indexes');
+    console.log("[Migration 014] Recreated indexes");
 
-    console.log('[Migration 014] Completed successfully');
+    console.log("[Migration 014] Completed successfully");
   } catch (error) {
-    console.error('[Migration 014] Error:', error.message);
+    console.error("[Migration 014] Error:", error.message);
     throw error;
   }
 };
 
 export const down = (db) => {
-  console.log('[Migration 014] Rolling back...');
+  console.log("[Migration 014] Rolling back...");
 
   try {
     // Створити стару таблицю без braces
@@ -90,7 +92,7 @@ export const down = (db) => {
         UNIQUE(floors, rows, beams_per_row, supports, vertical_supports, spans)
       )
     `);
-    console.log('[Migration 014] Created rack_configurations_new for rollback');
+    console.log("[Migration 014] Created rack_configurations_new for rollback");
 
     // Перенести дані без braces
     db.exec(`
@@ -98,15 +100,17 @@ export const down = (db) => {
       SELECT id, floors, rows, beams_per_row, supports, vertical_supports, spans, created_at
       FROM rack_configurations
     `);
-    console.log('[Migration 014] Migrated data back');
+    console.log("[Migration 014] Migrated data back");
 
     // Видалити нову таблицю
-    db.exec('DROP TABLE IF EXISTS rack_configurations');
-    console.log('[Migration 014] Dropped rack_configurations');
+    db.exec("DROP TABLE IF EXISTS rack_configurations");
+    console.log("[Migration 014] Dropped rack_configurations");
 
     // Перейменувати
-    db.exec('ALTER TABLE rack_configurations_new RENAME TO rack_configurations');
-    console.log('[Migration 014] Renamed table');
+    db.exec(
+      "ALTER TABLE rack_configurations_new RENAME TO rack_configurations",
+    );
+    console.log("[Migration 014] Renamed table");
 
     // Відновити індекси
     db.exec(`
@@ -117,11 +121,11 @@ export const down = (db) => {
       CREATE INDEX IF NOT EXISTS idx_rack_configurations_created_at
       ON rack_configurations(created_at)
     `);
-    console.log('[Migration 014] Recreated indexes');
+    console.log("[Migration 014] Recreated indexes");
 
-    console.log('[Migration 014] Rollback completed');
+    console.log("[Migration 014] Rollback completed");
   } catch (error) {
-    console.error('[Migration 014] Rollback error:', error.message);
+    console.error("[Migration 014] Rollback error:", error.message);
     throw error;
   }
 };

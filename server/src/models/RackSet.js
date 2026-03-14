@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js';
-import { RackConfiguration } from './RackConfiguration.js';
+import { BaseModel } from "./BaseModel.js";
+import { RackConfiguration } from "./RackConfiguration.js";
 
 /**
  * Модель комплекта стеллажей
@@ -21,7 +21,7 @@ export class RackSet extends BaseModel {
   }
 
   static get tableName() {
-    return 'rack_sets';
+    return "rack_sets";
   }
 
   /**
@@ -35,20 +35,20 @@ export class RackSet extends BaseModel {
    */
   static async findById(id, options = {}) {
     const { userId = null, isAdmin = false, includeDeleted = false } = options;
-    
+
     const db = await this.getDb();
-    let query = 'SELECT * FROM rack_sets WHERE id = ?';
+    let query = "SELECT * FROM rack_sets WHERE id = ?";
     const values = [id];
-    
+
     if (!isAdmin && userId) {
-      query += ' AND user_id = ?';
+      query += " AND user_id = ?";
       values.push(userId);
     }
-    
+
     if (!includeDeleted) {
-      query += ' AND (deleted = 0 OR deleted IS NULL)';
+      query += " AND (deleted = 0 OR deleted IS NULL)";
     }
-    
+
     const row = db.prepare(query).get(...values);
     return row ? new RackSet(row) : null;
   }
@@ -63,30 +63,35 @@ export class RackSet extends BaseModel {
    * @returns {Promise<RackSet[]>}
    */
   static async findAll(options = {}) {
-    const { userId = null, isAdmin = false, includeDeleted = false, orderBy = 'created_at DESC' } = options;
-    
+    const {
+      userId = null,
+      isAdmin = false,
+      includeDeleted = false,
+      orderBy = "created_at DESC",
+    } = options;
+
     const db = await this.getDb();
-    let query = 'SELECT * FROM rack_sets';
+    let query = "SELECT * FROM rack_sets";
     const values = [];
     const conditions = [];
-    
+
     if (!isAdmin && userId) {
-      conditions.push('user_id = ?');
+      conditions.push("user_id = ?");
       values.push(userId);
     }
-    
+
     if (!includeDeleted) {
-      conditions.push('(deleted = 0 OR deleted IS NULL)');
+      conditions.push("(deleted = 0 OR deleted IS NULL)");
     }
-    
+
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      query += " WHERE " + conditions.join(" AND ");
     }
-    
-    query += ' ORDER BY ' + orderBy;
-    
+
+    query += " ORDER BY " + orderBy;
+
     const rows = db.prepare(query).all(...values);
-    return rows.map(row => new RackSet(row));
+    return rows.map((row) => new RackSet(row));
   }
 
   /**
@@ -98,20 +103,20 @@ export class RackSet extends BaseModel {
    */
   static async findDeleted(options = {}) {
     const { userId = null, isAdmin = false } = options;
-    
+
     const db = await this.getDb();
-    let query = 'SELECT * FROM rack_sets WHERE deleted = 1';
+    let query = "SELECT * FROM rack_sets WHERE deleted = 1";
     const values = [];
-    
+
     if (!isAdmin && userId) {
-      query += ' AND user_id = ?';
+      query += " AND user_id = ?";
       values.push(userId);
     }
-    
-    query += ' ORDER BY deleted_at DESC';
-    
+
+    query += " ORDER BY deleted_at DESC";
+
     const rows = db.prepare(query).all(...values);
-    return rows.map(row => new RackSet(row));
+    return rows.map((row) => new RackSet(row));
   }
 
   /**
@@ -127,20 +132,24 @@ export class RackSet extends BaseModel {
    */
   static async create(data) {
     const db = await this.getDb();
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO rack_sets 
         (user_id, name, object_name, description, rack_items, total_cost_snapshot)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      data.userId,
-      data.name,
-      data.objectName || null,
-      data.description || null,
-      JSON.stringify(data.rackItems),
-      data.totalCostSnapshot || 0
-    );
-    
+    `,
+      )
+      .run(
+        data.userId,
+        data.name,
+        data.objectName || null,
+        data.description || null,
+        JSON.stringify(data.rackItems),
+        data.totalCostSnapshot || 0,
+      );
+
     return this.findById(result.lastInsertRowid, { isAdmin: true });
   }
 
@@ -151,14 +160,21 @@ export class RackSet extends BaseModel {
    */
   async update(data) {
     const updateData = {};
-    
+
     if (data.name !== undefined) updateData.name = data.name;
     if (data.objectName !== undefined) updateData.object_name = data.objectName;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.rackItems !== undefined) updateData.rack_items = JSON.stringify(data.rackItems);
-    if (data.totalCostSnapshot !== undefined) updateData.total_cost_snapshot = data.totalCostSnapshot;
-    
-    const updated = await BaseModel.update(RackSet.tableName, this.id, updateData);
+    if (data.description !== undefined)
+      updateData.description = data.description;
+    if (data.rackItems !== undefined)
+      updateData.rack_items = JSON.stringify(data.rackItems);
+    if (data.totalCostSnapshot !== undefined)
+      updateData.total_cost_snapshot = data.totalCostSnapshot;
+
+    const updated = await BaseModel.update(
+      RackSet.tableName,
+      this.id,
+      updateData,
+    );
     Object.assign(this, updated);
     return this;
   }
@@ -169,11 +185,13 @@ export class RackSet extends BaseModel {
    */
   async softDelete() {
     const db = await RackSet.getDb();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE rack_sets
       SET deleted = 1, deleted_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(this.id);
+    `,
+    ).run(this.id);
     this.deleted = true;
     this.deletedAt = new Date().toISOString();
   }
@@ -184,11 +202,13 @@ export class RackSet extends BaseModel {
    */
   async restore() {
     const db = await RackSet.getDb();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE rack_sets
       SET deleted = 0, deleted_at = NULL
       WHERE id = ?
-    `).run(this.id);
+    `,
+    ).run(this.id);
     this.deleted = false;
     this.deletedAt = null;
   }
@@ -201,15 +221,19 @@ export class RackSet extends BaseModel {
    */
   async getRacksWithPrices(priceData, user) {
     const racks = [];
-    
+
     for (const item of this.rackItems) {
       const config = await RackConfiguration.findById(item.rackConfigId);
       if (config) {
-        const rackData = await this._calculateRackPrice(config, priceData, user);
+        const rackData = await this._calculateRackPrice(
+          config,
+          priceData,
+          user,
+        );
         racks.push({ ...rackData, quantity: item.quantity });
       }
     }
-    
+
     return racks;
   }
 
@@ -218,9 +242,13 @@ export class RackSet extends BaseModel {
    * @private
    */
   async _calculateRackPrice(config, priceData, user) {
-    const { calculateRackComponents, calculateTotalCost, calculateTotalWithoutIsolators, generateRackName } =
-      await import('../../../shared/rackCalculator.js');
-    
+    const {
+      calculateRackComponents,
+      calculateTotalCost,
+      calculateTotalWithoutIsolators,
+      generateRackName,
+    } = await import("../../../shared/rackCalculator.js");
+
     const rackConfig = {
       floors: config.floors,
       rows: config.rows,
@@ -230,48 +258,48 @@ export class RackSet extends BaseModel {
       spans: config.getSpans(),
       braces: config.braces,
     };
-    
+
     const components = calculateRackComponents(rackConfig, priceData);
     const totalCost = calculateTotalCost(components);
     const totalWithoutIsolators = calculateTotalWithoutIsolators(components);
     const zeroPrice = totalCost * 1.44;
-    
+
     // Фильтрация цен по разрешениям пользователя
     const permissions = user?.permissions || { price_types: [] };
     const prices = [];
-    
-    if (permissions.price_types?.includes('базова')) {
-      prices.push({ 
-        type: 'базова', 
-        label: 'Базова ціна', 
-        value: Math.round(totalCost * 100) / 100 
+
+    if (permissions.price_types?.includes("базова")) {
+      prices.push({
+        type: "базова",
+        label: "Базова ціна",
+        value: Math.round(totalCost * 100) / 100,
       });
     }
-    if (permissions.price_types?.includes('без_ізоляторів')) {
-      prices.push({ 
-        type: 'без_ізоляторів', 
-        label: 'Без ізоляторів', 
-        value: Math.round(totalWithoutIsolators * 100) / 100 
+    if (permissions.price_types?.includes("без_ізоляторів")) {
+      prices.push({
+        type: "без_ізоляторів",
+        label: "Без ізоляторів",
+        value: Math.round(totalWithoutIsolators * 100) / 100,
       });
     }
-    if (permissions.price_types?.includes('нульова')) {
-      prices.push({ 
-        type: 'нульова', 
-        label: 'Нульова ціна', 
-        value: Math.round(zeroPrice * 100) / 100 
+    if (permissions.price_types?.includes("нульова")) {
+      prices.push({
+        type: "нульова",
+        label: "Нульова ціна",
+        value: Math.round(zeroPrice * 100) / 100,
       });
     }
-    
+
     // Основная цена для расчёта
     let mainTotalCost = 0;
-    if (permissions.price_types?.includes('нульова')) {
+    if (permissions.price_types?.includes("нульова")) {
       mainTotalCost = zeroPrice;
-    } else if (permissions.price_types?.includes('без_ізоляторів')) {
+    } else if (permissions.price_types?.includes("без_ізоляторів")) {
       mainTotalCost = totalWithoutIsolators;
-    } else if (permissions.price_types?.includes('базова')) {
+    } else if (permissions.price_types?.includes("базова")) {
       mainTotalCost = totalCost;
     }
-    
+
     return {
       rackConfigId: config.id,
       name: generateRackName(rackConfig),
@@ -291,12 +319,16 @@ export class RackSet extends BaseModel {
     const db = await this.getDb();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    const result = db.prepare(`
+
+    const result = db
+      .prepare(
+        `
       DELETE FROM rack_sets 
       WHERE deleted = 1 AND deleted_at < ?
-    `).run(cutoffDate.toISOString());
-    
+    `,
+      )
+      .run(cutoffDate.toISOString());
+
     return result.changes;
   }
 

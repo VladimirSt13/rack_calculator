@@ -1,12 +1,24 @@
-import { defaultFloorGap, defaultSupportHeight, standardHeights, standardSpans, standardWidths } from './constants';
-import { getClosestLarger, removeDuplicateCombinations } from './utils';
-import { calcRackSpans } from './spanCalculator';
-import { optimizeRacks } from './optimizeRacks';
+import {
+  defaultFloorGap,
+  defaultSupportHeight,
+  standardHeights,
+  standardSpans,
+  standardWidths,
+} from "./constants";
+import { getClosestLarger, removeDuplicateCombinations } from "./utils";
+import { calcRackSpans } from "./spanCalculator";
+import { optimizeRacks } from "./optimizeRacks";
 
 /**
  * Розраховує ширину стелажа
  */
-export const calcRackWidth = ({ elementWidth, rows }: { elementWidth: number; rows: number }): number =>
+export const calcRackWidth = ({
+  elementWidth,
+  rows,
+}: {
+  elementWidth: number;
+  rows: number;
+}): number =>
   getClosestLarger({ value: elementWidth * rows, standards: standardWidths });
 
 /**
@@ -54,7 +66,7 @@ export const buildRackConfig = ({
       accWeight: element.weight,
       gap,
       standardSpans,
-    })
+    }),
   );
 
   return {
@@ -76,7 +88,7 @@ export const generateRackVariants = ({
   gap,
   rows = 1,
   floors = 1,
-  supportType = 'straight',
+  supportType = "straight",
   price = null,
 }: {
   element: { length: number; width: number; height: number; weight: number };
@@ -100,7 +112,7 @@ export const generateRackVariants = ({
     config.length,
     Math.max(...standardSpans.map((s) => s.length)),
     5,
-    price
+    price,
   );
 
   return [

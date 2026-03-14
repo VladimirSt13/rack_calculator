@@ -1,10 +1,13 @@
-import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { rackSetsApi, downloadRackSetExport } from '@/features/rack/rackSetsApi';
-import { toast } from 'sonner';
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  rackSetsApi,
+  downloadRackSetExport,
+} from "@/features/rack/rackSetsApi";
+import { toast } from "sonner";
 
 /**
  * Базовий елемент комплекту для універсального хука
@@ -39,7 +42,9 @@ export interface UseSetModalProps<T extends BaseSetItemWithPrices> {
 export interface UseSetModalReturn {
   form: {
     register: any;
-    handleSubmit: (onSubmit: (data: any) => void) => (e?: React.BaseSyntheticEvent) => void;
+    handleSubmit: (
+      onSubmit: (data: any) => void,
+    ) => (e?: React.BaseSyntheticEvent) => void;
     formState: { errors: Record<string, { message?: string }> };
     reset: (values?: any) => void;
     getValues: () => any;
@@ -58,8 +63,8 @@ export interface UseSetModalReturn {
  * Універсальна схема форми за замовчуванням
  */
 export const defaultSetSchema = z.object({
-  name: z.string().min(1, 'Назва обов\'язкова'),
-  object_name: z.string().min(1, 'Назва об\'єкта обов\'язкова'),
+  name: z.string().min(1, "Назва обов'язкова"),
+  object_name: z.string().min(1, "Назва об'єкта обов'язкова"),
   description: z.string().optional(),
 });
 
@@ -89,15 +94,15 @@ export function useSetModal<T extends BaseSetItemWithPrices>({
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '',
-      object_name: '',
-      description: '',
+      name: "",
+      object_name: "",
+      description: "",
     },
   });
 
   React.useEffect(() => {
     if (isOpen) {
-      reset({ name: '', object_name: '', description: '' });
+      reset({ name: "", object_name: "", description: "" });
       setIncludePrices(false);
     }
   }, [isOpen, reset]);
@@ -105,15 +110,15 @@ export function useSetModal<T extends BaseSetItemWithPrices>({
   const createMutation = useMutation({
     mutationFn: rackSetsApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rackSets'] });
-      queryClient.invalidateQueries({ queryKey: ['myRackSets'] });
-      toast.success('Комплект стелажів збережено');
+      queryClient.invalidateQueries({ queryKey: ["rackSets"] });
+      queryClient.invalidateQueries({ queryKey: ["myRackSets"] });
+      toast.success("Комплект стелажів збережено");
       clearSetStore();
       clearResultsStore();
       onClose();
     },
     onError: (error: Error) => {
-      toast.error((error as any).response?.data?.error || 'Помилка збереження');
+      toast.error((error as any).response?.data?.error || "Помилка збереження");
     },
   });
 
@@ -136,7 +141,7 @@ export function useSetModal<T extends BaseSetItemWithPrices>({
 
   const handleExport = async () => {
     if (racks.length === 0) {
-      toast.error('Немає стелажів для експорту');
+      toast.error("Немає стелажів для експорту");
       return;
     }
 
@@ -152,11 +157,11 @@ export function useSetModal<T extends BaseSetItemWithPrices>({
           object_name: formData.object_name,
           description: formData.description,
         },
-        includePrices
+        includePrices,
       );
-      toast.success('Експорт виконано успішно');
+      toast.success("Експорт виконано успішно");
     } catch (error) {
-      toast.error((error as any).response?.data?.error || 'Помилка експорту');
+      toast.error((error as any).response?.data?.error || "Помилка експорту");
     } finally {
       setIsExporting(false);
     }
@@ -166,7 +171,7 @@ export function useSetModal<T extends BaseSetItemWithPrices>({
     return racks.reduce((sum, rack) => {
       const price = getPriceForTotal(rack);
       const quantity = rack.quantity || 1;
-      return sum + (price * quantity);
+      return sum + price * quantity;
     }, 0);
   }, [racks, getPriceForTotal]);
 

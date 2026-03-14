@@ -1,37 +1,39 @@
-import React, { memo, useCallback, ChangeEvent } from 'react';
-import { cn } from '@/lib/utils';
-import { FieldRow } from './FieldRow';
+import React, { memo, useCallback, ChangeEvent } from "react";
+import { cn } from "@/lib/utils";
+import { FieldRow } from "./FieldRow";
 
 /**
  * Спільний хук для обробки числових полів
  */
-function useNumberInput(
-  onChange: (value: number) => void
-) {
-  return useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const num = Number(e.target.value);
-    if (!isNaN(num)) {
-      onChange(num);
-    }
-  }, [onChange]);
+function useNumberInput(onChange: (value: number) => void) {
+  return useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const num = Number(e.target.value);
+      if (!isNaN(num)) {
+        onChange(num);
+      }
+    },
+    [onChange],
+  );
 }
 
 /**
  * Спільні стилі для input полів
  */
 const inputBaseStyles = cn(
-  'h-10 px-3 text-sm font-mono',
-  'border border-input rounded-md bg-background',
-  'hover:border-muted-foreground/50',
-  'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
-  'transition-colors',
-  'disabled:opacity-50 disabled:cursor-not-allowed',
+  "h-10 px-3 text-sm font-mono",
+  "border border-input rounded-md bg-background",
+  "hover:border-muted-foreground/50",
+  "focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none",
+  "transition-colors",
+  "disabled:opacity-50 disabled:cursor-not-allowed",
   // Keep spinners visible but ensure they don't affect width calculation
-  '[&::-webkit-inner-spin-button]:ml-1',
-  'appearance-auto'
+  "[&::-webkit-inner-spin-button]:ml-1",
+  "appearance-auto",
 );
 
-const inputErrorStyles = 'border-destructive focus:border-destructive focus:ring-destructive/10';
+const inputErrorStyles =
+  "border-destructive focus:border-destructive focus:ring-destructive/10";
 
 /**
  * NumberField - поле для числових значень з одиницею виміру
@@ -56,64 +58,84 @@ export interface NumberFieldProps {
   description?: string;
 }
 
-export const NumberField: React.FC<NumberFieldProps> = memo(({
-  label,
-  id,
-  value,
-  onChange,
-  unit,
-  min,
-  max,
-  placeholder,
-  required,
-  inputWidth = '9ch',
-  className,
-  disabled = false,
-  error,
-  description,
-}) => {
-  const handleChange = useNumberInput(onChange);
+export const NumberField: React.FC<NumberFieldProps> = memo(
+  ({
+    label,
+    id,
+    value,
+    onChange,
+    unit,
+    min,
+    max,
+    placeholder,
+    required,
+    inputWidth = "9ch",
+    className,
+    disabled = false,
+    error,
+    description,
+  }) => {
+    const handleChange = useNumberInput(onChange);
 
-  return (
-    <FieldRow label={label} htmlFor={id} required={required}>
-      <div className='flex items-center gap-2'>
-        <input
-          id={id}
-          type='number'
-          min={min}
-          max={max ?? 999}
-          placeholder={placeholder}
-          value={value}
-          onChange={handleChange}
-          disabled={disabled}
-          aria-invalid={!!error}
-          aria-describedby={error ? `${id}-error` : description ? `${id}-description` : undefined}
-          className={cn(
-            inputBaseStyles,
-            error && inputErrorStyles,
-            className,
+    return (
+      <FieldRow label={label} htmlFor={id} required={required}>
+        <div className="flex items-center gap-2">
+          <input
+            id={id}
+            type="number"
+            min={min}
+            max={max ?? 999}
+            placeholder={placeholder}
+            value={value}
+            onChange={handleChange}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={
+              error
+                ? `${id}-error`
+                : description
+                  ? `${id}-description`
+                  : undefined
+            }
+            className={cn(
+              inputBaseStyles,
+              error && inputErrorStyles,
+              className,
+            )}
+            style={{ width: inputWidth }}
+          />
+          {unit && (
+            <span
+              className="text-xs text-muted-foreground whitespace-nowrap"
+              aria-hidden="true"
+            >
+              {unit}
+            </span>
           )}
-          style={{ width: inputWidth }}
-        />
-        {unit && (
-          <span className='text-xs text-muted-foreground whitespace-nowrap' aria-hidden='true'>{unit}</span>
+        </div>
+        {description && !error && (
+          <span
+            id={`${id}-description`}
+            className="text-xs text-muted-foreground mt-1 block"
+          >
+            {description}
+          </span>
         )}
-      </div>
-      {description && !error && (
-        <span id={`${id}-description`} className='text-xs text-muted-foreground mt-1 block'>
-          {description}
-        </span>
-      )}
-      {error && (
-        <span id={`${id}-error`} className='text-xs text-destructive mt-1 block' role='alert'>
-          {error}
-        </span>
-      )}
-    </FieldRow>
-  );
-});
+        {error && (
+          <span
+            id={`${id}-error`}
+            className="text-xs text-destructive mt-1 block"
+            role="alert"
+          >
+            {error}
+          </span>
+        )}
+      </FieldRow>
+    );
+  },
+);
 
-NumberField.displayName = 'NumberField';
+NumberField.displayName = "NumberField";
 
 /**
  * SelectField - поле для select з опціями
@@ -134,66 +156,84 @@ export interface SelectFieldProps {
   description?: string;
 }
 
-export const SelectField: React.FC<SelectFieldProps> = memo(({
-  label,
-  id,
-  value,
-  onChange,
-  options,
-  required,
-  disabled = false,
-  className,
-  error,
-  description,
-}) => {
-  const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-    onChange(e.target.value);
-  }, [onChange]);
+export const SelectField: React.FC<SelectFieldProps> = memo(
+  ({
+    label,
+    id,
+    value,
+    onChange,
+    options,
+    required,
+    disabled = false,
+    className,
+    error,
+    description,
+  }) => {
+    const handleChange = useCallback(
+      (e: ChangeEvent<HTMLSelectElement>) => {
+        onChange(e.target.value);
+      },
+      [onChange],
+    );
 
-  return (
-    <FieldRow label={label} htmlFor={id} required={required}>
-      <select
-        id={id}
-        value={value}
-        onChange={handleChange}
-        disabled={disabled}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${id}-error` : description ? `${id}-description` : undefined}
-        className={cn(
-          'h-10 px-3 pr-10 text-sm',
-          'border border-input rounded-md bg-background',
-          'hover:border-muted-foreground/50',
-          'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
-          'transition-colors cursor-pointer',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
-          'appearance-none',
-          "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]",
-          'bg-no-repeat bg-right bg-[length:16px_16px] bg-[right_8px_center]',
-          error && inputErrorStyles,
-          className,
+    return (
+      <FieldRow label={label} htmlFor={id} required={required}>
+        <select
+          id={id}
+          value={value}
+          onChange={handleChange}
+          disabled={disabled}
+          aria-invalid={!!error}
+          aria-describedby={
+            error
+              ? `${id}-error`
+              : description
+                ? `${id}-description`
+                : undefined
+          }
+          className={cn(
+            "h-10 px-3 pr-10 text-sm",
+            "border border-input rounded-md bg-background",
+            "hover:border-muted-foreground/50",
+            "focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none",
+            "transition-colors cursor-pointer",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "appearance-none",
+            "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]",
+            "bg-no-repeat bg-right bg-[length:16px_16px] bg-[right_8px_center]",
+            error && inputErrorStyles,
+            className,
+          )}
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        {description && !error && (
+          <span
+            id={`${id}-description`}
+            className="text-xs text-muted-foreground mt-1 block"
+          >
+            {description}
+          </span>
         )}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      {description && !error && (
-        <span id={`${id}-description`} className='text-xs text-muted-foreground mt-1 block'>
-          {description}
-        </span>
-      )}
-      {error && (
-        <span id={`${id}-error`} className='text-xs text-destructive mt-1 block' role='alert'>
-          {error}
-        </span>
-      )}
-    </FieldRow>
-  );
-});
+        {error && (
+          <span
+            id={`${id}-error`}
+            className="text-xs text-destructive mt-1 block"
+            role="alert"
+          >
+            {error}
+          </span>
+        )}
+      </FieldRow>
+    );
+  },
+);
 
-SelectField.displayName = 'SelectField';
+SelectField.displayName = "SelectField";
 
 /**
  * LengthWithGapField - поле для довжини з допуском (Δ)
@@ -213,101 +253,127 @@ export interface LengthWithGapFieldProps {
   gapError?: string;
 }
 
-export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(({
-  label,
-  id,
-  value,
-  onChange,
-  gapValue,
-  onGapChange,
-  placeholder,
-  required,
-  error,
-  gapError,
-}) => {
-  const gapId = `${id}-gap`;
+export const LengthWithGapField: React.FC<LengthWithGapFieldProps> = memo(
+  ({
+    label,
+    id,
+    value,
+    onChange,
+    gapValue,
+    onGapChange,
+    placeholder,
+    required,
+    error,
+    gapError,
+  }) => {
+    const gapId = `${id}-gap`;
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const num = Number(e.target.value);
-    if (!isNaN(num)) {
-      onChange(Math.min(num, 999));
-    }
-  }, [onChange]);
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const num = Number(e.target.value);
+        if (!isNaN(num)) {
+          onChange(Math.min(num, 999));
+        }
+      },
+      [onChange],
+    );
 
-  const handleGapChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const num = Number(e.target.value);
-    if (!isNaN(num)) {
-      onGapChange(Math.min(num, 99));
-    }
-  }, [onGapChange]);
+    const handleGapChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const num = Number(e.target.value);
+        if (!isNaN(num)) {
+          onGapChange(Math.min(num, 99));
+        }
+      },
+      [onGapChange],
+    );
 
-  return (
-    <FieldRow label={label} htmlFor={id} required={required}>
-      <div className='flex items-baseline gap-2 flex-nowrap py-1'>
-        <input
-          id={id}
-          type='number'
-          placeholder={placeholder}
-          value={value}
-          onChange={handleChange}
-          aria-invalid={!!error}
-          aria-describedby={error ? `${id}-error` : undefined}
-          className={cn(
-            'h-10 px-3 text-sm font-mono',
-            'border border-input rounded-md bg-background',
-            'hover:border-muted-foreground/50',
-            'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
-            'transition-colors',
-            error && 'border-destructive focus:border-destructive focus:ring-destructive/10',
-          )}
-          style={{ width: '8ch' }}
-          max={999}
-        />
-        <span className='text-muted-foreground text-sm pb-1 flex-shrink-0' aria-hidden='true'>+</span>
-        <div className='relative flex-shrink-0'>
-          <span className='absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-muted-foreground leading-none pointer-events-none z-10' aria-hidden='true'>
-            Δ
-          </span>
+    return (
+      <FieldRow label={label} htmlFor={id} required={required}>
+        <div className="flex items-baseline gap-2 flex-nowrap py-1">
           <input
-            id={gapId}
-            type='number'
-            placeholder='0'
-            value={gapValue}
-            onChange={handleGapChange}
-            aria-invalid={!!gapError}
-            aria-describedby={gapError ? `${gapId}-error` : undefined}
+            id={id}
+            type="number"
+            placeholder={placeholder}
+            value={value}
+            onChange={handleChange}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${id}-error` : undefined}
             className={cn(
-              'h-10 px-3 text-center text-sm font-mono pt-4',
-              'border border-input rounded-md bg-background',
-              'hover:border-muted-foreground/50',
-              'focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none',
-              'transition-colors',
-              gapError && 'border-destructive focus:border-destructive focus:ring-destructive/10',
+              "h-10 px-3 text-sm font-mono",
+              "border border-input rounded-md bg-background",
+              "hover:border-muted-foreground/50",
+              "focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none",
+              "transition-colors",
+              error &&
+                "border-destructive focus:border-destructive focus:ring-destructive/10",
             )}
-            style={{ width: '7ch' }}
-            max={99}
+            style={{ width: "8ch" }}
+            max={999}
           />
-        </div>
-      </div>
-      {(error || gapError) && (
-        <div className='space-y-1 mt-1'>
-          {error && (
-            <span id={`${id}-error`} className='text-xs text-destructive block' role='alert'>
-              {error}
+          <span
+            className="text-muted-foreground text-sm pb-1 flex-shrink-0"
+            aria-hidden="true"
+          >
+            +
+          </span>
+          <div className="relative flex-shrink-0">
+            <span
+              className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-muted-foreground leading-none pointer-events-none z-10"
+              aria-hidden="true"
+            >
+              Δ
             </span>
-          )}
-          {gapError && (
-            <span id={`${gapId}-error`} className='text-xs text-destructive block' role='alert'>
-              {gapError}
-            </span>
-          )}
+            <input
+              id={gapId}
+              type="number"
+              placeholder="0"
+              value={gapValue}
+              onChange={handleGapChange}
+              aria-invalid={!!gapError}
+              aria-describedby={gapError ? `${gapId}-error` : undefined}
+              className={cn(
+                "h-10 px-3 text-center text-sm font-mono pt-4",
+                "border border-input rounded-md bg-background",
+                "hover:border-muted-foreground/50",
+                "focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none",
+                "transition-colors",
+                gapError &&
+                  "border-destructive focus:border-destructive focus:ring-destructive/10",
+              )}
+              style={{ width: "7ch" }}
+              max={99}
+            />
+          </div>
         </div>
-      )}
-    </FieldRow>
-  );
-});
+        {(error || gapError) && (
+          <div className="space-y-1 mt-1">
+            {error && (
+              <span
+                id={`${id}-error`}
+                className="text-xs text-destructive block"
+                role="alert"
+              >
+                {error}
+              </span>
+            )}
+            {gapError && (
+              <span
+                id={`${gapId}-error`}
+                className="text-xs text-destructive block"
+                role="alert"
+              >
+                {gapError}
+              </span>
+            )}
+          </div>
+        )}
+      </FieldRow>
+    );
+  },
+);
 
-LengthWithGapField.displayName = 'LengthWithGapField';
+LengthWithGapField.displayName = "LengthWithGapField";
 
 /**
  * TextField - універсальне текстове поле
@@ -320,7 +386,7 @@ export interface TextFieldProps {
   id: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'search';
+  type?: "text" | "email" | "password" | "tel" | "url" | "search";
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
@@ -330,55 +396,73 @@ export interface TextFieldProps {
   autoComplete?: string;
 }
 
-export const TextField: React.FC<TextFieldProps> = memo(({
-  label,
-  id,
-  value,
-  onChange,
-  type = 'text',
-  placeholder,
-  required,
-  disabled = false,
-  className,
-  error,
-  description,
-  autoComplete,
-}) => {
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  }, [onChange]);
+export const TextField: React.FC<TextFieldProps> = memo(
+  ({
+    label,
+    id,
+    value,
+    onChange,
+    type = "text",
+    placeholder,
+    required,
+    disabled = false,
+    className,
+    error,
+    description,
+    autoComplete,
+  }) => {
+    const handleChange = useCallback(
+      (e: ChangeEvent<HTMLInputElement>) => {
+        onChange(e.target.value);
+      },
+      [onChange],
+    );
 
-  return (
-    <FieldRow label={label} htmlFor={id} required={required}>
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${id}-error` : description ? `${id}-description` : undefined}
-        className={cn(
-          inputBaseStyles,
-          'w-full',
-          error && inputErrorStyles,
-          className,
+    return (
+      <FieldRow label={label} htmlFor={id} required={required}>
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={handleChange}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          aria-invalid={!!error}
+          aria-describedby={
+            error
+              ? `${id}-error`
+              : description
+                ? `${id}-description`
+                : undefined
+          }
+          className={cn(
+            inputBaseStyles,
+            "w-full",
+            error && inputErrorStyles,
+            className,
+          )}
+        />
+        {description && !error && (
+          <span
+            id={`${id}-description`}
+            className="text-xs text-muted-foreground mt-1 block"
+          >
+            {description}
+          </span>
         )}
-      />
-      {description && !error && (
-        <span id={`${id}-description`} className='text-xs text-muted-foreground mt-1 block'>
-          {description}
-        </span>
-      )}
-      {error && (
-        <span id={`${id}-error`} className='text-xs text-destructive mt-1 block' role='alert'>
-          {error}
-        </span>
-      )}
-    </FieldRow>
-  );
-});
+        {error && (
+          <span
+            id={`${id}-error`}
+            className="text-xs text-destructive mt-1 block"
+            role="alert"
+          >
+            {error}
+          </span>
+        )}
+      </FieldRow>
+    );
+  },
+);
 
-TextField.displayName = 'TextField';
+TextField.displayName = "TextField";

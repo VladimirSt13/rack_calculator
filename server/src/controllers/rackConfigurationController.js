@@ -1,4 +1,4 @@
-import * as rackConfigurationService from '../services/rackConfigurationService.js';
+import * as rackConfigurationService from "../services/rackConfigurationService.js";
 
 /**
  * POST /api/rack-configurations/find-or-create
@@ -8,11 +8,15 @@ export const findOrCreateConfiguration = async (req, res, next) => {
   try {
     const config = req.body;
 
-    const result = await rackConfigurationService.findOrCreateConfigurationWithPrices(config, req.user);
+    const result =
+      await rackConfigurationService.findOrCreateConfigurationWithPrices(
+        config,
+        req.user,
+      );
 
     res.json(result);
   } catch (error) {
-    if (error.message === 'Price data not found') {
+    if (error.message === "Price data not found") {
       return res.status(404).json({ error: error.message });
     }
     next(error);
@@ -30,7 +34,7 @@ export const getConfigurationById = async (req, res, next) => {
     const config = await rackConfigurationService.getConfigurationById(id);
 
     if (!config) {
-      return res.status(404).json({ error: 'Configuration not found' });
+      return res.status(404).json({ error: "Configuration not found" });
     }
 
     res.json({ configuration: config });
@@ -48,17 +52,22 @@ export const calculatePricesForConfiguration = async (req, res, next) => {
     const { id } = req.params;
     const { quantity = 1 } = req.body;
 
-    const result = await rackConfigurationService.calculatePricesForConfiguration(id, req.user, quantity);
+    const result =
+      await rackConfigurationService.calculatePricesForConfiguration(
+        id,
+        req.user,
+        quantity,
+      );
 
     res.json({
       ...result,
       calculated_at: new Date().toISOString(),
     });
   } catch (error) {
-    if (error.message === 'Configuration not found') {
+    if (error.message === "Configuration not found") {
       return res.status(404).json({ error: error.message });
     }
-    if (error.message === 'Price data not found') {
+    if (error.message === "Price data not found") {
       return res.status(404).json({ error: error.message });
     }
     next(error);

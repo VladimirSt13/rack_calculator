@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/features/auth/authStore';
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/features/auth/authStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/shared/components/DropdownMenu';
-import { User, LogOut, Package, Shield } from 'lucide-react';
+} from "@/shared/components/DropdownMenu";
+import { User, LogOut, Package, Shield } from "lucide-react";
 
 export const UserMenu: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export const UserMenu: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
     setOpen(false);
   };
 
@@ -33,7 +33,7 @@ export const UserMenu: React.FC = () => {
         >
           <User className="w-5 h-5" />
           <span className="hidden sm:inline-block text-sm font-medium">
-            {user.email.split('@')[0]}
+            {user.email.split("@")[0]}
           </span>
         </button>
       </DropdownMenuTrigger>
@@ -41,17 +41,19 @@ export const UserMenu: React.FC = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium">{user.email}</p>
-            {user.role === 'admin' && (
-              <span className="text-xs text-muted-foreground">Адміністратор</span>
+            {user.role === "admin" && (
+              <span className="text-xs text-muted-foreground">
+                Адміністратор
+              </span>
             )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {/* Загальні налаштування */}
         <DropdownMenuItem
           onClick={() => {
-            navigate('/profile');
+            navigate("/profile");
             setOpen(false);
           }}
           className="cursor-pointer"
@@ -61,10 +63,10 @@ export const UserMenu: React.FC = () => {
         </DropdownMenuItem>
 
         {/* Адмін-панель (тільки для admin) */}
-        {user.role === 'admin' && (
+        {user.role === "admin" && (
           <DropdownMenuItem
             onClick={() => {
-              navigate('/admin');
+              navigate("/admin");
               setOpen(false);
             }}
             className="cursor-pointer"
@@ -77,7 +79,7 @@ export const UserMenu: React.FC = () => {
         {/* Збережені комплекти */}
         <DropdownMenuItem
           onClick={() => {
-            navigate('/my-sets');
+            navigate("/my-sets");
             setOpen(false);
           }}
           className="cursor-pointer"

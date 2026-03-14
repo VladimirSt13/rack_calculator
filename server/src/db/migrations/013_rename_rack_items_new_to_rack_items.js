@@ -10,7 +10,7 @@
  */
 
 export const up = (db) => {
-  console.log('[Migration 013] Renaming rack_items_new to rack_items...');
+  console.log("[Migration 013] Renaming rack_items_new to rack_items...");
 
   try {
     // Створення тимчасової таблиці з новою назвою колонки
@@ -28,7 +28,7 @@ export const up = (db) => {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
-    console.log('[Migration 013] Created rack_sets_new table');
+    console.log("[Migration 013] Created rack_sets_new table");
 
     // Перенести дані з rack_sets в rack_sets_new
     db.exec(`
@@ -36,15 +36,15 @@ export const up = (db) => {
       SELECT id, user_id, name, object_name, description, rack_items_new, total_cost_snapshot, created_at, updated_at
       FROM rack_sets
     `);
-    console.log('[Migration 013] Migrated data to rack_sets_new');
+    console.log("[Migration 013] Migrated data to rack_sets_new");
 
     // Видалити стару таблицю
-    db.exec('DROP TABLE rack_sets');
-    console.log('[Migration 013] Dropped old rack_sets table');
+    db.exec("DROP TABLE rack_sets");
+    console.log("[Migration 013] Dropped old rack_sets table");
 
     // Перейменувати нову таблицю
-    db.exec('ALTER TABLE rack_sets_new RENAME TO rack_sets');
-    console.log('[Migration 013] Renamed rack_sets_new to rack_sets');
+    db.exec("ALTER TABLE rack_sets_new RENAME TO rack_sets");
+    console.log("[Migration 013] Renamed rack_sets_new to rack_sets");
 
     // Відновити індекси
     db.exec(`
@@ -53,7 +53,7 @@ export const up = (db) => {
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_rack_sets_created_at ON rack_sets(created_at)
     `);
-    console.log('[Migration 013] Recreated indexes');
+    console.log("[Migration 013] Recreated indexes");
 
     // Відновити тригер для updated_at
     db.exec(`
@@ -63,17 +63,17 @@ export const up = (db) => {
         UPDATE rack_sets SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
       END
     `);
-    console.log('[Migration 013] Recreated trigger for updated_at');
+    console.log("[Migration 013] Recreated trigger for updated_at");
 
-    console.log('[Migration 013] Completed successfully');
+    console.log("[Migration 013] Completed successfully");
   } catch (error) {
-    console.error('[Migration 013] Error:', error.message);
+    console.error("[Migration 013] Error:", error.message);
     throw error;
   }
 };
 
 export const down = (db) => {
-  console.log('[Migration 013] Rolling back...');
+  console.log("[Migration 013] Rolling back...");
 
   try {
     // Створення тимчасової таблиці зі старою назвою колонки
@@ -91,7 +91,7 @@ export const down = (db) => {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
-    console.log('[Migration 013] Created rack_sets_new table for rollback');
+    console.log("[Migration 013] Created rack_sets_new table for rollback");
 
     // Перенести дані назад
     db.exec(`
@@ -99,15 +99,15 @@ export const down = (db) => {
       SELECT id, user_id, name, object_name, description, rack_items, total_cost_snapshot, created_at, updated_at
       FROM rack_sets
     `);
-    console.log('[Migration 013] Migrated data back');
+    console.log("[Migration 013] Migrated data back");
 
     // Видалити нову таблицю
-    db.exec('DROP TABLE rack_sets');
-    console.log('[Migration 013] Dropped rack_sets table');
+    db.exec("DROP TABLE rack_sets");
+    console.log("[Migration 013] Dropped rack_sets table");
 
     // Перейменувати нову таблицю
-    db.exec('ALTER TABLE rack_sets_new RENAME TO rack_sets');
-    console.log('[Migration 013] Renamed rack_sets_new to rack_sets');
+    db.exec("ALTER TABLE rack_sets_new RENAME TO rack_sets");
+    console.log("[Migration 013] Renamed rack_sets_new to rack_sets");
 
     // Відновити індекси
     db.exec(`
@@ -116,7 +116,7 @@ export const down = (db) => {
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_rack_sets_created_at ON rack_sets(created_at)
     `);
-    console.log('[Migration 013] Recreated indexes');
+    console.log("[Migration 013] Recreated indexes");
 
     // Відновити тригер для updated_at
     db.exec(`
@@ -126,11 +126,11 @@ export const down = (db) => {
         UPDATE rack_sets SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
       END
     `);
-    console.log('[Migration 013] Recreated trigger for updated_at');
+    console.log("[Migration 013] Recreated trigger for updated_at");
 
-    console.log('[Migration 013] Rollback completed');
+    console.log("[Migration 013] Rollback completed");
   } catch (error) {
-    console.error('[Migration 013] Rollback error:', error.message);
+    console.error("[Migration 013] Rollback error:", error.message);
     throw error;
   }
 };

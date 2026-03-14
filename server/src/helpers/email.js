@@ -1,13 +1,13 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 /**
  * Створення транспорту для відправки email
  */
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
     port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true для 465, false для інших портів
+    secure: process.env.SMTP_SECURE === "true", // true для 465, false для інших портів
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -23,19 +23,22 @@ const createTransporter = () => {
 export const sendVerificationEmail = async (email, token) => {
   // Якщо SMTP не налаштовано - просто логіруємо токен (для розробки)
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log('[Email] Verification token (dev mode):', token);
-    console.log('[Email] Verification link (dev mode):', `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`);
-    return { message: 'Email sent (dev mode - check console)' };
+    console.log("[Email] Verification token (dev mode):", token);
+    console.log(
+      "[Email] Verification link (dev mode):",
+      `${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-email?token=${token}`,
+    );
+    return { message: "Email sent (dev mode - check console)" };
   }
 
   const transporter = createTransporter();
-  
-  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
-  
+
+  const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-email?token=${token}`;
+
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM || 'Rack Calculator'}" <${process.env.SMTP_USER}>`,
+    from: `"${process.env.EMAIL_FROM || "Rack Calculator"}" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Підтвердження реєстрації - Rack Calculator',
+    subject: "Підтвердження реєстрації - Rack Calculator",
     html: `
       <!DOCTYPE html>
       <html>
@@ -94,16 +97,16 @@ export const sendVerificationEmail = async (email, token) => {
       Якщо ви не реєструвалися в системі, просто проігноруйте цей лист.
       
       © ${new Date().getFullYear()} Rack Calculator
-    `
+    `,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('[Email] Verification email sent:', info.messageId);
+    console.log("[Email] Verification email sent:", info.messageId);
     return { messageId: info.messageId };
   } catch (error) {
-    console.error('[Email] Failed to send verification email:', error);
-    throw new Error('Failed to send verification email');
+    console.error("[Email] Failed to send verification email:", error);
+    throw new Error("Failed to send verification email");
   }
 };
 
@@ -114,18 +117,18 @@ export const sendVerificationEmail = async (email, token) => {
  */
 export const sendPasswordResetEmail = async (email, token) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log('[Email] Password reset token (dev mode):', token);
-    return { message: 'Email sent (dev mode - check console)' };
+    console.log("[Email] Password reset token (dev mode):", token);
+    return { message: "Email sent (dev mode - check console)" };
   }
 
   const transporter = createTransporter();
-  
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
-  
+
+  const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM || 'Rack Calculator'}" <${process.env.SMTP_USER}>`,
+    from: `"${process.env.EMAIL_FROM || "Rack Calculator"}" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Скидання пароля - Rack Calculator',
+    subject: "Скидання пароля - Rack Calculator",
     html: `
       <!DOCTYPE html>
       <html>
@@ -155,16 +158,16 @@ export const sendPasswordResetEmail = async (email, token) => {
           </div>
         </body>
       </html>
-    `
+    `,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('[Email] Password reset email sent:', info.messageId);
+    console.log("[Email] Password reset email sent:", info.messageId);
     return { messageId: info.messageId };
   } catch (error) {
-    console.error('[Email] Failed to send password reset email:', error);
-    throw new Error('Failed to send password reset email');
+    console.error("[Email] Failed to send password reset email:", error);
+    throw new Error("Failed to send password reset email");
   }
 };
 
@@ -175,18 +178,18 @@ export const sendPasswordResetEmail = async (email, token) => {
  */
 export const sendInvitationEmail = async (email, tempPassword) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log('[Email] Invitation (dev mode):', { email, tempPassword });
-    return { message: 'Email sent (dev mode - check console)' };
+    console.log("[Email] Invitation (dev mode):", { email, tempPassword });
+    return { message: "Email sent (dev mode - check console)" };
   }
 
   const transporter = createTransporter();
-  
-  const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`;
-  
+
+  const loginUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/login`;
+
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM || 'Rack Calculator'}" <${process.env.SMTP_USER}>`,
+    from: `"${process.env.EMAIL_FROM || "Rack Calculator"}" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Запрошення до Rack Calculator',
+    subject: "Запрошення до Rack Calculator",
     html: `
       <!DOCTYPE html>
       <html>
@@ -225,16 +228,16 @@ export const sendInvitationEmail = async (email, tempPassword) => {
           </div>
         </body>
       </html>
-    `
+    `,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('[Email] Invitation email sent:', info.messageId);
+    console.log("[Email] Invitation email sent:", info.messageId);
     return { messageId: info.messageId };
   } catch (error) {
-    console.error('[Email] Failed to send invitation email:', error);
-    throw new Error('Failed to send invitation email');
+    console.error("[Email] Failed to send invitation email:", error);
+    throw new Error("Failed to send invitation email");
   }
 };
 

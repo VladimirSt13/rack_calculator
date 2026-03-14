@@ -1,11 +1,11 @@
-import { useCallback, useState } from 'react';
-import { rackApi } from './rackApi';
-import { useRackFormStore } from './formStore';
-import { useRackSpansStore } from './spansStore';
-import { useRackResultsStore } from './resultsStore';
-import { CalculationLifecycleStatus } from '@/shared/layout';
-import type { SpanItem } from '@rack-calculator/shared';
-import { logger } from '@/lib/logger';
+import { useCallback, useState } from "react";
+import { rackApi } from "./rackApi";
+import { useRackFormStore } from "./formStore";
+import { useRackSpansStore } from "./spansStore";
+import { useRackResultsStore } from "./resultsStore";
+import { CalculationLifecycleStatus } from "@/shared/layout";
+import type { SpanItem } from "@rack-calculator/shared";
+import { logger } from "@/lib/logger";
 
 /**
  * Hook для розрахунку стелажа
@@ -19,34 +19,45 @@ export const useRackCalculator = () => {
   const formState = useRackFormStore();
   const spansState = useRackSpansStore();
   const resultsStore = useRackResultsStore();
-  const [calculationState, setCalculationState] = useState<CalculationLifecycleStatus>('idle');
+  const [calculationState, setCalculationState] =
+    useState<CalculationLifecycleStatus>("idle");
 
   const calculate = useCallback(async () => {
     // Validation
-    if (!formState.supports || !formState.rows || !formState.floors || !formState.beamsPerRow) {
+    if (
+      !formState.supports ||
+      !formState.rows ||
+      !formState.floors ||
+      !formState.beamsPerRow
+    ) {
       resultsStore.setError("Заповніть всі обов'язкові поля");
-      setCalculationState('idle');
+      setCalculationState("idle");
       return;
     }
 
-    if (spansState.spans.length === 0 || !spansState.spans.some((s: SpanItem) => s.item && s.quantity > 0)) {
-      resultsStore.setError('Додайте хоча б один проліт');
-      setCalculationState('idle');
+    if (
+      spansState.spans.length === 0 ||
+      !spansState.spans.some((s: SpanItem) => s.item && s.quantity > 0)
+    ) {
+      resultsStore.setError("Додайте хоча б один проліт");
+      setCalculationState("idle");
       return;
     }
 
     if (formState.floors > 1 && !formState.verticalSupports) {
-      resultsStore.setError('Оберіть вертикальну опору');
-      setCalculationState('idle');
+      resultsStore.setError("Оберіть вертикальну опору");
+      setCalculationState("idle");
       return;
     }
 
     resultsStore.setLoading(true);
-    setCalculationState('calculating');
+    setCalculationState("calculating");
 
     try {
       // Prepare data for API
-      const validSpans = spansState.spans.filter((s: SpanItem) => s.item && s.quantity > 0);
+      const validSpans = spansState.spans.filter(
+        (s: SpanItem) => s.item && s.quantity > 0,
+      );
 
       const rackConfig = {
         floors: formState.floors,
@@ -65,7 +76,7 @@ export const useRackCalculator = () => {
 
       const result = {
         name: response.name,
-        tableHtml: '', // Will be generated in component
+        tableHtml: "", // Will be generated in component
         components: response.components,
         prices: response.prices, // Зберігаємо всі ціни (3 типи)
         total: response.totalCost,
@@ -83,13 +94,14 @@ export const useRackCalculator = () => {
       };
 
       resultsStore.setResult(result);
-      setCalculationState('ready');
+      setCalculationState("ready");
     } catch (error) {
-      logger.error('[RackCalculator] Error:', error);
+      logger.error("[RackCalculator] Error:", error);
       resultsStore.setError(
-        (error as { response?: { data?: { error?: string } } }).response?.data?.error || 'Помилка розрахунку',
+        (error as { response?: { data?: { error?: string } } }).response?.data
+          ?.error || "Помилка розрахунку",
       );
-      setCalculationState('idle');
+      setCalculationState("idle");
     }
   }, [formState, spansState.spans, resultsStore]);
 

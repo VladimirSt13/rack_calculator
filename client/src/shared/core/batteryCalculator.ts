@@ -4,7 +4,7 @@
  * Всі розрахунки виконуються на сервері
  */
 
-import type { RackComponents, PriceData } from './rackCalculator';
+import type { RackComponents, PriceData } from "./rackCalculator";
 
 /**
  * Конфігурація стелажа для battery
@@ -27,7 +27,7 @@ export interface BatteryCalculationResult {
   name: string;
   components: RackComponents;
   prices: Array<{
-    type: 'базова' | 'без_ізоляторів' | 'нульова';
+    type: "базова" | "без_ізоляторів" | "нульова";
     label: string;
     value: number;
   }>;

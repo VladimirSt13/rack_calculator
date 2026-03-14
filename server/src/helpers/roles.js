@@ -3,8 +3,13 @@
  * Використовує константи з @/core/constants/roles
  */
 
-import { USER_ROLES, PRICE_TYPES, ROLE_PERMISSIONS, ROLE_PRICE_TYPES } from '../core/constants/roles.js';
-import { getDb } from '../db/index.js';
+import {
+  USER_ROLES,
+  PRICE_TYPES,
+  ROLE_PERMISSIONS,
+  ROLE_PRICE_TYPES,
+} from "../core/constants/roles.js";
+import { getDb } from "../db/index.js";
 
 export { USER_ROLES, PRICE_TYPES, ROLE_PERMISSIONS, ROLE_PRICE_TYPES };
 
@@ -21,30 +26,38 @@ export const getUserPermissions = async (user) => {
     const db = await getDb();
 
     // Спочатку пробуємо отримати з таблиці users
-    const userData = db.prepare('SELECT permissions FROM users WHERE id = ?').get(user.userId || user.id);
+    const userData = db
+      .prepare("SELECT permissions FROM users WHERE id = ?")
+      .get(user.userId || user.id);
 
     if (userData && userData.permissions) {
-      return typeof userData.permissions === 'string'
+      return typeof userData.permissions === "string"
         ? JSON.parse(userData.permissions)
         : userData.permissions;
     }
 
     // Якщо немає в users, отримуємо з role_price_types
-    const role = db.prepare('SELECT id FROM roles WHERE name = ?').get(user.role);
+    const role = db
+      .prepare("SELECT id FROM roles WHERE name = ?")
+      .get(user.role);
 
     if (!role) {
       return { price_types: [] };
     }
 
-    const priceTypes = db.prepare(`
+    const priceTypes = db
+      .prepare(
+        `
       SELECT price_type FROM role_price_types WHERE role_id = ?
-    `).all(role.id);
+    `,
+      )
+      .all(role.id);
 
     return {
-      price_types: priceTypes.map(pt => pt.price_type),
+      price_types: priceTypes.map((pt) => pt.price_type),
     };
   } catch (error) {
-    console.error('[Roles] Error getting permissions:', error.message);
+    console.error("[Roles] Error getting permissions:", error.message);
     return { price_types: [] };
   }
 };
@@ -61,19 +74,23 @@ export const getUserPriceTypes = async (user) => {
 
 /**
  * Отримати permissions користувача у форматі для фільтрації цін
- * @param {Object} user - Об'єкт користувача  
+ * @param {Object} user - Об'єкт користувача
  * @returns {Object} Permissions у форматі { show_zero: boolean, ... }
  */
 export const getUserPricePermissions = async (user) => {
   const priceTypes = await getUserPriceTypes(user);
-  
+
   // Формуємо об'єкт permissions у зручному форматі
   return {
-    show_zero: priceTypes.includes('нульова') || priceTypes.includes('zero'),
-    show_no_isolators: priceTypes.includes('без_ізоляторів') || priceTypes.includes('no_isolators'),
-    show_base: priceTypes.includes('базова') || priceTypes.includes('base'),
-    show_retail: priceTypes.includes('роздрібна') || priceTypes.includes('retail'),
-    show_wholesale: priceTypes.includes('оптова') || priceTypes.includes('wholesale'),
+    show_zero: priceTypes.includes("нульова") || priceTypes.includes("zero"),
+    show_no_isolators:
+      priceTypes.includes("без_ізоляторів") ||
+      priceTypes.includes("no_isolators"),
+    show_base: priceTypes.includes("базова") || priceTypes.includes("base"),
+    show_retail:
+      priceTypes.includes("роздрібна") || priceTypes.includes("retail"),
+    show_wholesale:
+      priceTypes.includes("оптова") || priceTypes.includes("wholesale"),
   };
 };
 
@@ -111,28 +128,31 @@ export const filterPriceArrayByPermissions = (prices, permissions) => {
   }
 
   // Для адміна повертаємо все
-  if (permissions.price_types.includes('all')) {
+  if (permissions.price_types.includes("all")) {
     return prices;
   }
 
   // Фільтрація масиву цін
-  return prices.filter(price => {
+  return prices.filter((price) => {
     // Перевіряємо чи має користувач доступ до цього типу ціни
     const priceTypeMap = {
-      'базова': 'base',
-      'base': 'base',
-      'без_ізоляторів': 'no_isolators',
-      'no_isolators': 'no_isolators',
-      'нульова': 'zero',
-      'zero': 'zero',
-      'роздрібна': 'retail',
-      'retail': 'retail',
-      'оптова': 'wholesale',
-      'wholesale': 'wholesale',
+      базова: "base",
+      base: "base",
+      без_ізоляторів: "no_isolators",
+      no_isolators: "no_isolators",
+      нульова: "zero",
+      zero: "zero",
+      роздрібна: "retail",
+      retail: "retail",
+      оптова: "wholesale",
+      wholesale: "wholesale",
     };
 
     const mappedType = priceTypeMap[price.type] || price.type;
-    return permissions.price_types.includes(mappedType) || permissions.price_types.includes(price.type);
+    return (
+      permissions.price_types.includes(mappedType) ||
+      permissions.price_types.includes(price.type)
+    );
   });
 };
 
@@ -148,7 +168,7 @@ export const filterPricesByPermissions = (priceData, permissions) => {
   }
 
   // Для адміна повертаємо все
-  if (permissions.price_types.includes('all')) {
+  if (permissions.price_types.includes("all")) {
     return priceData;
   }
 
@@ -175,14 +195,18 @@ export const filterPricesByPermissions = (priceData, permissions) => {
 export const getAllRoles = async () => {
   try {
     const db = await getDb();
-    return db.prepare(`
+    return db
+      .prepare(
+        `
       SELECT id, name, label, description, is_default, is_active
       FROM roles
       WHERE is_active = 1
       ORDER BY name
-    `).all();
+    `,
+      )
+      .all();
   } catch (error) {
-    console.error('[Roles] Error getting all roles:', error.message);
+    console.error("[Roles] Error getting all roles:", error.message);
     return [];
   }
 };
@@ -195,18 +219,24 @@ export const getAllRoles = async () => {
 export const getRolePermissionsFromDB = async (roleName) => {
   try {
     const db = await getDb();
-    const role = db.prepare('SELECT id FROM roles WHERE name = ?').get(roleName);
-    
+    const role = db
+      .prepare("SELECT id FROM roles WHERE name = ?")
+      .get(roleName);
+
     if (!role) return [];
-    
-    return db.prepare(`
+
+    return db
+      .prepare(
+        `
       SELECT p.name, p.label, p.category
       FROM role_permissions rp
       JOIN permissions p ON rp.permission_id = p.id
       WHERE rp.role_id = ?
-    `).all(role.id);
+    `,
+      )
+      .all(role.id);
   } catch (error) {
-    console.error('[Roles] Error getting role permissions:', error.message);
+    console.error("[Roles] Error getting role permissions:", error.message);
     return [];
   }
 };
@@ -219,26 +249,32 @@ export const getRolePermissionsFromDB = async (roleName) => {
 export const updateRolePermissions = async (roleName, permissionNames) => {
   try {
     const db = await getDb();
-    const role = db.prepare('SELECT id FROM roles WHERE name = ?').get(roleName);
-    
-    if (!role) throw new Error('Role not found');
-    
+    const role = db
+      .prepare("SELECT id FROM roles WHERE name = ?")
+      .get(roleName);
+
+    if (!role) throw new Error("Role not found");
+
     // Видаляємо старі дозволи
-    db.prepare('DELETE FROM role_permissions WHERE role_id = ?').run(role.id);
-    
+    db.prepare("DELETE FROM role_permissions WHERE role_id = ?").run(role.id);
+
     // Додаємо нові
     for (const permName of permissionNames) {
-      const permission = db.prepare('SELECT id FROM permissions WHERE name = ?').get(permName);
+      const permission = db
+        .prepare("SELECT id FROM permissions WHERE name = ?")
+        .get(permName);
       if (permission) {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)
-        `).run(role.id, permission.id);
+        `,
+        ).run(role.id, permission.id);
       }
     }
-    
+
     return true;
   } catch (error) {
-    console.error('[Roles] Error updating role permissions:', error.message);
+    console.error("[Roles] Error updating role permissions:", error.message);
     return false;
   }
 };
@@ -251,23 +287,27 @@ export const updateRolePermissions = async (roleName, permissionNames) => {
 export const updateRolePriceTypes = async (roleName, priceTypes) => {
   try {
     const db = await getDb();
-    const role = db.prepare('SELECT id FROM roles WHERE name = ?').get(roleName);
-    
-    if (!role) throw new Error('Role not found');
-    
+    const role = db
+      .prepare("SELECT id FROM roles WHERE name = ?")
+      .get(roleName);
+
+    if (!role) throw new Error("Role not found");
+
     // Видаляємо старі price types
-    db.prepare('DELETE FROM role_price_types WHERE role_id = ?').run(role.id);
-    
+    db.prepare("DELETE FROM role_price_types WHERE role_id = ?").run(role.id);
+
     // Додаємо нові
     for (const priceType of priceTypes) {
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO role_price_types (role_id, price_type) VALUES (?, ?)
-      `).run(role.id, priceType);
+      `,
+      ).run(role.id, priceType);
     }
-    
+
     return true;
   } catch (error) {
-    console.error('[Roles] Error updating role price types:', error.message);
+    console.error("[Roles] Error updating role price types:", error.message);
     return false;
   }
 };

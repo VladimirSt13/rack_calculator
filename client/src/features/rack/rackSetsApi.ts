@@ -1,5 +1,5 @@
-import api from '@/features/auth/authApi';
-import type { RackSetItem } from './setStore';
+import api from "@/features/auth/authApi";
+import type { RackSetItem } from "./setStore";
 
 export interface RackComponent {
   name: string;
@@ -47,24 +47,26 @@ export const getExportFilename = (
   includePrices: boolean = false,
 ): string => {
   const now = new Date();
-  const yearMonth = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0');
+  const yearMonth =
+    now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, "0");
 
-  const name = rackSet.name?.trim() || 'без назви';
+  const name = rackSet.name?.trim() || "без назви";
   const objectName = rackSet.object_name?.trim() || "без об'єкта";
-  const description = rackSet.description?.trim() || '';
+  const description = rackSet.description?.trim() || "";
 
   // Формуємо назву: дата_комплект стелажів_об'єкт_назва_примітка
-  const parts = [yearMonth, 'комплект стелажів', objectName, name];
+  const parts = [yearMonth, "комплект стелажів", objectName, name];
 
   if (description) {
     parts.push(description);
   }
 
   if (includePrices) {
-    parts.push('з цінами');
+    parts.push("з цінами");
   }
 
-  return parts.join('_') + '.xlsx';
+  return parts.join("_") + ".xlsx";
 };
 
 /**
@@ -80,11 +82,11 @@ export const downloadRackSetExport = (
   includePrices: boolean = false,
 ) => {
   const blob = new Blob([data], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   const filename = getExportFilename(rackSet, includePrices);
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
@@ -98,7 +100,7 @@ export const rackSetsApi = {
    * Отримати список комплектів стелажів
    */
   getAll: async () => {
-    const { data } = await api.get('/rack-sets');
+    const { data } = await api.get("/rack-sets");
     return data as { rackSets: RackSet[] };
   },
 
@@ -120,7 +122,7 @@ export const rackSetsApi = {
     racks?: RackSetItem[];
     rack_items?: RackItem[];
   }) => {
-    const { data } = await api.post('/rack-sets', rackSetData);
+    const { data } = await api.post("/rack-sets", rackSetData);
     return data;
   },
 
@@ -152,7 +154,7 @@ export const rackSetsApi = {
    * Отримати видалені комплекти стелажів
    */
   getDeleted: async () => {
-    const { data } = await api.get('/rack-sets/deleted');
+    const { data } = await api.get("/rack-sets/deleted");
     return data as { rackSets: RackSet[] };
   },
 
@@ -188,7 +190,7 @@ export const rackSetsApi = {
   export: async (id: number, includePrices: boolean = false) => {
     const response = await api.get(`/rack-sets/${id}/export`, {
       params: { includePrices },
-      responseType: 'arraybuffer',
+      responseType: "arraybuffer",
     });
     return response.data;
   },
@@ -200,10 +202,10 @@ export const rackSetsApi = {
    */
   exportNew: async (rack_items: RackItem[], includePrices: boolean = false) => {
     const response = await api.post(
-      '/rack-sets/export',
+      "/rack-sets/export",
       { rack_items, includePrices },
       {
-        responseType: 'arraybuffer',
+        responseType: "arraybuffer",
       },
     );
     return response.data;

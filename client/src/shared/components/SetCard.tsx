@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -15,8 +15,8 @@ import {
   TableCell,
   Input,
   PriceDisplay,
-} from '@/shared/components';
-import { Trash2, Eye, X } from 'lucide-react';
+} from "@/shared/components";
+import { Trash2, Eye, X } from "lucide-react";
 
 /**
  * Базовий елемент комплекту стелажів
@@ -33,7 +33,13 @@ export interface BaseSetItem {
  */
 export interface PriceConfig {
   /** Тип ціни для пошуку в масиві prices */
-  type: 'нульова' | 'zero' | 'без_ізоляторів' | 'no_isolators' | 'базова' | 'base';
+  type:
+    | "нульова"
+    | "zero"
+    | "без_ізоляторів"
+    | "no_isolators"
+    | "базова"
+    | "base";
   /** Label для відображення в таблиці */
   label: string;
   /** Чи показувати цю ціну в основному стовпці */
@@ -97,7 +103,7 @@ export interface SetCardProps<T extends BaseSetItem> {
  * Використовується для Battery та Rack
  */
 export function SetCard<T extends BaseSetItem>({
-  title = 'Комплект стелажів',
+  title = "Комплект стелажів",
   racks,
   removeRack,
   updateRackQuantity,
@@ -107,7 +113,7 @@ export function SetCard<T extends BaseSetItem>({
   modalComponent,
   renderExtraColumns,
   renderSummary,
-  emptyStateText = 'Додайте стелажі до комплекту натиснувши кнопку «+» у таблиці варіантів',
+  emptyStateText = "Додайте стелажі до комплекту натиснувши кнопку «+» у таблиці варіантів",
 }: SetCardProps<T>) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -125,7 +131,7 @@ export function SetCard<T extends BaseSetItem>({
   // Підсумок по первинній ціні
   const totalPrimary = racks.reduce((sum, rack) => {
     const price = getRowPrimaryPrice(rack);
-    return sum + (price * (rack.quantity || 1));
+    return sum + price * (rack.quantity || 1);
   }, 0);
 
   // Знаходимо конфігурацію первинної ціни
@@ -158,12 +164,10 @@ export function SetCard<T extends BaseSetItem>({
                   <TableHead className="max-w-[200px]">Назва</TableHead>
                   <TableHead>Кількість</TableHead>
                   <TableHead>
-                    Вартість ({primaryPriceConfig?.label || 'ціна'})
+                    Вартість ({primaryPriceConfig?.label || "ціна"})
                   </TableHead>
                   <TableHead>Загалом</TableHead>
-                  {renderExtraColumns && (
-                    <TableHead>Деталі</TableHead>
-                  )}
+                  {renderExtraColumns && <TableHead>Деталі</TableHead>}
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -184,7 +188,10 @@ export function SetCard<T extends BaseSetItem>({
                           min={1}
                           value={rack.quantity}
                           onChange={(e) =>
-                            updateRackQuantity(rack.setId, Number(e.target.value))
+                            updateRackQuantity(
+                              rack.setId,
+                              Number(e.target.value),
+                            )
                           }
                           className="w-16 text-center"
                         />
@@ -222,11 +229,18 @@ export function SetCard<T extends BaseSetItem>({
 
           {/* Підсумки */}
           {renderSummary ? (
-            renderSummary({ getPriceByType: (type) => racks.reduce((sum, rack) => sum + getPriceByType(rack, type), 0), totalPrimary })
+            renderSummary({
+              getPriceByType: (type) =>
+                racks.reduce(
+                  (sum, rack) => sum + getPriceByType(rack, type),
+                  0,
+                ),
+              totalPrimary,
+            })
           ) : (
             <div className="mt-4 pt-4 border-t-2">
               <div className="flex justify-between text-2xl font-bold">
-                <span>{primaryPriceConfig?.label || 'Загалом'}:</span>
+                <span>{primaryPriceConfig?.label || "Загалом"}:</span>
                 <PriceDisplay
                   value={totalPrimary}
                   size="2xl"

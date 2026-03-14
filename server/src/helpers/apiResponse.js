@@ -6,11 +6,17 @@
 /**
  * Створення уніфікованої відповіді
  */
-export const apiResponse = (res, statusCode, data, message = null, meta = {}) => {
+export const apiResponse = (
+  res,
+  statusCode,
+  data,
+  message = null,
+  meta = {},
+) => {
   const response = {
     data,
     timestamp: new Date().toISOString(),
-    ...meta
+    ...meta,
   };
 
   if (message) {
@@ -23,14 +29,18 @@ export const apiResponse = (res, statusCode, data, message = null, meta = {}) =>
 /**
  * Успішна відповідь (200 OK)
  */
-export const success = (res, data, message = 'Success') => {
+export const success = (res, data, message = "Success") => {
   return apiResponse(res, 200, data, message);
 };
 
 /**
  * Створено ресурс (201 Created)
  */
-export const created = (res, data, message = 'Resource created successfully') => {
+export const created = (
+  res,
+  data,
+  message = "Resource created successfully",
+) => {
   return apiResponse(res, 201, data, message);
 };
 
@@ -44,42 +54,63 @@ export const noContent = (res) => {
 /**
  * Помилка валідації (400 Bad Request)
  */
-export const badRequest = (res, error = 'Bad request', code = 'VALIDATION_ERROR') => {
+export const badRequest = (
+  res,
+  error = "Bad request",
+  code = "VALIDATION_ERROR",
+) => {
   return apiResponse(res, 400, { error, code });
 };
 
 /**
  * Неавторизовано (401 Unauthorized)
  */
-export const unauthorized = (res, error = 'Unauthorized', code = 'UNAUTHORIZED') => {
+export const unauthorized = (
+  res,
+  error = "Unauthorized",
+  code = "UNAUTHORIZED",
+) => {
   return apiResponse(res, 401, { error, code });
 };
 
 /**
  * Заборонено (403 Forbidden)
  */
-export const forbidden = (res, error = 'Forbidden', code = 'FORBIDDEN') => {
+export const forbidden = (res, error = "Forbidden", code = "FORBIDDEN") => {
   return apiResponse(res, 403, { error, code });
 };
 
 /**
  * Не знайдено (404 Not Found)
  */
-export const notFound = (res, error = 'Resource not found', code = 'NOT_FOUND') => {
+export const notFound = (
+  res,
+  error = "Resource not found",
+  code = "NOT_FOUND",
+) => {
   return apiResponse(res, 404, { error, code });
 };
 
 /**
  * Конфлікт (409 Conflict)
  */
-export const conflict = (res, error = 'Resource already exists', code = 'CONFLICT') => {
+export const conflict = (
+  res,
+  error = "Resource already exists",
+  code = "CONFLICT",
+) => {
   return apiResponse(res, 409, { error, code });
 };
 
 /**
  * Неприйнятний запит (422 Unprocessable Entity)
  */
-export const unprocessable = (res, error = 'Validation failed', code = 'VALIDATION_ERROR', details = null) => {
+export const unprocessable = (
+  res,
+  error = "Validation failed",
+  code = "VALIDATION_ERROR",
+  details = null,
+) => {
   const data = { error, code };
   if (details) {
     data.details = details;
@@ -90,14 +121,22 @@ export const unprocessable = (res, error = 'Validation failed', code = 'VALIDATI
 /**
  * Внутрішня помилка сервера (500 Internal Server Error)
  */
-export const serverError = (res, error = 'Internal server error', code = 'INTERNAL_ERROR') => {
+export const serverError = (
+  res,
+  error = "Internal server error",
+  code = "INTERNAL_ERROR",
+) => {
   return apiResponse(res, 500, { error, code });
 };
 
 /**
  * Занадто багато запитів (429 Too Many Requests)
  */
-export const tooManyRequests = (res, error = 'Rate limit exceeded', code = 'RATE_LIMIT_EXCEEDED') => {
+export const tooManyRequests = (
+  res,
+  error = "Rate limit exceeded",
+  code = "RATE_LIMIT_EXCEEDED",
+) => {
   return apiResponse(res, 429, { error, code });
 };
 
@@ -113,5 +152,5 @@ export default {
   conflict,
   unprocessable,
   serverError,
-  tooManyRequests
+  tooManyRequests,
 };

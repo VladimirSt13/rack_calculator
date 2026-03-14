@@ -1,4 +1,4 @@
-import api from '@/features/auth/authApi';
+import api from "@/features/auth/authApi";
 
 export interface Role {
   id: number;
@@ -19,7 +19,7 @@ export const rolesApi = {
    * Отримати всі ролі
    */
   getAll: async () => {
-    const { data } = await api.get('/roles');
+    const { data } = await api.get("/roles");
     return data.roles || [];
   },
 
@@ -35,7 +35,9 @@ export const rolesApi = {
    * Оновити дозволи ролі
    */
   updatePermissions: async (roleName: string, permissions: string[]) => {
-    const { data } = await api.put(`/roles/${roleName}/permissions`, { permissions });
+    const { data } = await api.put(`/roles/${roleName}/permissions`, {
+      permissions,
+    });
     return data;
   },
 
@@ -51,7 +53,9 @@ export const rolesApi = {
    * Оновити типи цін ролі
    */
   updatePriceTypes: async (roleName: string, priceTypes: string[]) => {
-    const { data } = await api.put(`/roles/${roleName}/price-types`, { price_types: priceTypes });
+    const { data } = await api.put(`/roles/${roleName}/price-types`, {
+      price_types: priceTypes,
+    });
     return data;
   },
 
@@ -65,7 +69,7 @@ export const rolesApi = {
     permissions?: string[];
     price_types?: string[];
   }) => {
-    const { data } = await api.post('/roles', roleData);
+    const { data } = await api.post("/roles", roleData);
     return data;
   },
 };

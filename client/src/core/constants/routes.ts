@@ -8,34 +8,34 @@
  * Публічні маршрути (доступні без авторизації)
  */
 export const PUBLIC_ROUTES = {
-  LOGIN: '/login',
-  REGISTER: '/register',
-  VERIFY_EMAIL: '/verify-email',
-  FORGOT_PASSWORD: '/forgot-password',
-  RESET_PASSWORD: '/reset-password',
-  ACCESS_DENIED: '/access-denied',
+  LOGIN: "/login",
+  REGISTER: "/register",
+  VERIFY_EMAIL: "/verify-email",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
+  ACCESS_DENIED: "/access-denied",
 } as const;
 
 /**
  * Основні маршрути (вимагають авторизації)
  */
 export const PROTECTED_ROUTES = {
-  HOME: '/',
-  RACK: '/rack',
-  BATTERY: '/battery',
-  DASHBOARD: '/dashboard',
-  MY_SETS: '/my-sets',
-  PROFILE: '/profile',
+  HOME: "/",
+  RACK: "/rack",
+  BATTERY: "/battery",
+  DASHBOARD: "/dashboard",
+  MY_SETS: "/my-sets",
+  PROFILE: "/profile",
 } as const;
 
 /**
  * Адмін маршрути (тільки для admin)
  */
 export const ADMIN_ROUTES = {
-  DASHBOARD: '/admin',
-  USERS: '/admin/users',
-  RACK_SETS: '/admin/rack-sets',
-  PRICE: '/admin/price',
+  DASHBOARD: "/admin",
+  USERS: "/admin/users",
+  RACK_SETS: "/admin/rack-sets",
+  PRICE: "/admin/price",
 } as const;
 
 /**
@@ -53,20 +53,20 @@ export const ALL_ROUTES = {
 export const NAVIGATION_ROUTES = {
   ADMIN: {
     path: PROTECTED_ROUTES.RACK,
-    label: 'Стелаж',
-    roles: ['admin'],
+    label: "Стелаж",
+    roles: ["admin"],
   },
   BATTERY: {
     path: PROTECTED_ROUTES.BATTERY,
-    label: 'Акумулятор',
-    roles: ['admin', 'manager'],
+    label: "Акумулятор",
+    roles: ["admin", "manager"],
   },
 } as const;
 
 /**
  * Маршрут за замовчуванням після входу
  */
-export const DEFAULT_REDIRECT_ROUTE = '/dashboard';
+export const DEFAULT_REDIRECT_ROUTE = "/dashboard";
 
 /**
  * Маршрут за замовчуванням для адміна

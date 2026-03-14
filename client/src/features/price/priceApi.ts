@@ -1,9 +1,14 @@
-import api from '@/lib/axios';
+import api from "@/lib/axios";
 
 /**
  * Типи компонентів прайсу
  */
-export type PriceCategory = 'supports' | 'spans' | 'vertical_supports' | 'diagonal_brace' | 'isolator';
+export type PriceCategory =
+  | "supports"
+  | "spans"
+  | "vertical_supports"
+  | "diagonal_brace"
+  | "isolator";
 
 /**
  * Вкладена структура ціни (для опор)
@@ -40,7 +45,7 @@ export type PriceItem = SupportPriceItem | SimplePriceItem;
  * Перевірка чи є елемент опорою (з edge/intermediate)
  */
 export const isSupportItem = (item: PriceItem): item is SupportPriceItem => {
-  return 'edge' in item && 'intermediate' in item;
+  return "edge" in item && "intermediate" in item;
 };
 
 /**
@@ -97,7 +102,7 @@ export const priceApi = {
    * Отримати поточний прайс
    */
   getCurrent: async () => {
-    const { data } = await api.get('/price');
+    const { data } = await api.get("/price");
     return data as PriceResponse;
   },
 
@@ -105,7 +110,7 @@ export const priceApi = {
    * Отримати історію змін прайсу
    */
   getHistory: async () => {
-    const { data } = await api.get('/price/history');
+    const { data } = await api.get("/price/history");
     return data as PriceHistoryResponse;
   },
 
@@ -116,14 +121,16 @@ export const priceApi = {
    */
   uploadExcel: async (file: File, onProgress?: (progress: number) => void) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     // Не вказуємо Content-Type — axios сам додасть multipart/form-data з boundary
     // Authorization header додасть interceptor автоматично
-    const { data } = await api.post('/price/upload-excel', formData, {
+    const { data } = await api.post("/price/upload-excel", formData, {
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
           onProgress(progress);
         }
       },
@@ -152,7 +159,7 @@ export const priceApi = {
    * Оновити ціну в прайсі
    */
   updatePrice: async (priceData: PriceData) => {
-    const { data } = await api.put('/price', { data: priceData });
+    const { data } = await api.put("/price", { data: priceData });
     return data;
   },
 
@@ -160,21 +167,21 @@ export const priceApi = {
    * Скачати поточний прайс у форматі Excel
    */
   downloadExcel: async () => {
-    const { data, headers } = await api.get('/price/export-excel', {
-      responseType: 'blob',
+    const { data, headers } = await api.get("/price/export-excel", {
+      responseType: "blob",
     });
 
     const blob = new Blob([data], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
 
     // Отримуємо ім'я файлу з Content-Disposition або генеруємо
-    const contentDisposition = headers['content-disposition'];
-    let filename = 'price.xlsx';
+    const contentDisposition = headers["content-disposition"];
+    let filename = "price.xlsx";
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
       if (filenameMatch && filenameMatch[1]) {

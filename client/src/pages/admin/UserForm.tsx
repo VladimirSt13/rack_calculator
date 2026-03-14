@@ -1,19 +1,19 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { usersApi } from '@/features/users/usersApi';
-import { rolesApi } from '@/features/users/rolesApi';
-import type { RoleDto } from '@/shared/types/api.types';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
-import { Label } from '@/shared/components/Label';
-import { toast } from 'sonner';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { usersApi } from "@/features/users/usersApi";
+import { rolesApi } from "@/features/users/rolesApi";
+import type { RoleDto } from "@/shared/types/api.types";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
+import { Label } from "@/shared/components/Label";
+import { toast } from "sonner";
 
 const userSchema = z.object({
-  email: z.string().email('Невірний формат email'),
-  password: z.string().min(6, 'Пароль має бути не менше 6 символів').optional(),
-  role: z.enum(['admin', 'manager', 'user']),
+  email: z.string().email("Невірний формат email"),
+  password: z.string().min(6, "Пароль має бути не менше 6 символів").optional(),
+  role: z.enum(["admin", "manager", "user"]),
   price_types: z.array(z.string()).default([]),
 });
 
@@ -33,11 +33,11 @@ interface UserFormProps {
 }
 
 const PRICE_TYPES = [
-  { value: 'без_ізоляторів', label: 'Без ізоляторів' },
-  { value: 'загальна', label: 'Загальна' },
-  { value: 'нульова', label: 'Нульова' },
-  { value: 'собівартість', label: 'Собівартість' },
-  { value: 'оптова', label: 'Оптова' },
+  { value: "без_ізоляторів", label: "Без ізоляторів" },
+  { value: "загальна", label: "Загальна" },
+  { value: "нульова", label: "Нульова" },
+  { value: "собівартість", label: "Собівартість" },
+  { value: "оптова", label: "Оптова" },
 ];
 
 export const UserForm: React.FC<UserFormProps> = ({
@@ -56,8 +56,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      email: user?.email || '',
-      role: (user?.role as 'admin' | 'manager' | 'user') || 'user',
+      email: user?.email || "",
+      role: (user?.role as "admin" | "manager" | "user") || "user",
       price_types: user?.permissions?.price_types || [],
     },
   });
@@ -66,11 +66,11 @@ export const UserForm: React.FC<UserFormProps> = ({
     mutationFn: (data: UserForm & { password: string }) =>
       usersApi.create(data),
     onSuccess: () => {
-      toast.success('Користувача створено');
+      toast.success("Користувача створено");
       onSuccess();
     },
     onError: (error: Error) => {
-      toast.error((error as any).response?.data?.error || 'Помилка створення');
+      toast.error((error as any).response?.data?.error || "Помилка створення");
     },
   });
 
@@ -78,16 +78,16 @@ export const UserForm: React.FC<UserFormProps> = ({
     mutationFn: ({ id, ...data }: { id: number } & Partial<UserForm>) =>
       usersApi.update(id, data),
     onSuccess: () => {
-      toast.success('Користувача оновлено');
+      toast.success("Користувача оновлено");
       onSuccess();
     },
     onError: (error: Error) => {
-      toast.error((error as any).response?.data?.error || 'Помилка оновлення');
+      toast.error((error as any).response?.data?.error || "Помилка оновлення");
     },
   });
 
   const { data: rolesData, isLoading: rolesLoading } = useQuery({
-    queryKey: ['roles'],
+    queryKey: ["roles"],
     queryFn: rolesApi.getAll,
   });
 
@@ -96,14 +96,14 @@ export const UserForm: React.FC<UserFormProps> = ({
       updateMutation.mutate({ id: user.id, ...data });
     } else {
       if (!data.password) {
-        toast.error('Пароль обов\'язковий');
+        toast.error("Пароль обов'язковий");
         return;
       }
       createMutation.mutate(data as UserForm & { password: string });
     }
   };
 
-  const watchedPriceTypes = watch('price_types');
+  const watchedPriceTypes = watch("price_types");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -113,8 +113,8 @@ export const UserForm: React.FC<UserFormProps> = ({
           id="email"
           type="email"
           placeholder="email@example.com"
-          {...register('email')}
-          className={errors.email?.message ? 'border-destructive' : ''}
+          {...register("email")}
+          className={errors.email?.message ? "border-destructive" : ""}
           disabled={createMutation.isPending || updateMutation.isPending}
         />
         {errors.email?.message && (
@@ -129,12 +129,14 @@ export const UserForm: React.FC<UserFormProps> = ({
             id="password"
             type="password"
             placeholder="••••••••"
-            {...register('password')}
-            className={errors.password?.message ? 'border-destructive' : ''}
+            {...register("password")}
+            className={errors.password?.message ? "border-destructive" : ""}
             disabled={createMutation.isPending || updateMutation.isPending}
           />
           {errors.password?.message && (
-            <p className="text-sm text-destructive">{errors.password.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
           )}
         </div>
       )}
@@ -144,8 +146,10 @@ export const UserForm: React.FC<UserFormProps> = ({
         <select
           id="role"
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          {...register('role')}
-          disabled={createMutation.isPending || updateMutation.isPending || rolesLoading}
+          {...register("role")}
+          disabled={
+            createMutation.isPending || updateMutation.isPending || rolesLoading
+          }
         >
           {rolesLoading ? (
             <option>Завантаження...</option>
@@ -176,7 +180,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                   const updated = e.target.checked
                     ? [...current, type.value]
                     : current.filter((v) => v !== type.value);
-                  setValue('price_types', updated);
+                  setValue("price_types", updated);
                 }}
                 className="h-4 w-4 rounded border-gray-300"
               />
@@ -199,7 +203,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           type="submit"
           disabled={createMutation.isPending || updateMutation.isPending}
         >
-          {isEdit ? 'Зберегти' : 'Створити'}
+          {isEdit ? "Зберегти" : "Створити"}
         </Button>
       </div>
     </form>

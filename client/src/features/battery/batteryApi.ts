@@ -1,17 +1,20 @@
-import api from '@/features/auth/authApi';
-import type { BatteryCalculationRequest, BatteryFindBestResponse } from '@/shared/types/api.types';
+import api from "@/features/auth/authApi";
+import type {
+  BatteryCalculationRequest,
+  BatteryFindBestResponse,
+} from "@/shared/types/api.types";
 
 export const batteryApi = {
   /**
    * Розрахунок стелажа по батареї
    */
   calculate: async (
-    batteryDimensions: BatteryCalculationRequest['batteryDimensions'],
+    batteryDimensions: BatteryCalculationRequest["batteryDimensions"],
     weight: number,
     quantity: number,
     config?: { format?: string },
   ): Promise<BatteryFindBestResponse> => {
-    const { data } = await api.post('/battery/calculate', {
+    const { data } = await api.post("/battery/calculate", {
       batteryDimensions,
       weight,
       quantity,
@@ -24,12 +27,12 @@ export const batteryApi = {
    * Підбір найкращого варіанту стелажа по батареї з варіантами балок
    */
   findBest: async (
-    batteryDimensions: BatteryCalculationRequest['batteryDimensions'],
+    batteryDimensions: BatteryCalculationRequest["batteryDimensions"],
     weight: number,
     quantity: number,
     config?: { floors?: number; rows?: number; supportType?: string },
   ): Promise<BatteryFindBestResponse> => {
-    const { data } = await api.post('/battery/find-best', {
+    const { data } = await api.post("/battery/find-best", {
       batteryDimensions,
       weight,
       quantity,

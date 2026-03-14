@@ -1,4 +1,4 @@
-import { getDb } from '../db/index.js';
+import { getDb } from "../db/index.js";
 
 /**
  * Базовый класс для всех моделей
@@ -25,8 +25,8 @@ export class BaseModel {
     const values = [];
 
     if (options.where) {
-      const conditions = Object.keys(options.where).map(key => `${key} = ?`);
-      query += ` WHERE ${conditions.join(' AND ')}`;
+      const conditions = Object.keys(options.where).map((key) => `${key} = ?`);
+      query += ` WHERE ${conditions.join(" AND ")}`;
       values.push(...Object.values(options.where));
     }
 
@@ -35,17 +35,17 @@ export class BaseModel {
     }
 
     if (options.limit) {
-      query += ' LIMIT ?';
+      query += " LIMIT ?";
       values.push(options.limit);
     }
 
     if (options.offset) {
-      query += ' OFFSET ?';
+      query += " OFFSET ?";
       values.push(options.offset);
     }
 
     const rows = db.prepare(query).all(...values);
-    return rows.map(row => new this(row));
+    return rows.map((row) => new this(row));
   }
 
   /**
@@ -68,8 +68,8 @@ export class BaseModel {
    */
   static async findOne(tableName, where) {
     const db = await this.getDb();
-    const conditions = Object.keys(where).map(key => `${key} = ?`);
-    const query = `SELECT * FROM ${tableName} WHERE ${conditions.join(' AND ')} LIMIT 1`;
+    const conditions = Object.keys(where).map((key) => `${key} = ?`);
+    const query = `SELECT * FROM ${tableName} WHERE ${conditions.join(" AND ")} LIMIT 1`;
     const row = db.prepare(query).get(...Object.values(where));
     return row ? new this(row) : null;
   }
@@ -83,13 +83,17 @@ export class BaseModel {
   static async create(tableName, data) {
     const db = await this.getDb();
     const keys = Object.keys(data);
-    const placeholders = keys.map(() => '?').join(', ');
+    const placeholders = keys.map(() => "?").join(", ");
     const values = Object.values(data);
 
-    const result = db.prepare(`
-      INSERT INTO ${tableName} (${keys.join(', ')})
+    const result = db
+      .prepare(
+        `
+      INSERT INTO ${tableName} (${keys.join(", ")})
       VALUES (${placeholders})
-    `).run(...values);
+    `,
+      )
+      .run(...values);
 
     return this.findById(tableName, Number(result.lastInsertRowid));
   }
@@ -104,12 +108,14 @@ export class BaseModel {
   static async update(tableName, id, data) {
     const db = await this.getDb();
     const keys = Object.keys(data);
-    const setClause = keys.map(key => `${key} = ?`).join(', ');
+    const setClause = keys.map((key) => `${key} = ?`).join(", ");
     const values = [...Object.values(data), id];
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE ${tableName} SET ${setClause} WHERE id = ?
-    `).run(...values);
+    `,
+    ).run(...values);
 
     return this.findById(tableName, id);
   }
@@ -122,9 +128,13 @@ export class BaseModel {
    */
   static async delete(tableName, id) {
     const db = await this.getDb();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       DELETE FROM ${tableName} WHERE id = ?
-    `).run(id);
+    `,
+      )
+      .run(id);
     return result.changes > 0;
   }
 
@@ -134,7 +144,9 @@ export class BaseModel {
    */
   constructor(data) {
     if (new.target === BaseModel) {
-      throw new Error('BaseModel is abstract and cannot be instantiated directly');
+      throw new Error(
+        "BaseModel is abstract and cannot be instantiated directly",
+      );
     }
     Object.assign(this, data);
   }

@@ -1,4 +1,4 @@
-import * as rolesService from '../services/rolesService.js';
+import * as rolesService from "../services/rolesService.js";
 
 /**
  * GET /api/roles
@@ -41,12 +41,15 @@ export const updateRolePermissions = async (req, res, next) => {
       permissions,
       req.user.userId,
       req.ip,
-      req.get('user-agent')
+      req.get("user-agent"),
     );
 
     res.json(result);
   } catch (error) {
-    if (error.message === 'Permissions must be an array' || error.message === 'Failed to update permissions') {
+    if (
+      error.message === "Permissions must be an array" ||
+      error.message === "Failed to update permissions"
+    ) {
       return res.status(400).json({ error: error.message });
     }
     next(error);
@@ -63,7 +66,7 @@ export const getRolePriceTypes = async (req, res, next) => {
     const priceTypes = await rolesService.getRolePriceTypes(name);
     res.json({ price_types: priceTypes });
   } catch (error) {
-    if (error.message === 'Role not found') {
+    if (error.message === "Role not found") {
       return res.status(404).json({ error: error.message });
     }
     next(error);
@@ -84,12 +87,15 @@ export const updateRolePriceTypes = async (req, res, next) => {
       price_types,
       req.user.userId,
       req.ip,
-      req.get('user-agent')
+      req.get("user-agent"),
     );
 
     res.json(result);
   } catch (error) {
-    if (error.message === 'Price types must be an array' || error.message === 'Failed to update price types') {
+    if (
+      error.message === "Price types must be an array" ||
+      error.message === "Failed to update price types"
+    ) {
       return res.status(400).json({ error: error.message });
     }
     next(error);
@@ -108,12 +114,12 @@ export const createRole = async (req, res, next) => {
       { name, label, description, permissions, price_types },
       req.user.userId,
       req.ip,
-      req.get('user-agent')
+      req.get("user-agent"),
     );
 
     res.status(201).json(result);
   } catch (error) {
-    if (error.message === 'Role already exists') {
+    if (error.message === "Role already exists") {
       return res.status(409).json({ error: error.message });
     }
     next(error);

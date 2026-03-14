@@ -1,8 +1,11 @@
-import { useSetModal, type UseSetModalReturn } from '@/shared/hooks/useSetModal';
-import { useBatterySetStore } from '@/features/battery/setStore';
-import { useBatteryResultsStore } from '@/features/battery/resultsStore';
-import type { BatterySetItem } from '@/features/battery/setStore';
-import { z } from 'zod';
+import {
+  useSetModal,
+  type UseSetModalReturn,
+} from "@/shared/hooks/useSetModal";
+import { useBatterySetStore } from "@/features/battery/setStore";
+import { useBatteryResultsStore } from "@/features/battery/resultsStore";
+import type { BatterySetItem } from "@/features/battery/setStore";
+import { z } from "zod";
 
 export type BatterySetForm = z.infer<typeof defaultBatterySetSchema>;
 
@@ -12,7 +15,10 @@ export interface UseBatterySetModalProps {
   racks: BatterySetItem[];
 }
 
-export interface UseBatterySetModalReturn extends Omit<UseSetModalReturn, 'groupedRacks' | 'totalCost'> {
+export interface UseBatterySetModalReturn extends Omit<
+  UseSetModalReturn,
+  "groupedRacks" | "totalCost"
+> {
   groupedRacks: Array<BatterySetItem & { quantity: number }>;
   totalCost: number;
 }
@@ -30,7 +36,11 @@ export const defaultBatterySetSchema = z.object({
  * useBatterySetModal - хук для модального вікна комплекту акумуляторів
  * Використовує універсальний useSetModal
  */
-export const useBatterySetModal = ({ isOpen, onClose, racks }: UseBatterySetModalProps): UseBatterySetModalReturn => {
+export const useBatterySetModal = ({
+  isOpen,
+  onClose,
+  racks,
+}: UseBatterySetModalProps): UseBatterySetModalReturn => {
   return useSetModal<BatterySetItem>({
     isOpen,
     onClose,
@@ -38,7 +48,9 @@ export const useBatterySetModal = ({ isOpen, onClose, racks }: UseBatterySetModa
     schema: defaultBatterySetSchema,
     // Для totalCost використовуємо нульову ціну
     getPriceForTotal: (rack) => {
-      const zeroPrice = rack.prices?.find((p) => p.type === 'нульова' || p.type === 'zero')?.value || 0;
+      const zeroPrice =
+        rack.prices?.find((p) => p.type === "нульова" || p.type === "zero")
+          ?.value || 0;
       return zeroPrice;
     },
     clearSetStore: () => useBatterySetStore.getState().clear(),

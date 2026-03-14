@@ -1,8 +1,12 @@
-import bcrypt from 'bcryptjs';
-import { User } from '../models/User.js';
-import { Role } from '../models/Role.js';
-import { AuditLog } from '../models/AuditLog.js';
-import { getUserPermissions, getAllRoles, updateRolePriceTypes } from '../helpers/roles.js';
+import bcrypt from "bcryptjs";
+import { User } from "../models/User.js";
+import { Role } from "../models/Role.js";
+import { AuditLog } from "../models/AuditLog.js";
+import {
+  getUserPermissions,
+  getAllRoles,
+  updateRolePriceTypes,
+} from "../helpers/roles.js";
 
 /**
  * GET /api/users
@@ -24,17 +28,17 @@ export const getUsers = async (req, res, next) => {
     const params = [];
 
     if (role) {
-      query += ' AND u.role = ?';
+      query += " AND u.role = ?";
       params.push(role);
     }
 
     if (search) {
-      query += ' AND u.email LIKE ?';
+      query += " AND u.email LIKE ?";
       params.push(`%${search}%`);
     }
 
-    query += ' ORDER BY u.created_at DESC';
-    query += ' LIMIT ? OFFSET ?';
+    query += " ORDER BY u.created_at DESC";
+    query += " LIMIT ? OFFSET ?";
     params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
 
     const users = db.prepare(query).all(...params);
@@ -44,14 +48,18 @@ export const getUsers = async (req, res, next) => {
       SELECT COUNT(*) as total
       FROM users u
       WHERE 1=1
-      ${role ? 'AND u.role = ?' : ''}
-      ${search ? 'AND u.email LIKE ?' : ''}
+      ${role ? "AND u.role = ?" : ""}
+      ${search ? "AND u.email LIKE ?" : ""}
     `;
-    const countParams = role ? [role, ...(search ? [search] : [])] : search ? [search] : [];
+    const countParams = role
+      ? [role, ...(search ? [search] : [])]
+      : search
+        ? [search]
+        : [];
     const total = db.prepare(countQuery).get(...countParams).total;
 
     // Додати permissions до кожного користувача
-    const usersWithPermissions = users.map(user => ({
+    const usersWithPermissions = users.map((user) => ({
       ...user,
       permissions: getUserPermissions(user),
     }));
@@ -82,7 +90,7 @@ export const getUser = async (req, res, next) => {
     const user = await User.findById(id);
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Отримати permissions з БД
@@ -113,23 +121,25 @@ export const createUser = async (req, res, next) => {
 
     // Валідація
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters" });
     }
 
     // Перевірка чи користувач вже існує
     const existing = await User.findByEmail(email);
     if (existing) {
-      return res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({ error: "User already exists" });
     }
 
     // Перевірка ролі
-    const validRole = await Role.findByName(role || 'user');
+    const validRole = await Role.findByName(role || "user");
     if (!validRole) {
-      return res.status(400).json({ error: 'Invalid role' });
+      return res.status(400).json({ error: "Invalid role" });
     }
 
     // Хешування пароля
@@ -139,29 +149,29 @@ export const createUser = async (req, res, next) => {
     const user = await User.create({
       email,
       passwordHash,
-      role: role || 'user',
+      role: role || "user",
       permissions,
       emailVerified: true,
     });
 
     // Якщо вказані price_types, оновити для ролі користувача
     if (price_types && Array.isArray(price_types)) {
-      await updateRolePriceTypes(role || 'user', price_types);
+      await updateRolePriceTypes(role || "user", price_types);
     }
 
     // Audit log
     await AuditLog.create({
       userId: req.user.userId,
-      action: 'create',
-      entityType: 'user',
+      action: "create",
+      entityType: "user",
       entityId: user.id,
       newValue: { email, role, permissions, price_types },
       ipAddress: req.ip,
-      userAgent: req.get('user-agent'),
+      userAgent: req.get("user-agent"),
     });
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: "User created successfully",
       user: user.toSafeObject(),
     });
   } catch (error) {
@@ -180,14 +190,14 @@ export const updateUser = async (req, res, next) => {
 
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Перевірка ролі
     if (role) {
       const validRole = await Role.findByName(role);
       if (!validRole) {
-        return res.status(400).json({ error: 'Invalid role' });
+        return res.status(400).json({ error: "Invalid role" });
       }
     }
 
@@ -212,17 +222,23 @@ export const updateUser = async (req, res, next) => {
     // Audit log
     await AuditLog.create({
       userId: req.user.userId,
-      action: 'update',
-      entityType: 'user',
+      action: "update",
+      entityType: "user",
       entityId: parseInt(id),
       oldValue: user.toSafeObject(),
-      newValue: { email, role, permissions, price_types, password: password ? '***' : undefined },
+      newValue: {
+        email,
+        role,
+        permissions,
+        price_types,
+        password: password ? "***" : undefined,
+      },
       ipAddress: req.ip,
-      userAgent: req.get('user-agent'),
+      userAgent: req.get("user-agent"),
     });
 
     res.json({
-      message: 'User updated successfully',
+      message: "User updated successfully",
       user: {
         id: parseInt(id),
         email: email || user.email,
@@ -244,29 +260,29 @@ export const deleteUser = async (req, res, next) => {
 
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Не можна видалити самого себе
     if (user.id === req.user.userId) {
-      return res.status(400).json({ error: 'Cannot delete yourself' });
+      return res.status(400).json({ error: "Cannot delete yourself" });
     }
 
     // Видалення
-    await User.delete('users', id);
+    await User.delete("users", id);
 
     // Audit log
     await AuditLog.create({
       userId: req.user.userId,
-      action: 'delete',
-      entityType: 'user',
+      action: "delete",
+      entityType: "user",
       entityId: parseInt(id),
       oldValue: user.toSafeObject(),
       ipAddress: req.ip,
-      userAgent: req.get('user-agent'),
+      userAgent: req.get("user-agent"),
     });
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);
   }
@@ -281,10 +297,12 @@ export const getUserAudit = async (req, res, next) => {
     const { id } = req.params;
     const { limit = 50 } = req.query;
 
-    const audit = await AuditLog.findByEntity('user', parseInt(id));
+    const audit = await AuditLog.findByEntity("user", parseInt(id));
 
-    res.json({ 
-      audit: audit.slice(0, parseInt(limit)).map(log => log.toDto ? log.toDto() : log)
+    res.json({
+      audit: audit
+        .slice(0, parseInt(limit))
+        .map((log) => (log.toDto ? log.toDto() : log)),
     });
   } catch (error) {
     next(error);

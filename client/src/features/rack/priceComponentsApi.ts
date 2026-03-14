@@ -1,4 +1,4 @@
-import api from '@/features/auth/authApi';
+import api from "@/features/auth/authApi";
 
 export interface SupportComponent {
   code: string;
@@ -29,7 +29,7 @@ export const priceComponentsApi = {
    * Отримати список комплектуючих з прайсу
    */
   getAll: async () => {
-    const { data } = await api.get('/price/components');
+    const { data } = await api.get("/price/components");
     return data as ComponentsResponse;
   },
 };

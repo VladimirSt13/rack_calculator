@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface SpanItem {
   id: number;
@@ -28,17 +28,14 @@ export const useRackSpansStore = create<SpansState & SpansActions>((set) => ({
 
   addSpan: () =>
     set((state) => ({
-      spans: [
-        ...state.spans,
-        { id: state.nextId, item: '', quantity: 1 },
-      ],
+      spans: [...state.spans, { id: state.nextId, item: "", quantity: 1 }],
       nextId: state.nextId + 1,
     })),
 
   updateSpan: (id, updates) =>
     set((state) => ({
       spans: state.spans.map((span) =>
-        span.id === id ? { ...span, ...updates } : span
+        span.id === id ? { ...span, ...updates } : span,
       ),
     })),
 

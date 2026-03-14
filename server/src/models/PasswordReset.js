@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js';
-import crypto from 'crypto';
+import { BaseModel } from "./BaseModel.js";
+import crypto from "crypto";
 
 /**
  * Модель сброса пароля
@@ -15,7 +15,7 @@ export class PasswordReset extends BaseModel {
   }
 
   static get tableName() {
-    return 'password_resets';
+    return "password_resets";
   }
 
   /**
@@ -25,7 +25,9 @@ export class PasswordReset extends BaseModel {
    */
   static async findById(id) {
     const db = await this.getDb();
-    const row = db.prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`).get(Number(id));
+    const row = db
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .get(Number(id));
     return row ? new PasswordReset(row) : null;
   }
 
@@ -35,7 +37,7 @@ export class PasswordReset extends BaseModel {
    * @returns {string}
    */
   static hashToken(token) {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 
   /**
@@ -43,7 +45,7 @@ export class PasswordReset extends BaseModel {
    * @returns {string}
    */
   static generateToken() {
-    return crypto.randomBytes(32).toString('hex');
+    return crypto.randomBytes(32).toString("hex");
   }
 
   /**
@@ -53,7 +55,9 @@ export class PasswordReset extends BaseModel {
    */
   static async findByTokenHash(tokenHash) {
     const db = await this.getDb();
-    const row = db.prepare('SELECT * FROM password_resets WHERE token_hash = ?').get(tokenHash);
+    const row = db
+      .prepare("SELECT * FROM password_resets WHERE token_hash = ?")
+      .get(tokenHash);
     return row ? new PasswordReset(row) : null;
   }
 
@@ -65,12 +69,16 @@ export class PasswordReset extends BaseModel {
   static async findActiveByUser(userId) {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const row = db.prepare(`
+    const row = db
+      .prepare(
+        `
       SELECT * FROM password_resets 
       WHERE user_id = ? AND expires_at > ? 
       ORDER BY created_at DESC 
       LIMIT 1
-    `).get(userId, now);
+    `,
+      )
+      .get(userId, now);
     return row ? new PasswordReset(row) : null;
   }
 
@@ -85,17 +93,23 @@ export class PasswordReset extends BaseModel {
   static async create(data) {
     const db = await this.getDb();
     const tokenHash = this.hashToken(data.token);
-    
+
     // Удалить старые активные сбросы пользователя
-    db.prepare(`
+    db.prepare(
+      `
       DELETE FROM password_resets 
       WHERE user_id = ?
-    `).run(data.userId);
-    
-    const result = db.prepare(`
+    `,
+    ).run(data.userId);
+
+    const result = db
+      .prepare(
+        `
       INSERT INTO password_resets (user_id, token_hash, expires_at)
       VALUES (?, ?, ?)
-    `).run(data.userId, tokenHash, data.expiresAt.toISOString());
+    `,
+      )
+      .run(data.userId, tokenHash, data.expiresAt.toISOString());
 
     return this.findById(result.lastInsertRowid);
   }
@@ -110,13 +124,13 @@ export class PasswordReset extends BaseModel {
     const token = this.generateToken();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
-    
+
     const passwordReset = await this.create({
       userId,
       token,
       expiresAt,
     });
-    
+
     return { passwordReset, token };
   }
 
@@ -145,9 +159,13 @@ export class PasswordReset extends BaseModel {
   static async cleanupExpired() {
     const db = await this.getDb();
     const now = new Date().toISOString();
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       DELETE FROM password_resets WHERE expires_at < ?
-    `).run(now);
+    `,
+      )
+      .run(now);
     return result.changes;
   }
 }

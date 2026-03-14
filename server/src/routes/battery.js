@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import * as batteryController from '../controllers/batteryController.js';
-import { authenticate } from '../middleware/auth.js';
+import { Router } from "express";
+import * as batteryController from "../controllers/batteryController.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -39,7 +39,7 @@ const router = Router();
  *       401:
  *         description: Неавторизовано
  */
-router.post('/calculate', authenticate, batteryController.calculateBatteryRack);
+router.post("/calculate", authenticate, batteryController.calculateBatteryRack);
 
 /**
  * @swagger
@@ -87,6 +87,10 @@ router.post('/calculate', authenticate, batteryController.calculateBatteryRack);
  *       401:
  *         description: Неавторизовано
  */
-router.post('/find-best', authenticate, batteryController.findBestRackForBattery);
+router.post(
+  "/find-best",
+  authenticate,
+  batteryController.findBestRackForBattery,
+);
 
 export default router;

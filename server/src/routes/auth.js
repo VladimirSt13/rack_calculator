@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import * as authController from '../controllers/authController.js';
-import { authenticate } from '../middleware/auth.js';
-import { authorizeRole } from '../middleware/authorizeRole.js';
+import { Router } from "express";
+import * as authController from "../controllers/authController.js";
+import { authenticate } from "../middleware/auth.js";
+import { authorizeRole } from "../middleware/authorizeRole.js";
 
 const router = Router();
 
@@ -35,7 +35,7 @@ const router = Router();
  *       403:
  *         description: Недоступний домен email
  */
-router.post('/users', authController.register);
+router.post("/users", authController.register);
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ router.post('/users', authController.register);
  *       429:
  *         description: Забагато спроб (Rate Limit)
  */
-router.post('/session', authController.login);
+router.post("/session", authController.login);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ router.post('/session', authController.login);
  *       400:
  *         description: Refresh token обов'язковий
  */
-router.delete('/session', authController.logout);
+router.delete("/session", authController.logout);
 
 /**
  * @swagger
@@ -142,7 +142,7 @@ router.delete('/session', authController.logout);
  *       403:
  *         description: Token відкликано або термін дії закінчився
  */
-router.post('/token', authController.refreshToken);
+router.post("/token", authController.refreshToken);
 
 /**
  * @swagger
@@ -170,7 +170,7 @@ router.post('/token', authController.refreshToken);
  *       404:
  *         description: Користувача не знайдено
  */
-router.post('/email/verify', authController.verifyEmail);
+router.post("/email/verify", authController.verifyEmail);
 
 /**
  * @swagger
@@ -197,7 +197,7 @@ router.post('/email/verify', authController.verifyEmail);
  *       404:
  *         description: Користувача не знайдено
  */
-router.post('/email/verification', authController.resendVerification);
+router.post("/email/verification", authController.resendVerification);
 
 /**
  * @swagger
@@ -224,7 +224,7 @@ router.post('/email/verification', authController.resendVerification);
  *       400:
  *         description: Email обов'язковий
  */
-router.post('/password-resets', authController.forgotPassword);
+router.post("/password-resets", authController.forgotPassword);
 
 /**
  * @swagger
@@ -257,7 +257,7 @@ router.post('/password-resets', authController.forgotPassword);
  *       422:
  *         description: Слабкий пароль
  */
-router.put('/password', authController.resetPassword);
+router.put("/password", authController.resetPassword);
 
 /**
  * @swagger
@@ -294,7 +294,7 @@ router.put('/password', authController.resetPassword);
  *       422:
  *         description: Слабкий пароль
  */
-router.patch('/password', authenticate, authController.changePassword);
+router.patch("/password", authenticate, authController.changePassword);
 
 /**
  * @swagger
@@ -317,7 +317,7 @@ router.patch('/password', authenticate, authController.changePassword);
  *       401:
  *         description: Неавторизовано
  */
-router.get('/me', authenticate, authController.getCurrentUser);
+router.get("/me", authenticate, authController.getCurrentUser);
 
 /**
  * @swagger
@@ -341,6 +341,11 @@ router.get('/me', authenticate, authController.getCurrentUser);
  *       403:
  *         description: Недостатньо прав (потрібен admin)
  */
-router.post('/admin/users', authenticate, authorizeRole('admin'), authController.adminCreateUser);
+router.post(
+  "/admin/users",
+  authenticate,
+  authorizeRole("admin"),
+  authController.adminCreateUser,
+);
 
 export default router;

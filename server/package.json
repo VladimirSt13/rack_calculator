@@ -18,6 +18,7 @@
     "db:clear": "tsx scripts/clear-db.js",
     "lint": "eslint src --ext js",
     "format": "prettier --write \"src/**/*.{js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{js,json}\"",
     "test": "jest",
     "clean": "rmdir /S /Q data\\backups 2>nul || rm -rf data/backups"
   },

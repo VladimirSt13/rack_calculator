@@ -1,40 +1,45 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/features/auth/authStore';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
-import { Label } from '@/shared/components/Label';
-import { Loader2, UserPlus } from 'lucide-react';
-import { toast } from 'sonner';
-import { PUBLIC_ROUTES } from '@/core/constants/routes';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/features/auth/authStore";
+import { Input } from "@/shared/components/Input";
+import { Button } from "@/shared/components/Button";
+import { Label } from "@/shared/components/Label";
+import { Loader2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+import { PUBLIC_ROUTES } from "@/core/constants/routes";
 
-const ALLOWED_DOMAIN = '@accu-energo.com.ua';
+const ALLOWED_DOMAIN = "@accu-energo.com.ua";
 
 const registerSchema = z
   .object({
     email: z
       .string()
-      .email('Невірний формат email')
+      .email("Невірний формат email")
       .refine(
         (email) => email.endsWith(ALLOWED_DOMAIN),
-        `Реєстрація доступна тільки з корпоративною поштою ${ALLOWED_DOMAIN}`
+        `Реєстрація доступна тільки з корпоративною поштою ${ALLOWED_DOMAIN}`,
       ),
-    password: z.string().min(6, 'Пароль має бути не менше 6 символів'),
+    password: z.string().min(6, "Пароль має бути не менше 6 символів"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Паролі не співпадають',
-    path: ['confirmPassword'],
+    message: "Паролі не співпадають",
+    path: ["confirmPassword"],
   });
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register: registerUser, isLoading, error, clearError } = useAuthStore();
+  const {
+    register: registerUser,
+    isLoading,
+    error,
+    clearError,
+  } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -51,17 +56,19 @@ export const RegisterPage: React.FC = () => {
 
     try {
       await registerUser(data.email, data.password);
-      toast.success('Реєстрація успішна! Перевірте email для підтвердження.');
+      toast.success("Реєстрація успішна! Перевірте email для підтвердження.");
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       const errorMessage =
-        (err as any).response?.data?.error || (err as any).response?.data?.message || 'Помилка реєстрації';
+        (err as any).response?.data?.error ||
+        (err as any).response?.data?.message ||
+        "Помилка реєстрації";
 
       // Спеціальна обробка для існуючого користувача
-      if ((err as any).response?.data?.code === 'USER_EXISTS') {
-        toast.error('Користувач з таким email вже існує');
+      if ((err as any).response?.data?.code === "USER_EXISTS") {
+        toast.error("Користувач з таким email вже існує");
         navigate(`/login`);
-      } else if ((err as any).response?.data?.code === 'INVALID_DOMAIN') {
+      } else if ((err as any).response?.data?.code === "INVALID_DOMAIN") {
         toast.error(`Використовуйте пошту ${ALLOWED_DOMAIN}`);
       } else {
         toast.error(errorMessage);
@@ -94,8 +101,8 @@ export const RegisterPage: React.FC = () => {
               type="email"
               placeholder={`your${ALLOWED_DOMAIN}`}
               autoComplete="email"
-              className={errors.email?.message ? 'border-destructive' : ''}
-              {...register('email')}
+              className={errors.email?.message ? "border-destructive" : ""}
+              {...register("email")}
               disabled={isSubmitting}
             />
             {errors.email?.message && (
@@ -113,12 +120,14 @@ export const RegisterPage: React.FC = () => {
               type="password"
               placeholder="••••••••"
               autoComplete="new-password"
-              className={errors.password?.message ? 'border-destructive' : ''}
-              {...register('password')}
+              className={errors.password?.message ? "border-destructive" : ""}
+              {...register("password")}
               disabled={isSubmitting}
             />
             {errors.password?.message && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -129,12 +138,16 @@ export const RegisterPage: React.FC = () => {
               type="password"
               placeholder="••••••••"
               autoComplete="new-password"
-              className={errors.confirmPassword?.message ? 'border-destructive' : ''}
-              {...register('confirmPassword')}
+              className={
+                errors.confirmPassword?.message ? "border-destructive" : ""
+              }
+              {...register("confirmPassword")}
               disabled={isSubmitting}
             />
             {errors.confirmPassword?.message && (
-              <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
@@ -155,14 +168,17 @@ export const RegisterPage: React.FC = () => {
                 Реєстрація...
               </>
             ) : (
-              'Зареєструватися'
+              "Зареєструватися"
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Вже є акаунт? </span>
-          <Link to={PUBLIC_ROUTES.LOGIN} className="text-primary hover:underline font-medium">
+          <Link
+            to={PUBLIC_ROUTES.LOGIN}
+            className="text-primary hover:underline font-medium"
+          >
             Увійти
           </Link>
         </div>

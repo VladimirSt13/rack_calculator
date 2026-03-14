@@ -1,10 +1,10 @@
-import { Navigate } from 'react-router-dom';
-import { useAuthStore } from './authStore';
-import { PUBLIC_ROUTES } from '@/core/constants/routes';
+import { Navigate } from "react-router-dom";
+import { useAuthStore } from "./authStore";
+import { PUBLIC_ROUTES } from "@/core/constants/routes";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'manager' | 'user')[];
+  allowedRoles?: ("admin" | "manager" | "user")[];
   requireActive?: boolean; // Вимагає активної ролі (не 'user')
 }
 
@@ -35,7 +35,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Якщо роль 'user' і вимагається активна роль - редірект на access-denied
-  if (requireActive && user.role === 'user') {
+  if (requireActive && user.role === "user") {
     return <Navigate to={PUBLIC_ROUTES.ACCESS_DENIED} replace />;
   }
 

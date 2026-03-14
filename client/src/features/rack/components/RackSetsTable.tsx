@@ -1,7 +1,22 @@
-import { Package, Eye, Edit, Download, Loader2, Trash2, RotateCcw } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
-import { IconButton } from '@/shared/components/IconButton';
-import type { RackSet } from '@/features/rack/rackSetsApi';
+import {
+  Package,
+  Eye,
+  Edit,
+  Download,
+  Loader2,
+  Trash2,
+  RotateCcw,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/Table";
+import { IconButton } from "@/shared/components/IconButton";
+import type { RackSet } from "@/features/rack/rackSetsApi";
 
 interface RackSetsTableProps {
   rackSets: RackSet[];
@@ -14,7 +29,7 @@ interface RackSetsTableProps {
   onRestore?: (rackSet: RackSet) => void;
   isExporting?: boolean;
   emptyMessage?: string;
-  mode?: 'user' | 'admin';
+  mode?: "user" | "admin";
   showDeleted?: boolean;
 }
 
@@ -28,8 +43,8 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
   onDelete,
   onRestore,
   isExporting = false,
-  emptyMessage = 'У вас ще немає збережених комплектів',
-  mode = 'user',
+  emptyMessage = "У вас ще немає збережених комплектів",
+  mode = "user",
   showDeleted = false,
 }) => {
   const filteredSets = rackSets.filter(
@@ -39,10 +54,10 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
   );
 
   return (
-    <div className='bg-card rounded-lg border'>
+    <div className="bg-card rounded-lg border">
       {isLoading ? (
-        <div className='flex items-center justify-center py-12'>
-          <Loader2 className='w-8 h-8 animate-spin' />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       ) : (
         <Table>
@@ -53,107 +68,117 @@ export const RackSetsTable: React.FC<RackSetsTableProps> = ({
               <TableHead>Кількість стелажів</TableHead>
               <TableHead>Загальна вартість</TableHead>
               <TableHead>Створено</TableHead>
-              <TableHead className='text-right'>Дії</TableHead>
+              <TableHead className="text-right">Дії</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredSets.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className='text-center py-12'>
-                  <div className='flex flex-col items-center gap-2'>
-                    <Package className='w-12 h-12 text-muted-foreground' />
-                    <p className='text-muted-foreground'>{filters.search ? 'Комплекти не знайдено' : emptyMessage}</p>
+                <TableCell colSpan={6} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <Package className="w-12 h-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      {filters.search ? "Комплекти не знайдено" : emptyMessage}
+                    </p>
                     {!filters.search && (
-                      <p className='text-sm text-muted-foreground'>Розрахуйте стелажі та збережіть їх як комплект</p>
+                      <p className="text-sm text-muted-foreground">
+                        Розрахуйте стелажі та збережіть їх як комплект
+                      </p>
                     )}
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
               filteredSets.map((rackSet) => (
-                <TableRow key={rackSet.id} className={showDeleted ? 'opacity-75' : ''}>
-                  <TableCell className='font-medium'>
-                    <div className='flex items-center gap-2'>
-                      <Package className='w-4 h-4 text-muted-foreground' />
+                <TableRow
+                  key={rackSet.id}
+                  className={showDeleted ? "opacity-75" : ""}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-muted-foreground" />
                       {rackSet.name}
                       {showDeleted && rackSet.deleted_at && (
-                        <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800'>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           Видалено
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{rackSet.object_name || '—'}</TableCell>
+                  <TableCell>{rackSet.object_name || "—"}</TableCell>
                   <TableCell>
-                    <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>
-                      {mode === 'user'
-                        ? rackSet.racks?.reduce((sum, r) => sum + (r.quantity || 1), 0) || 0
-                        : rackSet.racks?.length || 0}{' '}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {mode === "user"
+                        ? rackSet.racks?.reduce(
+                            (sum, r) => sum + (r.quantity || 1),
+                            0,
+                          ) || 0
+                        : rackSet.racks?.length || 0}{" "}
                       од.
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className='font-semibold text-lg'>
-                      {(mode === 'user'
+                    <span className="font-semibold text-lg">
+                      {(mode === "user"
                         ? rackSet.total_cost_snapshot || rackSet.total_cost || 0
                         : rackSet.total_cost || 0
-                      ).toFixed(2)}{' '}
+                      ).toFixed(2)}{" "}
                       ₴
                     </span>
                   </TableCell>
                   <TableCell>
-                    {new Date(rackSet.created_at).toLocaleDateString('uk-UA', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    {new Date(rackSet.created_at).toLocaleDateString("uk-UA", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </TableCell>
-                  <TableCell className='text-right'>
-                    <div className='flex justify-end gap-2'>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
                       <IconButton
                         icon={Eye}
-                        variant='icon'
+                        variant="icon"
                         onClick={() => onViewSet(rackSet)}
-                        aria-label='Переглянути'
-                        title='Перегляд комплекту'
+                        aria-label="Переглянути"
+                        title="Перегляд комплекту"
                       />
-                      {mode === 'admin' && onEditInCalculator && (
+                      {mode === "admin" && onEditInCalculator && (
                         <IconButton
                           icon={Edit}
-                          variant='icon'
+                          variant="icon"
                           onClick={() => onEditInCalculator(rackSet)}
-                          aria-label='Відкрити в редакторі'
-                          title='Відкрити в калькуляторі'
+                          aria-label="Відкрити в редакторі"
+                          title="Відкрити в калькуляторі"
                         />
                       )}
                       <IconButton
                         icon={Download}
-                        variant='icon'
+                        variant="icon"
                         onClick={() => onExport(rackSet)}
-                        aria-label='Експортувати'
+                        aria-label="Експортувати"
                         disabled={isExporting}
-                        title='Експортувати комплект'
+                        title="Експортувати комплект"
                       />
                       {showDeleted && onRestore && (
                         <IconButton
                           icon={RotateCcw}
-                          variant='icon'
-                          className='text-green-600 hover:text-green-700'
+                          variant="icon"
+                          className="text-green-600 hover:text-green-700"
                           onClick={() => onRestore(rackSet)}
-                          aria-label='Відновити'
-                          title='Відновити комплект'
+                          aria-label="Відновити"
+                          title="Відновити комплект"
                         />
                       )}
-                      {mode === 'user' && onDelete && !showDeleted && (
+                      {mode === "user" && onDelete && !showDeleted && (
                         <IconButton
                           icon={Trash2}
-                          variant='icon'
-                          className='text-destructive hover:text-destructive'
+                          variant="icon"
+                          className="text-destructive hover:text-destructive"
                           onClick={() => onDelete(rackSet)}
-                          aria-label='Видалити'
-                          title='Видалити комплект'
+                          aria-label="Видалити"
+                          title="Видалити комплект"
                         />
                       )}
                     </div>

@@ -1,11 +1,11 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
-  direction?: 'row' | 'col';
-  gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  align?: 'start' | 'center' | 'end' | 'stretch';
-  justify?: 'start' | 'center' | 'end' | 'between' | 'around';
+  direction?: "row" | "col";
+  gap?: "xs" | "sm" | "md" | "lg" | "xl";
+  align?: "start" | "center" | "end" | "stretch";
+  justify?: "start" | "center" | "end" | "between" | "around";
   wrap?: boolean;
 }
 
@@ -13,53 +13,53 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
  * Stack - флекс контейнер для вертикального/горизонтального розміщення
  */
 export const Stack: React.FC<StackProps> = ({
-  direction = 'col',
-  gap = 'md',
-  align = 'stretch',
-  justify = 'start',
+  direction = "col",
+  gap = "md",
+  align = "stretch",
+  justify = "start",
   wrap = false,
   children,
   className,
   ...props
 }) => {
   const directionClasses = {
-    row: 'flex-row',
-    col: 'flex-col',
+    row: "flex-row",
+    col: "flex-col",
   };
 
   const gapClasses = {
-    xs: 'gap-1',
-    sm: 'gap-2',
-    md: 'gap-4',
-    lg: 'gap-6',
-    xl: 'gap-8',
+    xs: "gap-1",
+    sm: "gap-2",
+    md: "gap-4",
+    lg: "gap-6",
+    xl: "gap-8",
   };
 
   const alignClasses = {
-    start: 'items-start',
-    center: 'items-center',
-    end: 'items-end',
-    stretch: 'items-stretch',
+    start: "items-start",
+    center: "items-center",
+    end: "items-end",
+    stretch: "items-stretch",
   };
 
   const justifyClasses = {
-    start: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-    between: 'justify-between',
-    around: 'justify-around',
+    start: "justify-start",
+    center: "justify-center",
+    end: "justify-end",
+    between: "justify-between",
+    around: "justify-around",
   };
 
   return (
     <div
       className={cn(
-        'flex',
+        "flex",
         directionClasses[direction],
         gapClasses[gap],
         alignClasses[align],
         justifyClasses[justify],
-        wrap && 'flex-wrap',
-        className
+        wrap && "flex-wrap",
+        className,
       )}
       {...props}
     >
@@ -71,23 +71,18 @@ export const Stack: React.FC<StackProps> = ({
 /**
  * Inline - горизонтальний стек (для кнопок, тегів тощо)
  */
-export interface InlineProps extends Omit<StackProps, 'direction'> {
-  gap?: 'xs' | 'sm' | 'md' | 'lg';
+export interface InlineProps extends Omit<StackProps, "direction"> {
+  gap?: "xs" | "sm" | "md" | "lg";
 }
 
 export const Inline: React.FC<InlineProps> = ({
-  gap = 'sm',
+  gap = "sm",
   children,
   className,
   ...props
 }) => {
   return (
-    <Stack
-      direction="row"
-      gap={gap}
-      className={className}
-      {...props}
-    >
+    <Stack direction="row" gap={gap} className={className} {...props}>
       {children}
     </Stack>
   );

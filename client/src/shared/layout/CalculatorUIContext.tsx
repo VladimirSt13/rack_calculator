@@ -1,15 +1,21 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { CalculatorMode } from './CalculatorPage';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
+import { CalculatorMode } from "./CalculatorPage";
 
 /**
  * Стан розрахунку в життєвому циклі
  */
-export type CalculationState = 'idle' | 'editing' | 'calculating' | 'ready';
+export type CalculationState = "idle" | "editing" | "calculating" | "ready";
 
 /**
  * Активна секція в панелі результатів
  */
-export type ActiveSection = 'summary' | 'details' | 'visualization' | null;
+export type ActiveSection = "summary" | "details" | "visualization" | null;
 
 /**
  * UI-контекст калькулятора
@@ -36,7 +42,9 @@ export interface CalculatorUIContextValue {
   toggleDetails: () => void;
 }
 
-const CalculatorUIContext = createContext<CalculatorUIContextValue | undefined>(undefined);
+const CalculatorUIContext = createContext<CalculatorUIContextValue | undefined>(
+  undefined,
+);
 
 export interface CalculatorUIProviderProps {
   children: React.ReactNode;
@@ -46,13 +54,14 @@ export interface CalculatorUIProviderProps {
 
 export const CalculatorUIProvider: React.FC<CalculatorUIProviderProps> = ({
   children,
-  defaultMode = 'analysis',
+  defaultMode = "analysis",
 }) => {
   // Mode state
   const [mode, setMode] = useState<CalculatorMode>(defaultMode);
 
   // Calculation state
-  const [calculationState, setCalculationState] = useState<CalculationState>('idle');
+  const [calculationState, setCalculationState] =
+    useState<CalculationState>("idle");
 
   // Active section state
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
@@ -61,19 +70,22 @@ export const CalculatorUIProvider: React.FC<CalculatorUIProviderProps> = ({
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const toggleDetails = useCallback(() => {
-    setIsDetailsOpen(prev => !prev);
+    setIsDetailsOpen((prev) => !prev);
   }, []);
 
-  const value = useMemo<CalculatorUIContextValue>(() => ({
-    mode,
-    setMode,
-    calculationState,
-    setCalculationState,
-    activeSection,
-    setActiveSection,
-    isDetailsOpen,
-    toggleDetails,
-  }), [mode, calculationState, activeSection, isDetailsOpen, toggleDetails]);
+  const value = useMemo<CalculatorUIContextValue>(
+    () => ({
+      mode,
+      setMode,
+      calculationState,
+      setCalculationState,
+      activeSection,
+      setActiveSection,
+      isDetailsOpen,
+      toggleDetails,
+    }),
+    [mode, calculationState, activeSection, isDetailsOpen, toggleDetails],
+  );
 
   return (
     <CalculatorUIContext.Provider value={value}>
@@ -90,7 +102,7 @@ export const useCalculatorUI = (): CalculatorUIContextValue => {
 
   if (context === undefined) {
     throw new Error(
-      'useCalculatorUI must be used within a CalculatorUIProvider'
+      "useCalculatorUI must be used within a CalculatorUIProvider",
     );
   }
 

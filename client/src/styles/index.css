@@ -1,4 +1,4 @@
-@import './variables.css';
+@import "./variables.css";
 
 @tailwind base;
 @tailwind components;
@@ -10,7 +10,9 @@
    ============================================ */
 
 /* CSS Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -44,7 +46,8 @@ html.dark body {
 
 /* Pulse animation for calculating status */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -57,16 +60,27 @@ html.dark body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: hsl(var(--foreground));
 }
 
-h1 { font-size: var(--font-size-xl); }
-h2 { font-size: var(--font-size-lg); }
-h3 { font-size: var(--font-size-base); }
+h1 {
+  font-size: var(--font-size-xl);
+}
+h2 {
+  font-size: var(--font-size-lg);
+}
+h3 {
+  font-size: var(--font-size-base);
+}
 
 p {
   margin: 0;
@@ -86,7 +100,10 @@ a:hover {
 }
 
 /* Monospace for numbers and code */
-pre, code, kbd, samp {
+pre,
+code,
+kbd,
+samp {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
 }
@@ -113,7 +130,9 @@ textarea {
   background-color: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-lg);
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  transition:
+    border-color var(--transition-normal),
+    box-shadow var(--transition-normal);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -122,7 +141,7 @@ textarea {
 input[type="number"] {
   font-family: var(--font-family-mono);
   letter-spacing: 0.02em;
-  width: 9ch;  /* 9 characters width */
+  width: 9ch; /* 9 characters width */
 }
 
 /* Hover state */
