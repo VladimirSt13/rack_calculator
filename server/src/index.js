@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
 import { initDatabase } from './db/index.js';
 import { initAuditCleanup } from './services/auditCleanupService.js';
+import { initPriceHistoryCleanup } from './services/priceHistoryCleanupService.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -31,21 +32,20 @@ const PORT = process.env.PORT || 3001;
 // ===== MIDDLEWARE =====
 
 // CORS - ПЕРШИМ! (до helmet)
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    credentials: true,
+  }),
+);
 
 // Security headers (виключаємо CORS заголовки)
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: false,
-}));
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+  }),
+);
 
 // Global Rate limiting (100 запитів за 15 хвилин)
 const globalLimiter = rateLimit({
@@ -59,12 +59,12 @@ app.use('/api/', globalLimiter);
 
 // Auth-specific Rate limiting (5 запитів на годину для критичних endpoint)
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,  // 1 година
-  max: 5,  // 5 запитів на годину
+  windowMs: 60 * 60 * 1000, // 1 година
+  max: 5, // 5 запитів на годину
   message: 'Too many authentication requests, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false,  // Рахувати навіть успішні запити
+  skipSuccessfulRequests: false, // Рахувати навіть успішні запити
 });
 
 // Застосовуємо auth limiter до критичних endpoint
@@ -85,6 +85,9 @@ initDatabase();
 // ===== AUDIT CLEANUP SCHEDULER =====
 initAuditCleanup();
 
+// ===== PRICE HISTORY CLEANUP SCHEDULER =====
+initPriceHistoryCleanup();
+
 // ===== ROUTES =====
 app.use('/api/auth', authRoutes);
 app.use('/api/price', priceRoutes);
@@ -99,11 +102,15 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/rack-configurations', rackConfigurationsRoutes);
 
 // ===== SWAGGER DOCUMENTATION =====
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none } .swagger-ui .info { margin-bottom: 10px }',
-  customSiteTitle: 'Rack Calculator API Docs',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none } .swagger-ui .info { margin-bottom: 10px }',
+    customSiteTitle: 'Rack Calculator API Docs',
+  }),
+);
 
 // Swagger JSON endpoint
 app.get('/api-docs.json', (req, res) => {

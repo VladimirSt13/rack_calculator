@@ -12,6 +12,7 @@
     "migrate:rollback": "tsx scripts/migrate.js rollback",
     "price:migrate": "tsx scripts/migrate-price.js",
     "price:cleanup": "tsx scripts/cleanup-duplicates.js",
+    "price-history:cleanup": "tsx scripts/cleanup-price-history.js",
     "seed:admin": "tsx scripts/seed-admin.js",
     "audit:cleanup": "tsx scripts/cleanup-audit.js",
     "db:clear": "tsx scripts/clear-db.js",

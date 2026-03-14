@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { FileDown, AlertCircle, Download } from 'lucide-react';
+import { FileDown, AlertCircle, Download, Edit, Save, X } from 'lucide-react';
 import { AdminLayout } from '@/shared/layout/AdminLayout';
 import { priceApi } from '@/features/price/priceApi';
 import api from '@/lib/axios';
@@ -10,6 +10,7 @@ import PriceUpload from '@/features/price/components/PriceUpload';
 import PricePreview from '@/features/price/components/PricePreview';
 import PriceHistory from '@/features/price/components/PriceHistory';
 import PriceTable from '@/features/price/components/PriceTableExcel';
+import PriceEditControls from '@/features/price/components/PriceEditControls';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 
@@ -23,6 +24,7 @@ export const PriceManagementPage: React.FC = () => {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'parsing' | 'preview' | 'uploading'>('idle');
   const [parsedData, setParsedData] = useState<ParsedPriceData | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Отримання поточного прайсу
   const { data: currentPrice, isLoading: isLoadingPrice } = useQuery({
@@ -77,11 +79,31 @@ export const PriceManagementPage: React.FC = () => {
     onSuccess: () => {
       toast.success('Прайс оновлено!');
       queryClient.invalidateQueries({ queryKey: ['price'] });
+      setIsEditing(false);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || 'Помилка оновлення прайсу');
     },
   });
+
+  // Почати редагування
+  const handleStartEdit = () => {
+    setIsEditing(true);
+    toast.info('Режим редагування увімкнено. Змініть ціни та натисніть "Зберегти".');
+  };
+
+  // Скасувати редагування
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    toast.info('Редагування скасовано.');
+  };
+
+  // Зберегти зміни
+  const handleSaveEdit = () => {
+    if (currentPrice) {
+      updateMutation.mutate(currentPrice.data);
+    }
+  };
 
   // Обробка вибору файлу
   const handleFileSelected = (file: File) => {
@@ -174,9 +196,9 @@ export const PriceManagementPage: React.FC = () => {
   const handleDownloadPrice = async () => {
     try {
       await priceApi.downloadExcel();
-      toast.success('Прайс скачано');
+      toast.success('Прайс завантажено');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Помилка скачування прайсу');
+      toast.error(error.response?.data?.error || 'Помилка завантаження прайсу');
     }
   };
 
@@ -184,17 +206,17 @@ export const PriceManagementPage: React.FC = () => {
   const handleUpdatePrice = (category: string, code: string, updates: any) => {
     if (currentPrice) {
       const categoryData = currentPrice.data[category as keyof typeof currentPrice.data];
-      
+
       // Для опор: витягуємо базовий код (215-edge -> 215)
       let itemKey = code;
       let subKey = null;
-      
+
       if (category === 'supports' && code.includes('-')) {
         const parts = code.split('-');
         itemKey = parts[0];
         subKey = parts[1]; // 'edge' або 'intermediate'
       }
-      
+
       const item = categoryData[itemKey as keyof typeof categoryData];
 
       // Глибоке копіювання поточного елемента
@@ -289,11 +311,8 @@ export const PriceManagementPage: React.FC = () => {
   };
 
   return (
-    <AdminLayout
-      title="Управління прайсом"
-      description="Завантаження та оновлення прайс-листу"
-    >
-      <div className="space-y-6">
+    <AdminLayout title='Управління прайсом' description='Завантаження та оновлення прайс-листу'>
+      <div className='space-y-6'>
         {/* Поточний прайс */}
         <Card>
           <CardHeader>
@@ -301,40 +320,64 @@ export const PriceManagementPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className='flex items-center justify-center py-8'>
+                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
               </div>
             ) : currentPrice ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
+              <div className='space-y-4'>
+                <div className='flex justify-between items-center'>
                   <div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className='text-sm text-muted-foreground'>
                       Оновлено: {new Date(currentPrice.updatedAt).toLocaleString('uk-UA')}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadTemplate}
-                    >
-                      <FileDown className="w-4 h-4 mr-2" />
-                      Шаблон CSV
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadPrice}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Скачать Excel
-                    </Button>
+                  <div className='flex gap-2'>
+                    {!isEditing ? (
+                      <>
+                        <Button variant='outline' size='sm' onClick={handleStartEdit}>
+                          <Edit className='w-4 h-4 mr-2' />
+                          Редагувати прайс
+                        </Button>
+                        <Button variant='outline' size='sm' onClick={handleDownloadTemplate}>
+                          <FileDown className='w-4 h-4 mr-2' />
+                          Шаблон CSV
+                        </Button>
+                        <Button variant='outline' size='sm' onClick={handleDownloadPrice}>
+                          <Download className='w-4 h-4 mr-2' />
+                          Excel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant='default'
+                          size='sm'
+                          onClick={handleSaveEdit}
+                          disabled={updateMutation.isPending}
+                        >
+                          <Save className='w-4 h-4 mr-2' />
+                          {updateMutation.isPending ? 'Збереження...' : 'Зберегти'}
+                        </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={handleCancelEdit}
+                          disabled={updateMutation.isPending}
+                        >
+                          <X className='w-4 h-4 mr-2' />
+                          Скасувати
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
                   {Object.entries(currentPrice.data).map(([category, items]) => {
                     const count = Object.keys(items).length;
+                    // Пропускаємо порожні категорії
+                    if (count === 0) return null;
+
                     const categoryNames: Record<string, string> = {
                       supports: 'Опори',
                       spans: 'Балки',
@@ -343,19 +386,17 @@ export const PriceManagementPage: React.FC = () => {
                       isolator: 'Ізолятори',
                     };
                     return (
-                      <div key={category} className="p-3 bg-muted rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{count}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {categoryNames[category]}
-                        </p>
+                      <div key={category} className='p-3 bg-muted rounded-lg text-center'>
+                        <p className='text-2xl font-bold text-primary'>{count}</p>
+                        <p className='text-xs text-muted-foreground mt-1'>{categoryNames[category] || category}</p>
                       </div>
                     );
                   })}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <AlertCircle className="w-5 h-5" />
+              <div className='flex items-center gap-2 text-muted-foreground'>
+                <AlertCircle className='w-5 h-5' />
                 <p>Прайс ще не завантажено</p>
               </div>
             )}
@@ -364,18 +405,12 @@ export const PriceManagementPage: React.FC = () => {
 
         {/* Таблиця прайсу */}
         {currentPrice && (
-          <PriceTable
-            priceData={currentPrice.data}
-            onUpdate={handleUpdatePrice}
-          />
+          <PriceTable priceData={currentPrice.data} onUpdate={handleUpdatePrice} isEditing={isEditing} />
         )}
 
         {/* Завантаження нового прайсу */}
         {uploadStatus === 'idle' && (
-          <PriceUpload
-            onFileSelected={handleFileSelected}
-            onError={(error) => toast.error(error)}
-          />
+          <PriceUpload onFileSelected={handleFileSelected} onError={(error) => toast.error(error)} />
         )}
 
         {/* Попередній перегляд */}

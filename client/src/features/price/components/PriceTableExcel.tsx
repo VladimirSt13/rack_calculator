@@ -1,16 +1,11 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Search, Filter, ChevronRight, ChevronDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/Card';
-import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
-import { Select } from '@/shared/components/Select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
 import { CATEGORY_NAMES } from '@/core/constants/priceCategories';
 import type { PriceData } from '@/features/price/priceApi';
 
-/**
- * Компонент для зміни ширини стовпчика
- */
 const ColumnResizer = ({
   column,
   width,
@@ -38,21 +33,17 @@ const ColumnResizer = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       const diff = e.clientX - startX.current;
-      const newWidth = startWidth.current + diff;
-      onResize(column, Math.max(50, newWidth));
+      onResize(column, Math.max(50, startWidth.current + diff));
     };
-
     const handleMouseUp = () => {
       setIsResizing(false);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -61,20 +52,14 @@ const ColumnResizer = ({
 
   return (
     <div
-      className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 transition-colors z-50"
+      className='absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 z-50'
       onMouseDown={handleMouseDown}
     />
   );
 };
 
-/**
- * Категорії прайсу для фільтру та відображення
- */
 const CATEGORY_ORDER = ['supports', 'spans', 'vertical_supports', 'diagonal_brace', 'isolator'];
 
-/**
- * Тип для елемента таблиці
- */
 interface TableItem {
   category: string;
   code: string;
@@ -91,16 +76,10 @@ interface TableItem {
 export interface PriceTableProps {
   priceData: PriceData;
   onUpdate: (category: string, code: string, updates: any) => void;
+  isEditing?: boolean;
 }
 
-/**
- * PriceTable - таблиця прайсу в стилі Excel
- */
-export const PriceTable: React.FC<PriceTableProps> = ({
-  priceData,
-  onUpdate,
-}) => {
-  // Стани
+export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isEditing = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -110,8 +89,6 @@ export const PriceTable: React.FC<PriceTableProps> = ({
     diagonal_brace: true,
     isolator: true,
   });
-
-  // Ширина стовпчиків
   const [columnWidths, setColumnWidths] = useState({
     number: 50,
     code: 100,
@@ -121,40 +98,58 @@ export const PriceTable: React.FC<PriceTableProps> = ({
     weight: 100,
     description: 400,
   });
-
-  // Редагування
   const [editingCell, setEditingCell] = useState<{ category: string; code: string; field: string } | null>(null);
   const editingRefs = useRef<Record<string, HTMLDivElement>>({});
 
-  // Розпарсити дані в простий список по категоріях
+  const handleSaveEdit = useCallback(
+    (category: string, code: string, field: string, value: string, subKey?: string, oldCode?: string) => {
+      const updates: any = {};
+      switch (field) {
+        case 'code':
+          updates.code = value;
+          break;
+        case 'name':
+          if (subKey) updates[subKey] = { name: value };
+          else updates.name = value;
+          break;
+        case 'price':
+          const p = parseFloat(value) || 0;
+          if (subKey) updates[subKey] = { price: p };
+          else updates.price = p;
+          break;
+        case 'weight':
+          const w = parseFloat(value) || null;
+          if (subKey) updates[subKey] = { weight: w };
+          else updates.weight = w;
+          break;
+        case 'description':
+          if (subKey) updates[subKey] = { description: value };
+          else updates.description = value;
+          break;
+      }
+      onUpdate(category, oldCode && oldCode !== code ? oldCode : code, updates);
+      setEditingCell(null);
+    },
+    [onUpdate],
+  );
+
+  const handleResize = useCallback((column: string, newWidth: number) => {
+    setColumnWidths((prev) => ({ ...prev, [column]: Math.max(50, newWidth) }));
+  }, []);
+
   const allItems = useMemo(() => {
     const items: TableItem[] = [];
-
-    CATEGORY_ORDER.forEach(category => {
+    CATEGORY_ORDER.forEach((category) => {
       const categoryItems = priceData[category as keyof PriceData];
       if (!categoryItems) return;
-
-      // Додаємо заголовок категорії
-      items.push({
-        category,
-        code: '',
-        name: CATEGORY_NAMES[category],
-        price: 0,
-        isHeader: true,
-      });
-
-      let itemNumber = 1;
-
+      items.push({ category, code: '', name: CATEGORY_NAMES[category], price: 0, isHeader: true });
       Object.entries(categoryItems).forEach(([code, item]) => {
         const anyItem = item as any;
-        
-        // Для опор - з вкладеною структурою (edge/intermediate)
         if (category === 'supports' && anyItem.edge && anyItem.intermediate) {
-          // Додаємо рядок із загальною назвою опори
           items.push({
             category,
             code: `${code}-parent`,
-            name: anyItem.name || 'Бокові частини 1 рядна',
+            name: anyItem.name || code,
             price: 0,
             weight: null,
             description: '',
@@ -162,9 +157,6 @@ export const PriceTable: React.FC<PriceTableProps> = ({
             subCode: code,
             isParent: true,
           });
-          itemNumber++;
-          
-          // Крайня опора
           items.push({
             category,
             code: `${code}-edge`,
@@ -175,9 +167,6 @@ export const PriceTable: React.FC<PriceTableProps> = ({
             type: 'edge',
             subCode: code,
           });
-          itemNumber++;
-
-          // Проміжна опора
           items.push({
             category,
             code: `${code}-intermediate`,
@@ -188,282 +177,214 @@ export const PriceTable: React.FC<PriceTableProps> = ({
             type: 'intermediate',
             subCode: code,
           });
-          itemNumber += 2;
         } else {
-          // Звичайний елемент (балки, верт. опори, ізолятори)
-          const simpleItem = anyItem;
           items.push({
             category,
-            code: simpleItem.code || code,
-            name: simpleItem.name || code,
-            price: simpleItem.price || 0,
-            weight: simpleItem.weight,
-            description: simpleItem.description,
+            code: (anyItem as any).code || code,
+            name: (anyItem as any).name || code,
+            price: (anyItem as any).price || 0,
+            weight: (anyItem as any).weight,
+            description: (anyItem as any).description,
             type: 'default',
           });
-          itemNumber++;
         }
       });
-
-      // Пустий рядок між категоріями
-      items.push({
-        category,
-        code: '',
-        name: '',
-        price: 0,
-        isHeader: false,
-      });
+      items.push({ category, code: '', name: '', price: 0, isHeader: false });
     });
-
     return items;
   }, [priceData]);
 
-  // Фільтрація
   const filteredItems = useMemo(() => {
     const result: TableItem[] = [];
-
-    allItems.forEach(item => {
-      // Заголовки категорій завжди додаємо
-      if (item.isHeader) {
+    allItems.forEach((item) => {
+      if (item.isHeader || item.name === '') {
         result.push(item);
         return;
       }
-
-      // Пусті рядки завжди додаємо
-      if (item.name === '') {
-        result.push(item);
-        return;
-      }
-
-      // Фільтр за категорією
-      if (selectedCategory !== 'all' && item.category !== selectedCategory) {
-        return;
-      }
-
-      // Фільтр за пошуком
+      if (selectedCategory !== 'all' && item.category !== selectedCategory) return;
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesCode = item.code.toLowerCase().includes(query);
-        const matchesName = item.name.toLowerCase().includes(query);
-        const matchesDescription = item.description?.toLowerCase().includes(query);
-
-        if (!matchesCode && !matchesName && !matchesDescription) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !item.code.toLowerCase().includes(q) &&
+          !item.name.toLowerCase().includes(q) &&
+          !item.description?.toLowerCase().includes(q)
+        )
           return;
-        }
       }
-
-      // Перевірка розгорнутої категорії
-      const isExpanded = expandedCategories[item.category];
-      if (!isExpanded && !item.isHeader) {
-        return;
-      }
-
+      if (!expandedCategories[item.category]) return;
       result.push(item);
     });
-
     return result;
   }, [allItems, selectedCategory, searchQuery, expandedCategories]);
 
-  // Збереження змін
-  const handleSaveEdit = useCallback((category: string, code: string, field: string, value: string, subKey?: string, oldCode?: string) => {
-    const updates: any = {};
-    
-    // Обробка різних типів полів
-    switch (field) {
-      case 'code':
-        updates.code = value;
-        break;
-      case 'name':
-        if (subKey) {
-          updates[subKey] = { name: value };
-        } else {
-          updates.name = value;
-        }
-        break;
-      case 'price':
-        const priceValue = parseFloat(value) || 0;
-        if (subKey) {
-          updates[subKey] = { price: priceValue };
-        } else {
-          updates.price = priceValue;
-        }
-        break;
-      case 'weight':
-        const weightValue = parseFloat(value) || null;
-        if (subKey) {
-          updates[subKey] = { weight: weightValue };
-        } else {
-          updates.weight = weightValue;
-        }
-        break;
-      case 'description':
-        if (subKey) {
-          updates[subKey] = { description: value };
-        } else {
-          updates.description = value;
-        }
-        break;
-    }
+  const getItemNumber = useCallback(
+    (index: number) => {
+      let n = 0;
+      for (let i = 0; i < index; i++) if (!filteredItems[i].isHeader && filteredItems[i].name !== '') n++;
+      return n;
+    },
+    [filteredItems],
+  );
 
-    // Викликаємо onUpdate з правильними параметрами
-    const targetCode = oldCode && oldCode !== code ? oldCode : code;
-    onUpdate(category, targetCode, updates);
-    setEditingCell(null);
-  }, [onUpdate]);
-
-  // Зміна ширини стовпчика
-  const handleResize = useCallback((column: string, newWidth: number) => {
-    setColumnWidths(prev => ({
-      ...prev,
-      [column]: Math.max(50, newWidth), // Мінімальна ширина 50px
-    }));
-  }, []);
-
-  // Розгорнути/згорнути категорію
   const toggleCategory = useCallback((category: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category],
-    }));
+    setExpandedCategories((prev) => ({ ...prev, [category]: !prev[category] }));
   }, []);
 
-  // Підрахунок номерів для відображення
-  const getItemNumber = useCallback((index: number) => {
-    let number = 0;
-    for (let i = 0; i < index; i++) {
-      if (!filteredItems[i].isHeader && filteredItems[i].name !== '') {
-        number++;
-      }
-    }
-    return number;
-  }, [filteredItems]);
+  const headerClass =
+    'relative bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 text-xs uppercase tracking-wide';
+  const cellBorder = 'border-r border-gray-200 dark:border-gray-700 py-2 px-4';
+  const editClass =
+    'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-white dark:hover:bg-gray-700 bg-transparent';
+  const nonEditClass = 'px-2 py-1 text-gray-900 dark:text-gray-100';
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Прайс-лист</CardTitle>
+    <Card className='border-0 shadow-sm dark:bg-gray-900 dark:border-gray-700'>
+      <CardHeader className='border-b bg-white dark:bg-gray-900 dark:border-gray-700 py-3'>
+        <CardTitle className='text-lg font-semibold text-gray-800 dark:text-gray-100'>Прайс-лист</CardTitle>
       </CardHeader>
-      <CardContent>
-        {/* Фільтри */}
-        <div className="flex items-center gap-4 mb-4">
+      <CardContent className='p-0'>
+        <div className='flex items-center gap-4 mb-4 p-4 border-b bg-gray-50 dark:bg-gray-800 dark:border-gray-700'>
           <Input
-            type="text"
-            placeholder="Пошук за кодом, назвою або описом..."
+            type='text'
+            placeholder='Пошук...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className='max-w-sm h-9 text-sm dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600'
           />
-
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className='flex h-9 items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
           >
-            <option value="all">Всі категорії</option>
-            <option value="supports">Опори</option>
-            <option value="spans">Балки</option>
-            <option value="vertical_supports">Вертикальні опори</option>
-            <option value="diagonal_brace">Розкоси</option>
-            <option value="isolator">Ізолятори</option>
+            <option value='all'>Всі категорії</option>
+            {CATEGORY_ORDER.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_NAMES[c]}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* Таблиця */}
-        <div className="rounded-md border overflow-auto max-h-[700px]">
+        <div className='rounded-md border border-gray-300 dark:border-gray-700 overflow-auto max-h-[700px] bg-white dark:bg-gray-900'>
           <Table>
-            <TableHeader className="sticky top-0 bg-background z-20 border-b">
+            <TableHeader className='sticky top-0 bg-gray-100 dark:bg-gray-800 z-20 border-b border-gray-300 dark:border-gray-700'>
               <TableRow>
-                <TableHead className="relative border-r" style={{ width: columnWidths.number }}>
-                  №
-                  <ColumnResizer column="number" width={columnWidths.number} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative border-r" style={{ width: columnWidths.code }}>
-                  Код
-                  <ColumnResizer column="code" width={columnWidths.code} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative border-r" style={{ width: columnWidths.name }}>
-                  Назва
-                  <ColumnResizer column="name" width={columnWidths.name} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative border-r" style={{ width: columnWidths.category }}>
-                  Категорія
-                  <ColumnResizer column="category" width={columnWidths.category} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative text-right border-r" style={{ width: columnWidths.price }}>
-                  Ціна
-                  <ColumnResizer column="price" width={columnWidths.price} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative text-right border-r" style={{ width: columnWidths.weight }}>
-                  Вага
-                  <ColumnResizer column="weight" width={columnWidths.weight} onResize={handleResize} />
-                </TableHead>
-                <TableHead className="relative" style={{ width: columnWidths.description }}>
-                  Опис
-                  <ColumnResizer column="description" width={columnWidths.description} onResize={handleResize} />
-                </TableHead>
+                {[
+                  { key: '№', width: 70 },
+                  { key: 'Код', width: 100 },
+                  { key: 'Назва', width: 300 },
+                  { key: 'Категорія', width: 150 },
+                  { key: 'Ціна (грн)', right: true, width: 120 },
+                  { key: 'Вага (кг)', right: true, width: 100 },
+                  { key: 'Опис', width: 400 },
+                ].map((h, i) => {
+                  const colKey = ['number', 'code', 'name', 'category', 'price', 'weight', 'description'][i];
+                  return (
+                    <TableHead
+                      key={h.key}
+                      className={`${headerClass} ${h.right ? 'text-right' : ''}`}
+                      style={{ width: h.width }}
+                    >
+                      {h.key}
+                      <ColumnResizer
+                        column={colKey}
+                        width={columnWidths[colKey as keyof typeof columnWidths]}
+                        onResize={handleResize}
+                      />
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    Нічого не знайдено
+                  <TableCell colSpan={7} className='text-center py-12 text-gray-500 dark:text-gray-400'>
+                    <Filter className='w-12 h-12 mx-auto mb-3 opacity-30' />
+                    <p className='text-base font-medium'>Нічого не знайдено</p>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredItems.map((item, index) => {
-                  // Заголовок категорії
                   if (item.isHeader) {
                     const isExpanded = expandedCategories[item.category];
                     return (
                       <TableRow
                         key={`${item.category}-header`}
-                        className="cursor-pointer hover:bg-muted/50 bg-muted"
-                        onClick={() => toggleCategory(item.category)}
+                        className='cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors'
                       >
-                        <TableCell colSpan={7} className="font-bold text-base py-3">
-                          <div className="flex items-center gap-2">
-                            {isExpanded ? (
-                              <ChevronDown className="w-5 h-5" />
-                            ) : (
-                              <ChevronRight className="w-5 h-5" />
-                            )}
+                        <TableCell colSpan={7} className='font-semibold text-gray-800 dark:text-gray-100 py-3 px-4'>
+                          <div className='flex items-center gap-2'>
+                            {isExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
                             {item.name}
                           </div>
                         </TableCell>
                       </TableRow>
                     );
                   }
-
-                  // Пустий рядок
-                  if (item.name === '') {
+                  if (item.name === '')
                     return (
-                      <TableRow key={`${item.category}-spacer`}>
-                        <TableCell colSpan={7} className="py-2"></TableCell>
+                      <TableRow key={`${item.category}-spacer`} className='bg-gray-50 dark:bg-gray-800'>
+                        <TableCell colSpan={7} className='py-1'></TableCell>
                       </TableRow>
                     );
-                  }
 
-                  // Батьківський рядок опори (загальна назва)
+                  const itemNumber = getItemNumber(index);
+                  const isEditingCode =
+                    editingCell?.category === item.category &&
+                    editingCell?.code === item.code &&
+                    editingCell?.field === 'code';
+                  const isEditingName =
+                    editingCell?.category === item.category &&
+                    editingCell?.code === item.code &&
+                    editingCell?.field === 'name';
+                  const isEditingPrice =
+                    editingCell?.category === item.category &&
+                    editingCell?.code === item.code &&
+                    editingCell?.field === 'price';
+                  const isEditingWeight =
+                    editingCell?.category === item.category &&
+                    editingCell?.code === item.code &&
+                    editingCell?.field === 'weight';
+                  const isEditingDescription =
+                    editingCell?.category === item.category &&
+                    editingCell?.code === item.code &&
+                    editingCell?.field === 'description';
+
                   if (item.isParent) {
-                    const itemNumber = getItemNumber(index);
-                    const isEditing = editingCell?.category === item.category && editingCell?.code === item.code;
-                    
                     return (
-                      <TableRow key={`${item.category}-${item.code}`} className="bg-muted/30">
-                        <TableCell className="font-medium text-muted-foreground border-r">{itemNumber}</TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground border-r">{item.subCode}</TableCell>
-                        <TableCell className="border-r">
+                      <TableRow
+                        key={`${item.category}-${item.code}`}
+                        className='bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
+                      >
+                        <TableCell
+                          className={`font-medium text-xs text-gray-500 dark:text-gray-400 ${cellBorder} bg-gray-50 dark:bg-gray-800`}
+                        >
+                          {itemNumber}
+                        </TableCell>
+                        <TableCell
+                          className={`font-mono text-xs text-gray-500 dark:text-gray-400 ${cellBorder} bg-gray-50 dark:bg-gray-800`}
+                        >
+                          {item.subCode}
+                        </TableCell>
+                        <TableCell className={cellBorder}>
                           <div
-                            ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-name`] = el; }}
-                            contentEditable={isEditing}
+                            ref={(el) => {
+                              if (el) editingRefs.current[`${item.category}-${item.code}-name`] = el;
+                            }}
+                            contentEditable={isEditingName}
                             suppressContentEditableWarning
-                            className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] font-semibold cursor-pointer hover:bg-muted/50"
+                            className={`${editClass} font-semibold text-gray-900 dark:text-gray-100`}
                             onBlur={(e) => {
-                              if (isEditing) {
-                                handleSaveEdit(item.category, item.code, 'name', e.currentTarget.textContent || '', undefined, item.subCode);
-                              }
+                              if (isEditingName)
+                                handleSaveEdit(
+                                  item.category,
+                                  item.code,
+                                  'name',
+                                  e.currentTarget.textContent || '',
+                                  undefined,
+                                  item.subCode,
+                                );
                             }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -472,49 +393,63 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                               }
                             }}
                             onClick={() => {
-                              if (!isEditing) {
+                              if (!isEditingName)
                                 setEditingCell({ category: item.category, code: item.code, field: 'name' });
-                              }
                             }}
                           >
                             {item.name}
                           </div>
                         </TableCell>
-                        <TableCell className="border-r">
-                          <span className="text-xs px-2 py-1 bg-muted rounded">
-                            {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES] || item.category}
+                        <TableCell className={cellBorder}>
+                          <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'>
+                            {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES]}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground border-r">—</TableCell>
-                        <TableCell className="text-right text-muted-foreground border-r">—</TableCell>
-                        <TableCell className="text-muted-foreground">—</TableCell>
+                        <TableCell
+                          className={`text-right text-gray-400 dark:text-gray-500 ${cellBorder} bg-gray-50 dark:bg-gray-800`}
+                        >
+                          —
+                        </TableCell>
+                        <TableCell
+                          className={`text-right text-gray-400 dark:text-gray-500 ${cellBorder} bg-gray-50 dark:bg-gray-800`}
+                        >
+                          —
+                        </TableCell>
+                        <TableCell className='text-gray-400 dark:text-gray-500 py-2 px-4 bg-gray-50 dark:bg-gray-800'>
+                          —
+                        </TableCell>
                       </TableRow>
                     );
                   }
 
-                  // Звичайний рядок
-                  const itemNumber = getItemNumber(index);
-                  const isEditingCode = editingCell?.category === item.category && editingCell?.code === item.code && editingCell?.field === 'code';
-                  const isEditingName = editingCell?.category === item.category && editingCell?.code === item.code && editingCell?.field === 'name';
-                  const isEditingPrice = editingCell?.category === item.category && editingCell?.code === item.code && editingCell?.field === 'price';
-                  const isEditingWeight = editingCell?.category === item.category && editingCell?.code === item.code && editingCell?.field === 'weight';
-                  const isEditingDescription = editingCell?.category === item.category && editingCell?.code === item.code && editingCell?.field === 'description';
-
                   return (
-                    <TableRow key={`${item.category}-${item.code}`} className="hover:bg-muted/30">
-                      <TableCell className="font-medium text-xs border-r">{itemNumber}</TableCell>
-                      
-                      {/* Код */}
-                      <TableCell className="font-mono text-xs border-r">
+                    <TableRow
+                      key={`${item.category}-${item.code}`}
+                      className='hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors group'
+                    >
+                      <TableCell
+                        className={`font-medium text-xs text-gray-500 dark:text-gray-400 ${cellBorder} bg-gray-50 dark:bg-gray-800 group-hover:bg-blue-50 dark:group-hover:bg-gray-700`}
+                      >
+                        {itemNumber}
+                      </TableCell>
+                      <TableCell className={cellBorder}>
                         <div
-                          ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-code`] = el; }}
+                          ref={(el) => {
+                            if (el) editingRefs.current[`${item.category}-${item.code}-code`] = el;
+                          }}
                           contentEditable={isEditingCode}
                           suppressContentEditableWarning
-                          className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-muted/50"
+                          className={`${editClass} font-mono text-gray-900 dark:text-gray-100`}
                           onBlur={(e) => {
-                            if (isEditingCode) {
-                              handleSaveEdit(item.category, item.code, 'code', e.currentTarget.textContent || '', item.type !== 'default' && item.type !== 'parent' ? item.type : undefined, item.subCode);
-                            }
+                            if (isEditingCode)
+                              handleSaveEdit(
+                                item.category,
+                                item.code,
+                                'code',
+                                e.currentTarget.textContent || '',
+                                item.type !== 'default' ? item.type : undefined,
+                                item.subCode,
+                              );
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -523,26 +458,31 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             }
                           }}
                           onClick={() => {
-                            if (!isEditingCode) {
+                            if (!isEditingCode)
                               setEditingCell({ category: item.category, code: item.code, field: 'code' });
-                            }
                           }}
                         >
                           {item.code}
                         </div>
                       </TableCell>
-                      
-                      {/* Назва */}
-                      <TableCell className="border-r">
+                      <TableCell className={cellBorder}>
                         <div
-                          ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-name`] = el; }}
+                          ref={(el) => {
+                            if (el) editingRefs.current[`${item.category}-${item.code}-name`] = el;
+                          }}
                           contentEditable={isEditingName}
                           suppressContentEditableWarning
-                          className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-muted/50"
+                          className={`${editClass} text-gray-900 dark:text-gray-100`}
                           onBlur={(e) => {
-                            if (isEditingName) {
-                              handleSaveEdit(item.category, item.code, 'name', e.currentTarget.textContent || '', item.type !== 'default' && item.type !== 'parent' ? item.type : undefined, item.subCode);
-                            }
+                            if (isEditingName)
+                              handleSaveEdit(
+                                item.category,
+                                item.code,
+                                'name',
+                                e.currentTarget.textContent || '',
+                                item.type !== 'default' ? item.type : undefined,
+                                item.subCode,
+                              );
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -551,33 +491,36 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             }
                           }}
                           onClick={() => {
-                            if (!isEditingName) {
+                            if (!isEditingName)
                               setEditingCell({ category: item.category, code: item.code, field: 'name' });
-                            }
                           }}
                         >
                           {item.name}
                         </div>
                       </TableCell>
-                      
-                      {/* Категорія */}
-                      <TableCell className="border-r">
-                        <span className="text-xs px-2 py-1 bg-muted rounded">
-                          {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES] || item.category}
+                      <TableCell className={cellBorder}>
+                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'>
+                          {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES]}
                         </span>
                       </TableCell>
-                      
-                      {/* Ціна */}
-                      <TableCell className="text-right border-r">
+                      <TableCell className={`text-right ${cellBorder}`}>
                         <div
-                          ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-price`] = el; }}
+                          ref={(el) => {
+                            if (el) editingRefs.current[`${item.category}-${item.code}-price`] = el;
+                          }}
                           contentEditable={isEditingPrice}
                           suppressContentEditableWarning
-                          className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-muted/50 inline-block text-right"
+                          className={`${editClass} inline-block text-right font-medium text-gray-900 dark:text-gray-100`}
                           onBlur={(e) => {
-                            if (isEditingPrice) {
-                              handleSaveEdit(item.category, item.code, 'price', e.currentTarget.textContent || '', item.type !== 'default' && item.type !== 'parent' ? item.type : undefined, item.subCode);
-                            }
+                            if (isEditingPrice)
+                              handleSaveEdit(
+                                item.category,
+                                item.code,
+                                'price',
+                                e.currentTarget.textContent || '',
+                                item.type !== 'default' ? item.type : undefined,
+                                item.subCode,
+                              );
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -586,26 +529,31 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             }
                           }}
                           onClick={() => {
-                            if (!isEditingPrice) {
+                            if (!isEditingPrice)
                               setEditingCell({ category: item.category, code: item.code, field: 'price' });
-                            }
                           }}
                         >
-                          {item.price.toFixed(2)} ₴
+                          {item.price.toFixed(2)}
                         </div>
                       </TableCell>
-                      
-                      {/* Вага */}
-                      <TableCell className="text-right border-r">
+                      <TableCell className={`text-right ${cellBorder}`}>
                         <div
-                          ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-weight`] = el; }}
+                          ref={(el) => {
+                            if (el) editingRefs.current[`${item.category}-${item.code}-weight`] = el;
+                          }}
                           contentEditable={isEditingWeight}
                           suppressContentEditableWarning
-                          className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-muted/50 inline-block text-right"
+                          className={`${editClass} inline-block text-right text-gray-600 dark:text-gray-300`}
                           onBlur={(e) => {
-                            if (isEditingWeight) {
-                              handleSaveEdit(item.category, item.code, 'weight', e.currentTarget.textContent || '', item.type !== 'default' && item.type !== 'parent' ? item.type : undefined, item.subCode);
-                            }
+                            if (isEditingWeight)
+                              handleSaveEdit(
+                                item.category,
+                                item.code,
+                                'weight',
+                                e.currentTarget.textContent || '',
+                                item.type !== 'default' ? item.type : undefined,
+                                item.subCode,
+                              );
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -614,26 +562,31 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             }
                           }}
                           onClick={() => {
-                            if (!isEditingWeight) {
+                            if (!isEditingWeight)
                               setEditingCell({ category: item.category, code: item.code, field: 'weight' });
-                            }
                           }}
                         >
-                          {item.weight ? `${item.weight.toFixed(2)} кг` : '—'}
+                          {item.weight ? item.weight.toFixed(2) : '—'}
                         </div>
                       </TableCell>
-                      
-                      {/* Опис */}
-                      <TableCell>
+                      <TableCell className='py-2 px-4'>
                         <div
-                          ref={el => { if (el) editingRefs.current[`${item.category}-${item.code}-description`] = el; }}
+                          ref={(el) => {
+                            if (el) editingRefs.current[`${item.category}-${item.code}-description`] = el;
+                          }}
                           contentEditable={isEditingDescription}
                           suppressContentEditableWarning
-                          className="focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-muted/50 text-sm text-muted-foreground truncate max-w-full"
+                          className={`${editClass} text-sm text-gray-600 dark:text-gray-300 truncate max-w-full`}
                           onBlur={(e) => {
-                            if (isEditingDescription) {
-                              handleSaveEdit(item.category, item.code, 'description', e.currentTarget.textContent || '', item.type !== 'default' && item.type !== 'parent' ? item.type : undefined, item.subCode);
-                            }
+                            if (isEditingDescription)
+                              handleSaveEdit(
+                                item.category,
+                                item.code,
+                                'description',
+                                e.currentTarget.textContent || '',
+                                item.type !== 'default' ? item.type : undefined,
+                                item.subCode,
+                              );
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -642,9 +595,8 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             }
                           }}
                           onClick={() => {
-                            if (!isEditingDescription) {
+                            if (!isEditingDescription)
                               setEditingCell({ category: item.category, code: item.code, field: 'description' });
-                            }
                           }}
                         >
                           {item.description || '—'}
@@ -657,10 +609,8 @@ export const PriceTable: React.FC<PriceTableProps> = ({
             </TableBody>
           </Table>
         </div>
-
-        {/* Підсумок */}
-        <div className="mt-4 text-sm text-muted-foreground">
-          Показано {filteredItems.filter(i => !i.isHeader && i.name !== '').length} позицій
+        <div className='mt-4 text-sm text-gray-500 dark:text-gray-400 px-4'>
+          Показано {filteredItems.filter((i) => !i.isHeader && i.name !== '').length} позицій
         </div>
       </CardContent>
     </Card>
