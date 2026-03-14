@@ -4,20 +4,20 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 /**
  * Axios інстанс з автоматичним refresh token
- * 
+ *
  * @features
  * - Автоматичне оновлення access token при 401 помилці
  * - Зберігання токенів в localStorage
  * - Retry логіка для оновлення сесії
  * - Черга запитів під час refresh token
- * 
+ *
  * @example
  * ```typescript
  * import axiosInstance from '@/lib/axios';
- * 
+ *
  * // GET запит
  * const response = await axiosInstance.get('/users');
- * 
+ *
  * // POST запит
  * const user = await axiosInstance.post('/users', { email, password });
  * ```
@@ -46,15 +46,15 @@ let isRefreshing = false;
 
 /**
  * Обробка черги запитів після refresh token
- * 
+ *
  * @param error - Помилка або null якщо успіх
  * @param token - Новий access token або null
- * 
+ *
  * @example
  * ```typescript
  * // Успішний refresh
  * processQueue(null, 'new-token');
- * 
+ *
  * // Помилка refresh
  * processQueue(new Error('Refresh failed'), null);
  * ```
@@ -83,7 +83,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       // Гарантовано додаємо Authorization header
       if (!config.headers) {
-        config.headers = {} as any;
+        config.headers = {} as typeof config.headers;
       }
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -91,25 +91,25 @@ axiosInstance.interceptors.request.use(
     // Видаляємо Content-Type для FormData (axios сам встановить multipart/form-data з boundary)
     if (config.data instanceof FormData) {
       if (config.headers) {
-        delete (config.headers as any)['Content-Type'];
+        delete config.headers['Content-Type'];
       }
     }
 
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error),
 );
 
 /**
  * Response interceptor - обробляє 401 помилки та refresh token
- * 
+ *
  * @logic
  * 1. При 401 помилці перевіряємо чи не триває вже refresh
  * 2. Якщо триває - додаємо запит в чергу
  * 3. Якщо ні - запускаємо refresh token запит
  * 4. Після успішного refresh - обробляємо чергу
  * 5. При помилці refresh - розлогінюємо користувача
- * 
+ *
  * @returns Оновлений запит або помилка
  */
 axiosInstance.interceptors.response.use(
@@ -183,7 +183,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

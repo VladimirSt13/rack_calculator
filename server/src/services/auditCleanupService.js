@@ -39,13 +39,17 @@ export const initAuditCleanup = async () => {
     }
 
     // Створення cron-задачі
-    cleanupJob = cron.schedule(schedule, async () => {
-      console.log('[Audit Cleanup] Running scheduled cleanup...');
-      await runCleanup(days);
-    }, {
-      scheduled: true,
-      timezone: 'Europe/Kiev',
-    });
+    cleanupJob = cron.schedule(
+      schedule,
+      async () => {
+        console.log('[Audit Cleanup] Running scheduled cleanup...');
+        await runCleanup(days);
+      },
+      {
+        scheduled: true,
+        timezone: 'Europe/Kiev',
+      },
+    );
 
     console.log('[Audit Cleanup] Scheduled successfully');
 
@@ -72,11 +76,15 @@ const runCleanup = async (days) => {
     console.log(`[Audit Cleanup] Cutoff date: ${cutoffDateStr}`);
 
     // Порахуємо скільки записів буде видалено
-    const { count } = db.prepare(`
+    const { count } = db
+      .prepare(
+        `
       SELECT COUNT(*) as count 
       FROM audit_log 
       WHERE created_at < ?
-    `).get(cutoffDateStr);
+    `,
+      )
+      .get(cutoffDateStr);
 
     if (count === 0) {
       console.log('[Audit Cleanup] No records to delete');
@@ -89,15 +97,20 @@ const runCleanup = async (days) => {
     const BATCH_SIZE = 1000;
     let deletedTotal = 0;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
-      const result = db.prepare(`
-        DELETE FROM audit_log 
+      const result = db
+        .prepare(
+          `
+        DELETE FROM audit_log
         WHERE id IN (
-          SELECT id FROM audit_log 
+          SELECT id FROM audit_log
           WHERE created_at < ?
           LIMIT ?
         )
-      `).run(cutoffDateStr, BATCH_SIZE);
+      `,
+        )
+        .run(cutoffDateStr, BATCH_SIZE);
 
       deletedTotal += result.changes;
       console.log(`[Audit Cleanup] Deleted ${result.changes} records (total: ${deletedTotal})`);
@@ -107,7 +120,7 @@ const runCleanup = async (days) => {
       }
 
       // Невелика пауза між пакетами
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     // Оптимізуємо базу даних після видалення

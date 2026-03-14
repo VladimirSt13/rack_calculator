@@ -10,7 +10,6 @@ import PriceUpload from '@/features/price/components/PriceUpload';
 import PricePreview from '@/features/price/components/PricePreview';
 import PriceHistory from '@/features/price/components/PriceHistory';
 import PriceTable from '@/features/price/components/PriceTableExcel';
-import PriceEditControls from '@/features/price/components/PriceEditControls';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 
@@ -404,9 +403,7 @@ export const PriceManagementPage: React.FC = () => {
         </Card>
 
         {/* Таблиця прайсу */}
-        {currentPrice && (
-          <PriceTable priceData={currentPrice.data} onUpdate={handleUpdatePrice} isEditing={isEditing} />
-        )}
+        {currentPrice && <PriceTable priceData={currentPrice.data} onUpdate={handleUpdatePrice} />}
 
         {/* Завантаження нового прайсу */}
         {uploadStatus === 'idle' && (
@@ -416,7 +413,7 @@ export const PriceManagementPage: React.FC = () => {
         {/* Попередній перегляд */}
         {(uploadStatus === 'preview' || uploadStatus === 'uploading') && parsedData && (
           <PricePreview
-            data={parsedData}
+            data={parsedData as any}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
             isUploading={uploadStatus === 'uploading'}

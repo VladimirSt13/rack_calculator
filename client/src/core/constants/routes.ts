@@ -1,6 +1,6 @@
 /**
  * Константи маршрутів
- * 
+ *
  * Централізоване зберігання всіх маршрутів додатку
  */
 
@@ -77,14 +77,14 @@ export const ADMIN_DEFAULT_REDIRECT = ADMIN_ROUTES.DASHBOARD;
  * Перевірка чи є маршрут публічним
  */
 export const isPublicRoute = (path: string): boolean => {
-  return Object.values(PUBLIC_ROUTES).includes(path as any);
+  return Object.values(PUBLIC_ROUTES).some((route) => route === path);
 };
 
 /**
  * Перевірка чи є маршрут адмінським
  */
 export const isAdminRoute = (path: string): boolean => {
-  return Object.values(ADMIN_ROUTES).some(route => path.startsWith(route));
+  return Object.values(ADMIN_ROUTES).some((route) => path.startsWith(route));
 };
 
 /**

@@ -6,7 +6,7 @@ import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
 import { CATEGORY_NAMES } from '@/core/constants/priceCategories';
-import type { PriceData, SupportPriceItem, SimplePriceItem } from '@/features/price/priceApi';
+import type { PriceData } from '@/features/price/priceApi';
 
 /**
  * Категорії прайсу для фільтру та відображення
@@ -23,9 +23,10 @@ interface TableItem {
   price: number;
   weight?: number | null;
   description?: string;
-  type?: 'edge' | 'intermediate' | 'default';
+  type?: 'edge' | 'intermediate' | 'default' | 'parent';
   subCode?: string; // Для опор: edge/intermediate
   isHeader?: boolean; // Для заголовків категорій
+  isParent?: boolean; // Позначка, що це батьківський елемент
 }
 
 export interface PriceTableProps {
@@ -36,19 +37,18 @@ export interface PriceTableProps {
 /**
  * PriceTable - таблиця прайсу з простою структурою
  */
-export const PriceTable: React.FC<PriceTableProps> = ({
-  priceData,
-  onUpdate,
-}) => {
+export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate }) => {
   // Стани
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [editingCell, setEditingCell] = useState<{ 
-    category: string; 
-    code: string; 
-    field: string; 
+  const [editingCell, setEditingCell] = useState<{
+    category: string;
+    code: string;
+    field: string;
     subKey?: string;
     oldCode?: string; // Для збереження старого коду при зміні code
+    subCode?: string; // Для опор
+    type?: 'parent' | 'edge' | 'intermediate' | 'default'; // Для типу елемента
   } | null>(null);
   const [editedValue, setEditedValue] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -63,7 +63,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const allItems = useMemo(() => {
     const items: TableItem[] = [];
 
-    CATEGORY_ORDER.forEach(category => {
+    CATEGORY_ORDER.forEach((category) => {
       const categoryItems = priceData[category as keyof PriceData];
       if (!categoryItems) return;
 
@@ -71,7 +71,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
       items.push({
         category,
         code: '',
-        name: CATEGORY_NAMES[category],
+        name: CATEGORY_NAMES[category as keyof typeof CATEGORY_NAMES],
         price: 0,
         isHeader: true,
       });
@@ -80,7 +80,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
 
       Object.entries(categoryItems).forEach(([code, item]) => {
         const anyItem = item as any;
-        
+
         // Для опор - з вкладеною структурою (edge/intermediate)
         if (category === 'supports' && anyItem.edge && anyItem.intermediate) {
           // Додаємо рядок із загальною назвою опори
@@ -96,7 +96,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
             isParent: true, // Позначка, що це батьківський елемент
           });
           itemNumber++;
-          
+
           // Крайня опора
           items.push({
             category,
@@ -155,7 +155,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const filteredItems = useMemo(() => {
     const result: TableItem[] = [];
 
-    allItems.forEach(item => {
+    allItems.forEach((item) => {
       // Заголовки категорій завжди додаємо
       if (item.isHeader) {
         result.push(item);
@@ -180,10 +180,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
       // Пошук по коду або назві
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        if (
-          item.code.toLowerCase().includes(query) ||
-          item.name.toLowerCase().includes(query)
-        ) {
+        if (item.code.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)) {
           result.push(item);
         }
         return;
@@ -198,20 +195,20 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   // Збереження змін
   const handleSaveEdit = () => {
     if (editingCell) {
-      const updates: any = {};
-      
+      const updates: Record<string, unknown> = {};
+
       // Обробка різних типів полів
       switch (editingCell.field) {
         case 'code':
           updates.code = editedValue;
           // Якщо це опора з subCode, оновлюємо код батьківського елемента
-          if (editingCell.subCode) {
+          if ('subCode' in editingCell && editingCell.subCode) {
             updates.subCode = editedValue;
           }
           break;
         case 'name':
           // Для батьківського елемента опори оновлюємо загальну назву
-          if (editingCell.type === 'parent') {
+          if ('type' in editingCell && editingCell.type === 'parent') {
             updates.name = editedValue;
           }
           // Для опор передаємо оновлення в edge/intermediate
@@ -222,6 +219,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
           }
           break;
         case 'price':
+          // eslint-disable-next-line no-case-declarations
           const priceValue = parseFloat(editedValue) || 0;
           // Для вкладених структур (edge/intermediate)
           if (editingCell.subKey) {
@@ -231,6 +229,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
           }
           break;
         case 'weight':
+          // eslint-disable-next-line no-case-declarations
           const weightValue = parseFloat(editedValue) || null;
           // Для вкладених структур (edge/intermediate)
           if (editingCell.subKey) {
@@ -289,7 +288,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
 
   // Розгорнути/згорнути категорію
   const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({
+    setExpandedCategories((prev) => ({
       ...prev,
       [category]: !prev[category],
     }));
@@ -320,21 +319,13 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className='flex items-center justify-between'>
           <span>Прайс-лист</span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={expandAll}
-            >
+          <div className='flex gap-2'>
+            <Button variant='outline' size='sm' onClick={expandAll}>
               Розгорнути всі
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={collapseAll}
-            >
+            <Button variant='outline' size='sm' onClick={collapseAll}>
               Згорнути всі
             </Button>
           </div>
@@ -342,27 +333,24 @@ export const PriceTable: React.FC<PriceTableProps> = ({
       </CardHeader>
       <CardContent>
         {/* Фільтри */}
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className='flex gap-4 mb-4'>
+          <div className='flex-1'>
+            <div className='relative'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />
               <Input
-                placeholder="Пошук за кодом або назвою..."
+                placeholder='Пошук за кодом або назвою...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className='pl-10'
               />
             </div>
           </div>
-          <div className="w-48">
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="all">Всі категорії</option>
-              {CATEGORY_ORDER.map(cat => (
+          <div className='w-48'>
+            <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <option value='all'>Всі категорії</option>
+              {CATEGORY_ORDER.map((cat) => (
                 <option key={cat} value={cat}>
-                  {CATEGORY_NAMES[cat]}
+                  {CATEGORY_NAMES[cat as keyof typeof CATEGORY_NAMES]}
                 </option>
               ))}
             </Select>
@@ -370,25 +358,25 @@ export const PriceTable: React.FC<PriceTableProps> = ({
         </div>
 
         {/* Таблиця */}
-        <div className="rounded-md border max-h-[600px] overflow-auto">
+        <div className='rounded-md border max-h-[600px] overflow-auto'>
           <Table>
-            <TableHeader className="sticky top-0 bg-background">
+            <TableHeader className='sticky top-0 bg-background'>
               <TableRow>
-                <TableHead className="w-16">№</TableHead>
-                <TableHead className="w-24">Код</TableHead>
+                <TableHead className='w-16'>№</TableHead>
+                <TableHead className='w-24'>Код</TableHead>
                 <TableHead>Назва</TableHead>
-                <TableHead className="w-32">Категорія</TableHead>
-                <TableHead className="text-right w-32">Ціна</TableHead>
-                <TableHead className="text-right w-24">Вага</TableHead>
-                <TableHead className="w-64">Опис</TableHead>
-                <TableHead className="w-20"></TableHead>
+                <TableHead className='w-32'>Категорія</TableHead>
+                <TableHead className='text-right w-32'>Ціна</TableHead>
+                <TableHead className='text-right w-24'>Вага</TableHead>
+                <TableHead className='w-64'>Опис</TableHead>
+                <TableHead className='w-20'></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <TableCell colSpan={4} className='text-center py-8 text-muted-foreground'>
+                    <Filter className='w-8 h-8 mx-auto mb-2 opacity-50' />
                     Нічого не знайдено
                   </TableCell>
                 </TableRow>
@@ -400,16 +388,12 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                     return (
                       <TableRow
                         key={`${item.category}-header`}
-                        className="cursor-pointer hover:bg-muted/50"
+                        className='cursor-pointer hover:bg-muted/50'
                         onClick={() => toggleCategory(item.category)}
                       >
-                        <TableCell colSpan={8} className="bg-muted font-bold text-base py-3">
-                          <div className="flex items-center gap-2">
-                            {isExpanded ? (
-                              <ChevronDown className="w-5 h-5" />
-                            ) : (
-                              <ChevronRight className="w-5 h-5" />
-                            )}
+                        <TableCell colSpan={8} className='bg-muted font-bold text-base py-3'>
+                          <div className='flex items-center gap-2'>
+                            {isExpanded ? <ChevronDown className='w-5 h-5' /> : <ChevronRight className='w-5 h-5' />}
                             {item.name}
                           </div>
                         </TableCell>
@@ -421,7 +405,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                   if (item.name === '') {
                     return (
                       <TableRow key={`${item.category}-spacer`}>
-                        <TableCell colSpan={8} className="py-2"></TableCell>
+                        <TableCell colSpan={8} className='py-2'></TableCell>
                       </TableRow>
                     );
                   }
@@ -431,38 +415,36 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                     const isEditing = editingCell?.category === item.category && editingCell?.code === item.code;
                     const editingField = editingCell?.field;
                     const itemNumber = getItemNumber(index);
-                    
+
                     return (
-                      <TableRow key={`${item.category}-${item.code}`} className="bg-muted/30">
-                        <TableCell className="font-medium">{itemNumber}</TableCell>
-                        
+                      <TableRow key={`${item.category}-${item.code}`} className='bg-muted/30'>
+                        <TableCell className='font-medium'>{itemNumber}</TableCell>
+
                         {/* Код */}
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {item.subCode}
-                        </TableCell>
-                        
+                        <TableCell className='font-mono text-xs text-muted-foreground'>{item.subCode}</TableCell>
+
                         {/* Загальна назва */}
                         <TableCell>
                           {isEditing && editingField === 'name' ? (
-                            <div className="flex items-center gap-2">
+                            <div className='flex items-center gap-2'>
                               <Input
-                                type="text"
+                                type='text'
                                 value={editedValue}
                                 onChange={(e) => setEditedValue(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                className="h-8 w-full font-semibold"
+                                className='h-8 w-full font-semibold'
                                 autoFocus
                               />
-                              <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                                <Save className="w-4 h-4" />
+                              <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                                <Save className='w-4 h-4' />
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                                <X className="w-4 h-4" />
+                              <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                                <X className='w-4 h-4' />
                               </Button>
                             </div>
                           ) : (
                             <span
-                              className="cursor-pointer hover:bg-muted px-2 py-1 rounded block font-semibold"
+                              className='cursor-pointer hover:bg-muted px-2 py-1 rounded block font-semibold'
                               onClick={() => {
                                 setEditingCell({
                                   category: item.category,
@@ -477,23 +459,23 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             </span>
                           )}
                         </TableCell>
-                        
+
                         {/* Категорія */}
                         <TableCell>
-                          <span className="text-xs px-2 py-1 bg-muted rounded">
+                          <span className='text-xs px-2 py-1 bg-muted rounded'>
                             {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES] || item.category}
                           </span>
                         </TableCell>
-                        
+
                         {/* Ціна - пусто */}
-                        <TableCell className="text-right text-muted-foreground">—</TableCell>
-                        
+                        <TableCell className='text-right text-muted-foreground'>—</TableCell>
+
                         {/* Вага - пусто */}
-                        <TableCell className="text-right text-muted-foreground">—</TableCell>
-                        
+                        <TableCell className='text-right text-muted-foreground'>—</TableCell>
+
                         {/* Опис - пусто */}
-                        <TableCell className="text-muted-foreground">—</TableCell>
-                        
+                        <TableCell className='text-muted-foreground'>—</TableCell>
+
                         {/* Кнопка */}
                         <TableCell></TableCell>
                       </TableRow>
@@ -507,30 +489,30 @@ export const PriceTable: React.FC<PriceTableProps> = ({
 
                   return (
                     <TableRow key={`${item.category}-${item.code}`}>
-                      <TableCell className="font-medium">{itemNumber}</TableCell>
-                      
+                      <TableCell className='font-medium'>{itemNumber}</TableCell>
+
                       {/* Код */}
-                      <TableCell className="font-mono text-xs">
+                      <TableCell className='font-mono text-xs'>
                         {isEditing && editingField === 'code' ? (
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             <Input
-                              type="text"
+                              type='text'
                               value={editedValue}
                               onChange={(e) => setEditedValue(e.target.value)}
                               onKeyDown={handleKeyDown}
-                              className="h-8 w-24"
+                              className='h-8 w-24'
                               autoFocus
                             />
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                              <Save className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                              <Save className='w-4 h-4' />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                              <X className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                              <X className='w-4 h-4' />
                             </Button>
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:bg-muted px-2 py-1 rounded"
+                            className='cursor-pointer hover:bg-muted px-2 py-1 rounded'
                             onClick={() => {
                               setEditingCell({
                                 category: item.category,
@@ -545,29 +527,29 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                           </span>
                         )}
                       </TableCell>
-                      
+
                       {/* Назва */}
                       <TableCell>
                         {isEditing && editingField === 'name' ? (
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             <Input
-                              type="text"
+                              type='text'
                               value={editedValue}
                               onChange={(e) => setEditedValue(e.target.value)}
                               onKeyDown={handleKeyDown}
-                              className="h-8 w-full"
+                              className='h-8 w-full'
                               autoFocus
                             />
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                              <Save className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                              <Save className='w-4 h-4' />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                              <X className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                              <X className='w-4 h-4' />
                             </Button>
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:bg-muted px-2 py-1 rounded block"
+                            className='cursor-pointer hover:bg-muted px-2 py-1 rounded block'
                             onClick={() => {
                               setEditingCell({
                                 category: item.category,
@@ -581,36 +563,36 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                           </span>
                         )}
                       </TableCell>
-                      
+
                       {/* Категорія */}
                       <TableCell>
-                        <span className="text-xs px-2 py-1 bg-muted rounded">
+                        <span className='text-xs px-2 py-1 bg-muted rounded'>
                           {CATEGORY_NAMES[item.category as keyof typeof CATEGORY_NAMES] || item.category}
                         </span>
                       </TableCell>
-                      
+
                       {/* Ціна */}
-                      <TableCell className="text-right">
+                      <TableCell className='text-right'>
                         {isEditing && editingField === 'price' ? (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className='flex items-center justify-end gap-2'>
                             <Input
-                              type="number"
+                              type='number'
                               value={editedValue}
                               onChange={(e) => setEditedValue(e.target.value)}
                               onKeyDown={handleKeyDown}
-                              className="h-8 w-24 text-right"
+                              className='h-8 w-24 text-right'
                               autoFocus
                             />
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                              <Save className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                              <Save className='w-4 h-4' />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                              <X className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                              <X className='w-4 h-4' />
                             </Button>
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:bg-muted px-2 py-1 rounded block text-right"
+                            className='cursor-pointer hover:bg-muted px-2 py-1 rounded block text-right'
                             onClick={() => {
                               setEditingCell({
                                 category: item.category,
@@ -625,29 +607,29 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                           </span>
                         )}
                       </TableCell>
-                      
+
                       {/* Вага */}
-                      <TableCell className="text-right">
+                      <TableCell className='text-right'>
                         {isEditing && editingField === 'weight' ? (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className='flex items-center justify-end gap-2'>
                             <Input
-                              type="number"
+                              type='number'
                               value={editedValue}
                               onChange={(e) => setEditedValue(e.target.value)}
                               onKeyDown={handleKeyDown}
-                              className="h-8 w-20 text-right"
+                              className='h-8 w-20 text-right'
                               autoFocus
                             />
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                              <Save className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                              <Save className='w-4 h-4' />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                              <X className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                              <X className='w-4 h-4' />
                             </Button>
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:bg-muted px-2 py-1 rounded block text-right"
+                            className='cursor-pointer hover:bg-muted px-2 py-1 rounded block text-right'
                             onClick={() => {
                               setEditingCell({
                                 category: item.category,
@@ -662,29 +644,29 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                           </span>
                         )}
                       </TableCell>
-                      
+
                       {/* Опис */}
                       <TableCell>
                         {isEditing && editingField === 'description' ? (
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             <Input
-                              type="text"
+                              type='text'
                               value={editedValue}
                               onChange={(e) => setEditedValue(e.target.value)}
                               onKeyDown={handleKeyDown}
-                              className="h-8 w-full"
+                              className='h-8 w-full'
                               autoFocus
                             />
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
-                              <Save className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleSaveEdit}>
+                              <Save className='w-4 h-4' />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                              <X className="w-4 h-4" />
+                            <Button size='sm' variant='ghost' onClick={handleCancelEdit}>
+                              <X className='w-4 h-4' />
                             </Button>
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:bg-muted px-2 py-1 rounded block text-sm text-muted-foreground truncate max-w-xs"
+                            className='cursor-pointer hover:bg-muted px-2 py-1 rounded block text-sm text-muted-foreground truncate max-w-xs'
                             onClick={() => {
                               setEditingCell({
                                 category: item.category,
@@ -698,19 +680,19 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                           </span>
                         )}
                       </TableCell>
-                      
+
                       {/* Кнопка видалення */}
                       <TableCell>
                         <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
+                          size='sm'
+                          variant='ghost'
+                          className='text-destructive hover:text-destructive'
                           onClick={() => {
                             // Видалення позиції
                             console.log('Delete:', item.category, item.code);
                           }}
                         >
-                          <X className="w-4 h-4" />
+                          <X className='w-4 h-4' />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -722,9 +704,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
         </div>
 
         {/* Підсумок */}
-        <div className="mt-4 text-sm text-muted-foreground">
-          Показано {filteredItems.length} позицій
-        </div>
+        <div className='mt-4 text-sm text-muted-foreground'>Показано {filteredItems.length} позицій</div>
       </CardContent>
     </Card>
   );

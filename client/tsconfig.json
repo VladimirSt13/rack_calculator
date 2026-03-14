@@ -33,12 +33,12 @@
       "@lib/*": ["src/lib/*"],
       "@pages/*": ["src/pages/*"],
       "@shared/*": ["src/shared/*"],
-      "@rack-calculator/shared": ["../shared/rackCalculator.ts"],
+      "@rack-calculator/shared": ["../shared/rackCalculator.ts"]
     },
 
     /* Types */
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vite/client", "vitest/globals"]
   },
   "include": ["src", "../shared"],
-  "references": [{ "path": "./tsconfig.node.json" }],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

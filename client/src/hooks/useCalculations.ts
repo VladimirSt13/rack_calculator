@@ -5,7 +5,7 @@ export interface Calculation {
   id: number;
   name: string | null;
   type: 'rack' | 'battery';
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   created_at: string;
 }
 
@@ -22,7 +22,7 @@ export interface CalculationResponse {
  */
 export const useCalculations = (
   type?: 'rack' | 'battery',
-  options?: Omit<UseQueryOptions<CalculationsResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<CalculationsResponse>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery<CalculationsResponse>({
     queryKey: ['calculations', type],
@@ -41,7 +41,7 @@ export const useCalculations = (
  */
 export const useCalculation = (
   id: number | null,
-  options?: Omit<UseQueryOptions<CalculationResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<CalculationResponse>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery<CalculationResponse>({
     queryKey: ['calculations', id],
@@ -59,9 +59,13 @@ export const useCalculation = (
  * Зберегти новий розрахунок
  */
 export const useCreateCalculation = (
-  options?: UseMutationOptions<Calculation, Error, { name?: string; type: 'rack' | 'battery'; data: Record<string, any> }>
+  options?: UseMutationOptions<
+    Calculation,
+    Error,
+    { name?: string; type: 'rack' | 'battery'; data: Record<string, unknown> }
+  >,
 ) => {
-  return useMutation<Calculation, Error, { name?: string; type: 'rack' | 'battery'; data: Record<string, any> }>({
+  return useMutation<Calculation, Error, { name?: string; type: 'rack' | 'battery'; data: Record<string, unknown> }>({
     mutationFn: async (calculationData) => {
       const { data } = await axios.post('/calculations', calculationData);
       return data;

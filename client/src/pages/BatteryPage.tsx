@@ -52,22 +52,20 @@ const BatteryPage: React.FC = () => {
   const resultsContent = (
     <>
       {calculationState === 'calculating' && (
-        <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <div className='flex items-center justify-center py-12'>
+          <RefreshCw className='w-8 h-8 animate-spin text-primary' />
         </div>
       )}
       {calculationState === 'ready' && <BatteryResults isLoading={false} />}
       {calculationState === 'idle' && (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          <p>Заповніть форму та натисніть "Підібрати" для розрахунку</p>
+        <div className='flex items-center justify-center py-12 text-muted-foreground'>
+          <p>Заповніть форму та натисніть &quot;Підібрати&quot; для розрахунку</p>
         </div>
       )}
     </>
   );
 
-  const setPanelContent = (
-    <BatterySetCard />
-  );
+  const setPanelContent = <BatterySetCard />;
 
   return (
     <>

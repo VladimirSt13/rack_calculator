@@ -113,16 +113,10 @@ export const RackSetsList: React.FC = () => {
   });
 
   return (
-    <AdminLayout
-      title="Комплекти стелажів"
-      description="Збережені комплекти стелажів з розрахунками"
-    >
+    <AdminLayout title='Комплекти стелажів' description='Збережені комплекти стелажів з розрахунками'>
       <div className='flex justify-between items-center mb-6'>
         <div>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/my-sets')}
-          >
+          <Button variant='outline' onClick={() => navigate('/my-sets')}>
             Мої комплекти
           </Button>
         </div>
@@ -149,8 +143,8 @@ export const RackSetsList: React.FC = () => {
         onExport={handleExport}
         onDelete={handleDelete}
         isExporting={exportMutation.isPending}
-        emptyMessage="Немає збережених комплектів"
-        mode="admin"
+        emptyMessage='Немає збережених комплектів'
+        mode='admin'
       />
 
       {/* Діалог перегляду */}
@@ -170,7 +164,7 @@ export const RackSetsList: React.FC = () => {
                   <p className='text-sm font-medium'>{viewingSet.name}</p>
                 </div>
                 <div>
-                  <Label>Об'єкт</Label>
+                  <Label>Об&apos;єкт</Label>
                   <p className='text-sm'>{viewingSet.object_name || '—'}</p>
                 </div>
               </div>
@@ -235,7 +229,7 @@ export const RackSetsList: React.FC = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Експорт комплекту</DialogTitle>
-              <DialogDescription>Оберіть опції експорту для "{rackSetToExport?.name}"</DialogDescription>
+              <DialogDescription>Оберіть опції експорту для &quot;{rackSetToExport?.name}&quot;</DialogDescription>
             </DialogHeader>
             <div className='py-4'>
               <div className='flex items-center space-x-2'>

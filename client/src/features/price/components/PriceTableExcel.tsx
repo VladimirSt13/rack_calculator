@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { Search, Filter, ChevronRight, ChevronDown } from 'lucide-react';
+import { Filter, ChevronRight, ChevronDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/Table';
@@ -76,13 +76,12 @@ interface TableItem {
 export interface PriceTableProps {
   priceData: PriceData;
   onUpdate: (category: string, code: string, updates: any) => void;
-  isEditing?: boolean;
 }
 
-export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isEditing = false }) => {
+export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+  const [expandedCategories] = useState<Record<string, boolean>>({
     supports: true,
     spans: true,
     vertical_supports: true,
@@ -103,7 +102,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isE
 
   const handleSaveEdit = useCallback(
     (category: string, code: string, field: string, value: string, subKey?: string, oldCode?: string) => {
-      const updates: any = {};
+      const updates: Record<string, unknown> = {};
       switch (field) {
         case 'code':
           updates.code = value;
@@ -113,11 +112,13 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isE
           else updates.name = value;
           break;
         case 'price':
+          // eslint-disable-next-line no-case-declarations
           const p = parseFloat(value) || 0;
           if (subKey) updates[subKey] = { price: p };
           else updates.price = p;
           break;
         case 'weight':
+          // eslint-disable-next-line no-case-declarations
           const w = parseFloat(value) || null;
           if (subKey) updates[subKey] = { weight: w };
           else updates.weight = w;
@@ -142,7 +143,13 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isE
     CATEGORY_ORDER.forEach((category) => {
       const categoryItems = priceData[category as keyof PriceData];
       if (!categoryItems) return;
-      items.push({ category, code: '', name: CATEGORY_NAMES[category], price: 0, isHeader: true });
+      items.push({
+        category,
+        code: '',
+        name: CATEGORY_NAMES[category as keyof typeof CATEGORY_NAMES],
+        price: 0,
+        isHeader: true,
+      });
       Object.entries(categoryItems).forEach(([code, item]) => {
         const anyItem = item as any;
         if (category === 'supports' && anyItem.edge && anyItem.intermediate) {
@@ -226,16 +233,11 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isE
     [filteredItems],
   );
 
-  const toggleCategory = useCallback((category: string) => {
-    setExpandedCategories((prev) => ({ ...prev, [category]: !prev[category] }));
-  }, []);
-
   const headerClass =
     'relative bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 text-xs uppercase tracking-wide';
   const cellBorder = 'border-r border-gray-200 dark:border-gray-700 py-2 px-4';
   const editClass =
     'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900 rounded px-2 py-1 min-h-[24px] cursor-pointer hover:bg-white dark:hover:bg-gray-700 bg-transparent';
-  const nonEditClass = 'px-2 py-1 text-gray-900 dark:text-gray-100';
 
   return (
     <Card className='border-0 shadow-sm dark:bg-gray-900 dark:border-gray-700'>
@@ -259,7 +261,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({ priceData, onUpdate, isE
             <option value='all'>Всі категорії</option>
             {CATEGORY_ORDER.map((c) => (
               <option key={c} value={c}>
-                {CATEGORY_NAMES[c]}
+                {CATEGORY_NAMES[c as keyof typeof CATEGORY_NAMES]}
               </option>
             ))}
           </select>

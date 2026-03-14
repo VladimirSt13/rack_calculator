@@ -1,4 +1,4 @@
-import { useSetModal } from '@/shared/hooks/useSetModal';
+import { useSetModal, type UseSetModalReturn } from '@/shared/hooks/useSetModal';
 import { useBatterySetStore } from '@/features/battery/setStore';
 import { useBatteryResultsStore } from '@/features/battery/resultsStore';
 import type { BatterySetItem } from '@/features/battery/setStore';
@@ -12,14 +12,7 @@ export interface UseBatterySetModalProps {
   racks: BatterySetItem[];
 }
 
-export interface UseBatterySetModalReturn {
-  form: any;
-  includePrices: boolean;
-  setIncludePrices: (checked: boolean) => void;
-  isExporting: boolean;
-  createMutation: any;
-  onSubmit: (data: BatterySetForm) => void;
-  handleExport: () => Promise<void>;
+export interface UseBatterySetModalReturn extends Omit<UseSetModalReturn, 'groupedRacks' | 'totalCost'> {
   groupedRacks: Array<BatterySetItem & { quantity: number }>;
   totalCost: number;
 }
@@ -28,8 +21,8 @@ export interface UseBatterySetModalReturn {
  * Схема форми для Battery (можна розширити при потребі)
  */
 export const defaultBatterySetSchema = z.object({
-  name: z.string().min(1, 'Назва обов\'язкова'),
-  object_name: z.string().min(1, 'Назва об\'єкта обов\'язкова'),
+  name: z.string().min(1, `Назва обов'язкова`),
+  object_name: z.string().min(1, `Назва об'єкта обов'язкова`),
   description: z.string().optional(),
 });
 
@@ -37,11 +30,7 @@ export const defaultBatterySetSchema = z.object({
  * useBatterySetModal - хук для модального вікна комплекту акумуляторів
  * Використовує універсальний useSetModal
  */
-export const useBatterySetModal = ({
-  isOpen,
-  onClose,
-  racks,
-}: UseBatterySetModalProps): UseBatterySetModalReturn => {
+export const useBatterySetModal = ({ isOpen, onClose, racks }: UseBatterySetModalProps): UseBatterySetModalReturn => {
   return useSetModal<BatterySetItem>({
     isOpen,
     onClose,

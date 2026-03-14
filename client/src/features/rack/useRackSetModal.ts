@@ -1,4 +1,4 @@
-import { useSetModal } from '@/shared/hooks/useSetModal';
+import { useSetModal, type UseSetModalReturn } from '@/shared/hooks/useSetModal';
 import { useRackSetStore } from '@/features/rack/setStore';
 import { useRackResultsStore } from '@/features/rack/resultsStore';
 import type { RackSetItem } from '@/features/rack/setStore';
@@ -12,14 +12,7 @@ export interface UseRackSetModalProps {
   racks: RackSetItem[];
 }
 
-export interface UseRackSetModalReturn {
-  form: any;
-  includePrices: boolean;
-  setIncludePrices: (checked: boolean) => void;
-  isExporting: boolean;
-  createMutation: any;
-  onSubmit: (data: RackSetForm) => void;
-  handleExport: () => Promise<void>;
+export interface UseRackSetModalReturn extends Omit<UseSetModalReturn, 'groupedRacks' | 'totalCost'> {
   groupedRacks: Array<RackSetItem & { quantity: number }>;
   totalCost: number;
 }
@@ -28,8 +21,8 @@ export interface UseRackSetModalReturn {
  * Схема форми для Rack (можна розширити при потребі)
  */
 export const defaultRackSetSchema = z.object({
-  name: z.string().min(1, 'Назва обов\'язкова'),
-  object_name: z.string().min(1, 'Назва об\'єкта обов\'язкова'),
+  name: z.string().min(1, `Назва обов'язкова`),
+  object_name: z.string().min(1, `Назва об'єкта обов'язкова`),
   description: z.string().optional(),
 });
 
@@ -37,11 +30,7 @@ export const defaultRackSetSchema = z.object({
  * useRackSetModal - хук для модального вікна комплекту стелажів
  * Використовує універсальний useSetModal
  */
-export const useRackSetModal = ({
-  isOpen,
-  onClose,
-  racks,
-}: UseRackSetModalProps): UseRackSetModalReturn => {
+export const useRackSetModal = ({ isOpen, onClose, racks }: UseRackSetModalProps): UseRackSetModalReturn => {
   return useSetModal<RackSetItem>({
     isOpen,
     onClose,

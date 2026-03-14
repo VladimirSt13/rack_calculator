@@ -27,6 +27,7 @@ export const PriceUpload: React.FC<PriceUploadProps> = ({ onFileSelected, onErro
   }, []);
 
   // Обробка drop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -38,6 +39,7 @@ export const PriceUpload: React.FC<PriceUploadProps> = ({ onFileSelected, onErro
   }, []);
 
   // Обробка вибору файлу
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
@@ -143,7 +145,9 @@ export const PriceUpload: React.FC<PriceUploadProps> = ({ onFileSelected, onErro
             <li>Завантажте шаблон Excel файлу</li>
             <li>Заповніть 6 стовпчиків: Код, Назва, Ціна без ПДВ, Категорія, Вага, Опис</li>
             <li>Вкажіть категорію для кожної позиції (supports, spans, vertical_supports, diagonal_brace, isolator)</li>
-            <li>Для опор вкажіть назву: "Опора крайня" або "Проміжна опора" (код має співпадати)</li>
+            <li>
+              Для опор вкажіть назву: &quot;Опора крайня&quot; або &quot;Проміжна опора&quot; (код має співпадати)
+            </li>
             <li>Збережіть файл та завантажте його тут</li>
           </ol>
           <p className='text-xs text-blue-700 dark:text-blue-300 mt-2'>

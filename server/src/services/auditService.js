@@ -16,36 +16,54 @@ export const getAuditStatistics = async () => {
   const { total } = db.prepare(`SELECT COUNT(*) as total FROM audit_log`).get();
 
   // Количество записей за последние 7 дней
-  const { last7days } = db.prepare(`
+  const { last7days } = db
+    .prepare(
+      `
     SELECT COUNT(*) as last7days
     FROM audit_log
     WHERE created_at >= datetime('now', '-7 days')
-  `).get();
+  `,
+    )
+    .get();
 
   // Количество записей за последние 30 дней
-  const { last30days } = db.prepare(`
+  const { last30days } = db
+    .prepare(
+      `
     SELECT COUNT(*) as last30days
     FROM audit_log
     WHERE created_at >= datetime('now', '-30 days')
-  `).get();
+  `,
+    )
+    .get();
 
   // Размер таблицы в БД
-  const { pageSize } = db.prepare(`
+  const { pageSize } = db
+    .prepare(
+      `
     SELECT page_count * page_size as pageSize
     FROM pragma_page_count(), pragma_page_size()
-  `).get();
+  `,
+    )
+    .get();
 
   // Топ действий
-  const topActions = db.prepare(`
+  const topActions = db
+    .prepare(
+      `
     SELECT action, COUNT(*) as count
     FROM audit_log
     GROUP BY action
     ORDER BY count DESC
     LIMIT 10
-  `).all();
+  `,
+    )
+    .all();
 
   // Записи по датам (последние 7 дней)
-  const byDate = db.prepare(`
+  const byDate = db
+    .prepare(
+      `
     SELECT
       DATE(created_at) as date,
       COUNT(*) as count
@@ -53,7 +71,9 @@ export const getAuditStatistics = async () => {
     WHERE created_at >= datetime('now', '-7 days')
     GROUP BY DATE(created_at)
     ORDER BY date DESC
-  `).all();
+  `,
+    )
+    .all();
 
   return {
     total,
@@ -83,11 +103,15 @@ export const cleanupAuditLogs = async (userId, days) => {
   const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
 
   // Посчитаем сколько записей будет удалено
-  const { count } = db.prepare(`
+  const { count } = db
+    .prepare(
+      `
     SELECT COUNT(*) as count
     FROM audit_log
     WHERE created_at < ?
-  `).get(cutoffDateStr);
+  `,
+    )
+    .get(cutoffDateStr);
 
   if (count === 0) {
     return {
@@ -100,15 +124,20 @@ export const cleanupAuditLogs = async (userId, days) => {
   const BATCH_SIZE = 1000;
   let deletedTotal = 0;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       DELETE FROM audit_log
       WHERE id IN (
         SELECT id FROM audit_log
         WHERE created_at < ?
         LIMIT ?
       )
-    `).run(cutoffDateStr, BATCH_SIZE);
+    `,
+      )
+      .run(cutoffDateStr, BATCH_SIZE);
 
     deletedTotal += result.changes;
 
@@ -117,7 +146,7 @@ export const cleanupAuditLogs = async (userId, days) => {
     }
 
     // Небольшая пауза между пакетами
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   // Оптимизируем базу данных после удаления
@@ -144,16 +173,7 @@ export const cleanupAuditLogs = async (userId, days) => {
  * @returns {Object} Записи аудита и пагинация
  */
 export const getAuditLogs = async (filters) => {
-  const {
-    userId,
-    action,
-    entityType,
-    entityId,
-    dateFrom,
-    dateTo,
-    page = 1,
-    limit = 50,
-  } = filters;
+  const { userId, action, entityType, entityId, dateFrom, dateTo, page = 1, limit = 50 } = filters;
 
   const db = await getDb();
 
@@ -258,7 +278,9 @@ export const getAuditLogs = async (filters) => {
 export const getRecentAuditLogs = async (limit = 100) => {
   const db = await getDb();
 
-  const logs = db.prepare(`
+  const logs = db
+    .prepare(
+      `
     SELECT
       a.*,
       u.email as user_email
@@ -266,7 +288,9 @@ export const getRecentAuditLogs = async (limit = 100) => {
     LEFT JOIN users u ON a.user_id = u.id
     ORDER BY a.created_at DESC
     LIMIT ?
-  `).all(parseInt(limit));
+  `,
+    )
+    .all(parseInt(limit));
 
   return logs;
 };
@@ -286,7 +310,9 @@ export const getAuditByEntity = async (entityType, entityId, limit = 50) => {
     throw new Error('Invalid entity type');
   }
 
-  const logs = db.prepare(`
+  const logs = db
+    .prepare(
+      `
     SELECT
       a.*,
       u.email as user_email
@@ -295,7 +321,9 @@ export const getAuditByEntity = async (entityType, entityId, limit = 50) => {
     WHERE a.entity_type = ? AND a.entity_id = ?
     ORDER BY a.created_at DESC
     LIMIT ?
-  `).all(entityType, entityId, parseInt(limit));
+  `,
+    )
+    .all(entityType, entityId, parseInt(limit));
 
   return logs;
 };
@@ -309,7 +337,9 @@ export const getAuditByEntity = async (entityType, entityId, limit = 50) => {
 export const getAuditByUser = async (userId, limit = 50) => {
   const db = await getDb();
 
-  const logs = db.prepare(`
+  const logs = db
+    .prepare(
+      `
     SELECT
       a.*,
       u.email as user_email
@@ -318,7 +348,9 @@ export const getAuditByUser = async (userId, limit = 50) => {
     WHERE a.user_id = ?
     ORDER BY a.created_at DESC
     LIMIT ?
-  `).all(userId, parseInt(limit));
+  `,
+    )
+    .all(userId, parseInt(limit));
 
   return logs;
 };

@@ -5,8 +5,50 @@ import { Button } from '@/shared/components/Button';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/Alert';
 import { CATEGORY_NAMES } from '@/core/constants/priceCategories';
 
+interface PriceError {
+  row?: number;
+  message?: string;
+}
+
+interface PriceItemBase {
+  code: string;
+  name: string;
+  price: number;
+  weight?: number;
+  description?: string;
+  sku?: string;
+}
+
+interface SupportEdgeItem extends PriceItemBase {
+  edge: {
+    price: number;
+    weight?: number;
+    description?: string;
+  };
+}
+
+interface SupportIntermediateItem extends PriceItemBase {
+  intermediate: {
+    price: number;
+    weight?: number;
+    description?: string;
+  };
+}
+
+type SupportItem = SupportEdgeItem | SupportIntermediateItem | (PriceItemBase & { edge?: never; intermediate?: never });
+
+interface PriceData {
+  errors?: PriceError[];
+  supports?: Record<string, SupportItem>;
+  spans?: Record<string, PriceItemBase>;
+  vertical_supports?: Record<string, PriceItemBase>;
+  diagonal_brace?: Record<string, PriceItemBase>;
+  isolator?: Record<string, PriceItemBase>;
+  [key: string]: Record<string, PriceItemBase> | PriceError[] | undefined;
+}
+
 export interface PricePreviewProps {
-  data: Record<string, any>;
+  data: PriceData;
   onConfirm: () => void;
   onCancel: () => void;
   isUploading: boolean;
@@ -48,7 +90,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
             <AlertTitle>Помилки в файлі</AlertTitle>
             <AlertDescription>
               <ul className='list-disc list-inside space-y-1 mt-2'>
-                {data.errors.slice(0, 5).map((error: any, index: number) => (
+                {data.errors.slice(0, 5).map((error: PriceError, index: number) => (
                   <li key={index} className='text-sm'>
                     Рядок {error.row}: {error.message}
                   </li>
@@ -66,7 +108,9 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
             {Object.entries(categoryCounts).map(([category, count]) => (
               <div key={category} className='p-3 bg-muted rounded-lg text-center'>
                 <p className='text-2xl font-bold text-primary'>{count}</p>
-                <p className='text-xs text-muted-foreground mt-1'>{CATEGORY_NAMES[category]}</p>
+                <p className='text-xs text-muted-foreground mt-1'>
+                  {CATEGORY_NAMES[category as keyof typeof CATEGORY_NAMES]}
+                </p>
               </div>
             ))}
           </div>
@@ -81,7 +125,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
             .filter(([key]) => key !== 'errors')
             .map(([category, items]) => {
               // Конвертуємо об'єкт в масив для відображення
-              const categoryData = Object.entries(items || {}).map(([code, item]: [string, any]) => ({
+              const categoryData = Object.entries(items || {}).map(([code, item]) => ({
                 code,
                 ...item,
               }));
@@ -91,7 +135,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
               // Для опор (supports) - окреме відображення з вкладеними edge/intermediate
               if (category === 'supports') {
                 // Проходимо по вхідних даних (це об'єкт, а не масив)
-                const supportEntries = Object.entries(items || {});
+                const supportEntries = Object.entries(items || {}) as Array<[string, SupportItem]>;
 
                 return (
                   <div key={category} className='border rounded-lg overflow-hidden'>
@@ -115,11 +159,11 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
                           </tr>
                         </thead>
                         <tbody className='divide-y'>
-                          {supportEntries.map(([code, item]: [string, any]) => {
+                          {supportEntries.map(([code, item]) => {
                             const rows = [];
 
                             // Крайня опора
-                            if (item.edge) {
+                            if ('edge' in item && item.edge) {
                               rows.push(
                                 <tr key={`${code}-edge`} className='hover:bg-muted/30'>
                                   <td className='px-4 py-2 font-mono text-xs'>{code}</td>
@@ -141,7 +185,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
                             }
 
                             // Проміжна опора
-                            if (item.intermediate) {
+                            if ('intermediate' in item && item.intermediate) {
                               rows.push(
                                 <tr key={`${code}-intermediate`} className='hover:bg-muted/30'>
                                   <td className='px-4 py-2 font-mono text-xs'>{code}</td>
@@ -199,7 +243,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
                           </tr>
                         </thead>
                         <tbody className='divide-y'>
-                          {categoryData.map((item: any, index: number) => (
+                          {categoryData.map((item, index) => (
                             <tr key={index} className='hover:bg-muted/30'>
                               <td className='px-4 py-2 font-mono text-xs'>{item.code}</td>
                               <td className='px-4 py-2'>{item.name}</td>
@@ -227,7 +271,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
                 <div key={category} className='border rounded-lg overflow-hidden'>
                   <div className='bg-muted px-4 py-2 border-b'>
                     <h4 className='font-semibold text-sm'>
-                      {CATEGORY_NAMES[category]} ({categoryData.length})
+                      {CATEGORY_NAMES[category as keyof typeof CATEGORY_NAMES]} ({categoryData.length})
                     </h4>
                   </div>
                   <div className='overflow-x-auto'>
@@ -243,7 +287,7 @@ export const PricePreview: React.FC<PricePreviewProps> = ({ data, onConfirm, onC
                         </tr>
                       </thead>
                       <tbody className='divide-y'>
-                        {categoryData.map((item: any, index: number) => (
+                        {categoryData.map((item, index) => (
                           <tr key={index} className='hover:bg-muted/30'>
                             <td className='px-4 py-2 font-mono text-xs'>{item.code}</td>
                             <td className='px-4 py-2'>{item.name}</td>

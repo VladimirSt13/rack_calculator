@@ -85,7 +85,9 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
 
           {/* Results + Set Panel: flexible, stacked vertically */}
           <ResultsWrapper>
-            <ResultsPanel mode={mode} status={status}>{results}</ResultsPanel>
+            <ResultsPanel mode={mode} status={status}>
+              {results}
+            </ResultsPanel>
             {setPanel && <SetPanel>{setPanel}</SetPanel>}
           </ResultsWrapper>
         </div>
@@ -168,11 +170,7 @@ export interface ResultsPanelProps {
   mode?: CalculatorMode;
 }
 
-export const ResultsPanel: React.FC<ResultsPanelProps> = ({
-  children,
-  status = 'idle',
-  mode = 'analysis',
-}) => {
+export const ResultsPanel: React.FC<ResultsPanelProps> = ({ children, status = 'idle', mode = 'analysis' }) => {
   // Toast-сповіщення при зміні статусу
   const prevStatusRef = useRef<CalculationLifecycleStatus>('idle');
 

@@ -4,7 +4,7 @@ import { authApi } from './authApi';
 
 /**
  * Інтерфейс користувача
- * 
+ *
  * @property id - Унікальний ID користувача
  * @property email - Email адреса
  * @property role - Роль користувача (admin, manager, user)
@@ -24,23 +24,23 @@ export interface User {
 
 /**
  * Стан та дії для управління аутентифікацією
- * 
+ *
  * @property user - Поточний користувач або null
  * @property accessToken - JWT access token
  * @property refreshToken - JWT refresh token
  * @property isLoading - Чи триває завантаження
  * @property error - Остання помилка
- * 
+ *
  * @example
  * ```typescript
  * const { login, logout, user } = useAuthStore();
- * 
+ *
  * // Логін
  * await login('user@accu-energo.com.ua', 'password');
- * 
+ *
  * // Перевірка авторизації
  * if (user?.role === 'admin') { ... }
- * 
+ *
  * // Логаут
  * await logout();
  * ```
@@ -68,31 +68,31 @@ export interface AuthState {
 
 /**
  * Zustand store для управління аутентифікацією
- * 
+ *
  * @features
  * - Persist middleware для збереження токенів в localStorage
  * - Повний набір auth actions (login, register, logout, etc.)
  * - Обробка помилок та loading states
  * - Email verification
  * - Password reset
- * 
+ *
  * @example
  * ```typescript
  * import { useAuthStore } from '@/features/auth/authStore';
- * 
+ *
  * // Отримання даних
  * const { user, accessToken, isLoading } = useAuthStore();
- * 
+ *
  * // Використання actions
  * const { login, logout, checkAuth } = useAuthStore();
- * 
+ *
  * // Перевірка прав
  * if (user?.role === 'admin') { ... }
- * 
+ *
  * // Перевірка дозволів
  * if (user?.permissions?.price_types?.includes('нульова')) { ... }
  * ```
- * 
+ *
  * @see {@link https://zustand-demo.pmnd.rs/ Zustand Documentation}
  */
 export const useAuthStore = create<AuthState>()(
@@ -112,11 +112,11 @@ export const useAuthStore = create<AuthState>()(
           const newUser = response.user;
           const newAccessToken = response.accessToken;
           const newRefreshToken = response.refreshToken;
-          
+
           // Явне збереження в localStorage для надійності
           localStorage.setItem('accessToken', newAccessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
-          
+
           set({
             user: newUser,
             accessToken: newAccessToken,
@@ -125,7 +125,9 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка входу',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка входу',
             isLoading: false,
           });
           throw error;
@@ -144,7 +146,9 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка реєстрації',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка реєстрації',
             isLoading: false,
           });
           throw error;
@@ -154,13 +158,13 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authApi.logout();
-        } catch (error) {
+        } catch (_error) {
           // Ігноруємо помилки logout
         } finally {
           // Явне очищення localStorage
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          
+
           set({
             user: null,
             accessToken: null,
@@ -177,7 +181,9 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка підтвердження',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка підтвердження',
             isLoading: false,
           });
           throw error;
@@ -191,7 +197,9 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка відправки',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -205,7 +213,9 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка відправки',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -219,7 +229,9 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка скидання пароля',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка скидання пароля',
             isLoading: false,
           });
           throw error;
@@ -233,7 +245,9 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         } catch (error) {
           set({
-            error: (error as any).response?.data?.error || 'Помилка зміни пароля',
+            error:
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка зміни пароля',
             isLoading: false,
           });
           throw error;
@@ -276,6 +290,6 @@ export const useAuthStore = create<AuthState>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),
-    }
-  )
+    },
+  ),
 );

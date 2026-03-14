@@ -9,8 +9,8 @@ export const batteryApi = {
     batteryDimensions: BatteryCalculationRequest['batteryDimensions'],
     weight: number,
     quantity: number,
-    config?: { format?: string }
-  ): Promise<any> => {
+    config?: { format?: string },
+  ): Promise<BatteryFindBestResponse> => {
     const { data } = await api.post('/battery/calculate', {
       batteryDimensions,
       weight,
@@ -27,7 +27,7 @@ export const batteryApi = {
     batteryDimensions: BatteryCalculationRequest['batteryDimensions'],
     weight: number,
     quantity: number,
-    config?: { floors?: number; rows?: number; supportType?: string }
+    config?: { floors?: number; rows?: number; supportType?: string },
   ): Promise<BatteryFindBestResponse> => {
     const { data } = await api.post('/battery/find-best', {
       batteryDimensions,

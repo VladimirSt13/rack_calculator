@@ -82,11 +82,13 @@ export const useRackCalculator = () => {
         rackConfigId: response.rackConfigId,
       };
 
-      resultsStore.setResult(result as any);
+      resultsStore.setResult(result);
       setCalculationState('ready');
     } catch (error) {
       logger.error('[RackCalculator] Error:', error);
-      resultsStore.setError((error as any).response?.data?.error || 'Помилка розрахунку');
+      resultsStore.setError(
+        (error as { response?: { data?: { error?: string } } }).response?.data?.error || 'Помилка розрахунку',
+      );
       setCalculationState('idle');
     }
   }, [formState, spansState.spans, resultsStore]);

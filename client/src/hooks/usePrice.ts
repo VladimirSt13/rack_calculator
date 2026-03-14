@@ -2,11 +2,11 @@ import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tan
 import axios from '@/lib/axios';
 
 export interface PriceData {
-  supports: Record<string, any>;
-  spans: Record<string, any>;
-  vertical_supports: Record<string, any>;
-  diagonal_brace: Record<string, any>;
-  isolator: Record<string, any>;
+  supports: Record<string, unknown>;
+  spans: Record<string, unknown>;
+  vertical_supports: Record<string, unknown>;
+  diagonal_brace: Record<string, unknown>;
+  isolator: Record<string, unknown>;
 }
 
 export interface PriceResponse {
