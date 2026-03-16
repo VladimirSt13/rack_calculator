@@ -18,6 +18,9 @@ data/*.db-wal
 data/*.db-shm
 data/backups/
 
+# Legacy (old JavaScript code)
+legacy/
+
 # Logs
 logs/
 *.log
