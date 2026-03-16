@@ -158,6 +158,7 @@ export type AuthErrorCode =
   | 'CONFIGURATION_EXISTS'
   | 'RACKSET_NOT_FOUND'
   | 'RACKSET_EXISTS'
+  | 'CALCULATION_NOT_FOUND'
   | 'FORBIDDEN';
 
 /**

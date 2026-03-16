@@ -17,3 +17,5 @@ export {
 } from './rack-configuration.model';
 export { RackSet, type IRackSet, type IRackSetDocument } from './rack-set.model';
 export { RackSetRevision, type IRackSetRevision, type IRackSetRevisionDocument } from './rack-set-revision.model';
+export { Calculation, type ICalculation, type ICalculationDocument } from './calculation.model';
+export { AuditLog, type IAuditLog, type IAuditLogDocument } from './audit-log.model';
