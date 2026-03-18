@@ -50,12 +50,10 @@ const passwordResetSchema = new mongoose.Schema<IPasswordResetDocument>(
     expiresAt: {
       type: Date,
       required: [true, 'Expiration date is required'],
-      index: true,
     },
     used: {
       type: Boolean,
       default: false,
-      index: true,
     },
     usedAt: {
       type: Date,

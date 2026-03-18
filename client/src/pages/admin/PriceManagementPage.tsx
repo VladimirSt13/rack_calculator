@@ -1,22 +1,17 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { FileDown, AlertCircle, Download, Edit, Save, X } from "lucide-react";
-import { AdminLayout } from "@/shared/layout/AdminLayout";
-import { priceApi } from "@/features/price/priceApi";
-import api from "@/lib/axios";
-import type { ParsedPriceData } from "@/features/price/types/price.types";
-import PriceUpload from "@/features/price/components/PriceUpload";
-import PricePreview from "@/features/price/components/PricePreview";
-import PriceHistory from "@/features/price/components/PriceHistory";
-import PriceTable from "@/features/price/components/PriceTableExcel";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/shared/components/Card";
-import { Button } from "@/shared/components/Button";
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { FileDown, AlertCircle, Download, Edit, Save, X } from 'lucide-react';
+import { AdminLayout } from '@/shared/layout/AdminLayout';
+import { priceApi } from '@/features/price/priceApi';
+import api from '@/lib/axios';
+import type { ParsedPriceData } from '@/features/price/types/price.types';
+import PriceUpload from '@/features/price/components/PriceUpload';
+import PricePreview from '@/features/price/components/PricePreview';
+import PriceHistory from '@/features/price/components/PriceHistory';
+import PriceTable from '@/features/price/components/PriceTableExcel';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/Card';
+import { Button } from '@/shared/components/Button';
 
 /**
  * PriceManagementPage - сторінка управління прайсом
@@ -25,41 +20,42 @@ export const PriceManagementPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Стани
-  const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "parsing" | "preview" | "uploading"
-  >("idle");
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'parsing' | 'preview' | 'uploading'>('idle');
   const [parsedData, setParsedData] = useState<ParsedPriceData | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editedPrice, setEditedPrice] = useState<any>(null);
 
   // Отримання поточного прайсу
   const { data: currentPrice, isLoading: isLoadingPrice } = useQuery({
-    queryKey: ["price", "current"],
+    queryKey: ['price', 'current'],
     queryFn: priceApi.getCurrent,
+    staleTime: 1000 * 60 * 5, // 5 хвилин
   });
 
   // Отримання історії змін
   const { data: priceHistory, isLoading: isLoadingHistory } = useQuery({
-    queryKey: ["price", "history"],
+    queryKey: ['price', 'history'],
     queryFn: priceApi.getHistory,
+    staleTime: 1000 * 60 * 5, // 5 хвилин
   });
 
   // Мутація для завантаження нового прайсу
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      setUploadStatus("uploading");
+      setUploadStatus('uploading');
       return await priceApi.uploadExcel(file);
     },
     onSuccess: () => {
-      toast.success("Прайс успішно оновлено!");
-      queryClient.invalidateQueries({ queryKey: ["price"] });
-      setUploadStatus("idle");
+      toast.success('Прайс успішно оновлено!');
+      queryClient.invalidateQueries({ queryKey: ['price'] });
+      setUploadStatus('idle');
       setParsedData(null);
       setSelectedFile(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Помилка завантаження прайсу");
-      setUploadStatus("idle");
+      toast.error(error.response?.data?.error || 'Помилка завантаження прайсу');
+      setUploadStatus('idle');
     },
   });
 
@@ -69,11 +65,11 @@ export const PriceManagementPage: React.FC = () => {
       return await priceApi.restoreVersion(versionId);
     },
     onSuccess: () => {
-      toast.success("Версію прайсу відновлено!");
-      queryClient.invalidateQueries({ queryKey: ["price"] });
+      toast.success('Версію прайсу відновлено!');
+      queryClient.invalidateQueries({ queryKey: ['price'] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Помилка відновлення версії");
+      toast.error(error.response?.data?.error || 'Помилка відновлення версії');
     },
   });
 
@@ -83,34 +79,47 @@ export const PriceManagementPage: React.FC = () => {
       return await priceApi.updatePrice(priceData);
     },
     onSuccess: () => {
-      toast.success("Прайс оновлено!");
-      queryClient.invalidateQueries({ queryKey: ["price"] });
+      toast.success('Прайс оновлено!');
+      queryClient.invalidateQueries({ queryKey: ['price'] });
       setIsEditing(false);
+      setEditedPrice(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Помилка оновлення прайсу");
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Помилка оновлення прайсу';
+      toast.error(errorMessage);
     },
   });
 
   // Почати редагування
   const handleStartEdit = () => {
+    if (!currentPrice) {
+      toast.error('Прайс ще не завантажено');
+      return;
+    }
+    // Зберігаємо копію поточного прайсу для редагування
+    setEditedPrice(JSON.parse(JSON.stringify(currentPrice.data)));
     setIsEditing(true);
-    toast.info(
-      'Режим редагування увімкнено. Змініть ціни та натисніть "Зберегти".',
-    );
+    toast.info('Режим редагування увімкнено. Змініть ціни та натисніть "Зберегти".');
   };
 
   // Скасувати редагування
   const handleCancelEdit = () => {
     setIsEditing(false);
-    toast.info("Редагування скасовано.");
+    setEditedPrice(null);
+    toast.info('Редагування скасовано.');
   };
 
   // Зберегти зміни
   const handleSaveEdit = () => {
-    if (currentPrice) {
-      updateMutation.mutate(currentPrice.data);
+    if (!editedPrice) {
+      toast.error('Немає змін для збереження');
+      return;
     }
+    updateMutation.mutate(editedPrice);
   };
 
   // Обробка вибору файлу
@@ -121,31 +130,33 @@ export const PriceManagementPage: React.FC = () => {
 
   // Парсинг Excel файлу (імітація - реальний парсинг на сервері)
   const parseExcelFile = async (file: File) => {
-    setUploadStatus("parsing");
+    setUploadStatus('parsing');
 
     try {
       // Створюємо FormData для відправки на сервер
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
 
       // Логування для відладки
-      console.log("[Parse Excel] File:", file.name, file.size, file.type);
-      console.log("[Parse Excel] FormData entries:", [...formData.entries()]);
+      console.log('[Parse Excel] File:', file.name, file.size, file.type);
+      console.log('[Parse Excel] FormData entries:', [...formData.entries()]);
 
       // Відправляємо через axios (interceptor додасть Authorization)
       // Content-Type буде встановлено автоматично для FormData (multipart/form-data з boundary)
-      const { data } = await api.post("/price/parse-excel", formData);
+      const { data } = await api.post('/prices/parse-excel', formData);
 
-      setParsedData(data);
-      setUploadStatus("preview");
+      console.log('[Parse Excel] Response data:', data);
+      setParsedData(data.data); // ← Важливо: беремо data.data, а не просто data
+      setUploadStatus('preview');
     } catch (error: any) {
-      console.error("[Parse Excel Error]", error);
-      toast.error(
+      console.error('[Parse Excel Error]', error);
+      const errorMessage =
+        error.response?.data?.error?.message ||
         error.response?.data?.error ||
-          error.message ||
-          "Помилка парсингу файлу",
-      );
-      setUploadStatus("idle");
+        error.message ||
+        'Помилка парсингу файлу';
+      toast.error(errorMessage);
+      setUploadStatus('idle');
     }
   };
 
@@ -158,7 +169,7 @@ export const PriceManagementPage: React.FC = () => {
 
   // Скасування
   const handleCancel = () => {
-    setUploadStatus("idle");
+    setUploadStatus('idle');
     setParsedData(null);
     setSelectedFile(null);
   };
@@ -169,13 +180,18 @@ export const PriceManagementPage: React.FC = () => {
       await priceApi.getVersion(versionId);
       toast.info(`Версія #${versionId} завантажена`);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Помилка завантаження версії");
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Помилка завантаження версії';
+      toast.error(errorMessage);
     }
   };
 
   // Відновлення версії
   const handleRestore = (versionId: number) => {
-    if (window.confirm("Ви впевнені, що хочете відновити цю версію прайсу?")) {
+    if (window.confirm('Ви впевнені, що хочете відновити цю версію прайсу?')) {
       restoreMutation.mutate(versionId);
     }
   };
@@ -196,13 +212,13 @@ export const PriceManagementPage: React.FC = () => {
 100;Ізолятор ІП-1;100;isolator;0.1;Ізоляційний елемент`;
 
     // Додаємо BOM для UTF-8
-    const BOM = "\uFEFF";
+    const BOM = '\uFEFF';
     const blob = new Blob([BOM + template], {
-      type: "text/csv;charset=utf-8;",
+      type: 'text/csv;charset=utf-8;',
     });
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = "price_template.csv";
+    link.download = 'price_template.csv';
     link.click();
   };
 
@@ -210,139 +226,116 @@ export const PriceManagementPage: React.FC = () => {
   const handleDownloadPrice = async () => {
     try {
       await priceApi.downloadExcel();
-      toast.success("Прайс завантажено");
+      toast.success('Прайс завантажено');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Помилка завантаження прайсу");
+      toast.error(error.response?.data?.error || 'Помилка завантаження прайсу');
     }
   };
 
-  // Оновлення позиції в прайсі
+  // Оновлення позиції в прайсі (локально)
   const handleUpdatePrice = (category: string, code: string, updates: any) => {
-    if (currentPrice) {
-      const categoryData =
-        currentPrice.data[category as keyof typeof currentPrice.data];
+    if (!editedPrice) return;
 
-      // Для опор: витягуємо базовий код (215-edge -> 215)
-      let itemKey = code;
-      let subKey = null;
+    const categoryData = editedPrice[category as keyof typeof editedPrice];
 
-      if (category === "supports" && code.includes("-")) {
-        const parts = code.split("-");
-        itemKey = parts[0];
-        subKey = parts[1]; // 'edge' або 'intermediate'
-      }
+    // Для опор: витягуємо базовий код (215-edge -> 215)
+    let itemKey = code;
+    let subKey = null;
 
-      const item = categoryData[itemKey as keyof typeof categoryData];
-
-      // Глибоке копіювання поточного елемента
-      const updatedItem = JSON.parse(JSON.stringify(item));
-
-      // Застосовуємо оновлення для всіх полів
-      // Для опор не дозволяємо змінювати код батьківського елемента
-      if (updates.code !== undefined && !(category === "supports" && !subKey)) {
-        // Якщо змінюється код, потрібно перемістити елемент
-        if (updates.code !== itemKey) {
-          delete categoryData[itemKey as keyof typeof categoryData];
-          const newCode = updates.code;
-          updatedItem.code = newCode;
-          categoryData[newCode as keyof typeof categoryData] = updatedItem;
-        }
-      }
-      // Для опор оновлюємо загальну назву тільки якщо це не subKey (edge/intermediate)
-      if (updates.name !== undefined && !subKey) {
-        updatedItem.name = updates.name;
-      }
-      if (updates.name !== undefined && subKey && updatedItem[subKey]) {
-        // Оновлюємо name в edge/intermediate
-        updatedItem[subKey].name = updates.name;
-      }
-      // Оновлюємо тільки конкретне поле edge.price
-      if (updates.edge?.price !== undefined && updatedItem.edge) {
-        updatedItem.edge.price = updates.edge.price;
-      }
-      // Оновлюємо тільки конкретне поле edge.weight
-      if (updates.edge?.weight !== undefined && updatedItem.edge) {
-        updatedItem.edge.weight = updates.edge.weight;
-      }
-      // Оновлюємо тільки конкретне поле edge.name
-      if (updates.edge?.name !== undefined && updatedItem.edge) {
-        updatedItem.edge.name = updates.edge.name;
-      }
-      // Оновлюємо тільки конкретне поле edge.description
-      if (updates.edge?.description !== undefined && updatedItem.edge) {
-        updatedItem.edge.description = updates.edge.description;
-      }
-      // Оновлюємо тільки конкретне поле intermediate.price
-      if (
-        updates.intermediate?.price !== undefined &&
-        updatedItem.intermediate
-      ) {
-        updatedItem.intermediate.price = updates.intermediate.price;
-      }
-      // Оновлюємо тільки конкретне поле intermediate.weight
-      if (
-        updates.intermediate?.weight !== undefined &&
-        updatedItem.intermediate
-      ) {
-        updatedItem.intermediate.weight = updates.intermediate.weight;
-      }
-      // Оновлюємо тільки конкретне поле intermediate.name
-      if (
-        updates.intermediate?.name !== undefined &&
-        updatedItem.intermediate
-      ) {
-        updatedItem.intermediate.name = updates.intermediate.name;
-      }
-      // Оновлюємо тільки конкретне поле intermediate.description
-      if (
-        updates.intermediate?.description !== undefined &&
-        updatedItem.intermediate
-      ) {
-        updatedItem.intermediate.description = updates.intermediate.description;
-      }
-      if (updates.price !== undefined) {
-        // Для опор оновлюємо ціну в edge/intermediate
-        if (subKey && updatedItem[subKey]) {
-          updatedItem[subKey].price = updates.price;
-        } else {
-          updatedItem.price = updates.price;
-        }
-      }
-      if (updates.weight !== undefined) {
-        // Для опор оновлюємо вагу в edge/intermediate
-        if (subKey && updatedItem[subKey]) {
-          updatedItem[subKey].weight = updates.weight;
-        } else {
-          updatedItem.weight = updates.weight;
-        }
-      }
-      if (updates.description !== undefined) {
-        // Для опор оновлюємо опис в edge/intermediate
-        if (subKey && updatedItem[subKey]) {
-          updatedItem[subKey].description = updates.description;
-        } else {
-          updatedItem.description = updates.description;
-        }
-      }
-
-      const updatedData = {
-        ...currentPrice.data,
-        [category]: {
-          ...categoryData,
-          [itemKey]: updatedItem,
-        },
-      };
-
-      updateMutation.mutate(updatedData);
+    if (category === 'supports' && code.includes('-')) {
+      const parts = code.split('-');
+      itemKey = parts[0];
+      subKey = parts[1]; // 'edge' або 'intermediate'
     }
+
+    const item = categoryData[itemKey as keyof typeof categoryData];
+
+    // Глибоке копіювання поточного елемента
+    const updatedItem = JSON.parse(JSON.stringify(item));
+
+    // ⚠️ Зміна коду заборонена (код = ID в MongoDB)
+    if (updates.code !== undefined) {
+      console.warn('Code change is not allowed. Code is used as MongoDB ID.');
+      delete updates.code;
+    }
+
+    // Для опор оновлюємо загальну назву тільки якщо це не subKey (edge/intermediate)
+    if (updates.name !== undefined && !subKey) {
+      updatedItem.name = updates.name;
+    }
+    if (updates.name !== undefined && subKey && updatedItem[subKey]) {
+      updatedItem[subKey].name = updates.name;
+    }
+    // Оновлюємо тільки конкретне поле edge.price
+    if (updates.edge?.price !== undefined && updatedItem.edge) {
+      updatedItem.edge.price = updates.edge.price;
+    }
+    // Оновлюємо тільки конкретне поле edge.weight
+    if (updates.edge?.weight !== undefined && updatedItem.edge) {
+      updatedItem.edge.weight = updates.edge.weight;
+    }
+    // Оновлюємо тільки конкретне поле edge.name
+    if (updates.edge?.name !== undefined && updatedItem.edge) {
+      updatedItem.edge.name = updates.edge.name;
+    }
+    // Оновлюємо тільки конкретне поле edge.description
+    if (updates.edge?.description !== undefined && updatedItem.edge) {
+      updatedItem.edge.description = updates.edge.description;
+    }
+    // Оновлюємо тільки конкретне поле intermediate.price
+    if (updates.intermediate?.price !== undefined && updatedItem.intermediate) {
+      updatedItem.intermediate.price = updates.intermediate.price;
+    }
+    // Оновлюємо тільки конкретне поле intermediate.weight
+    if (updates.intermediate?.weight !== undefined && updatedItem.intermediate) {
+      updatedItem.intermediate.weight = updates.intermediate.weight;
+    }
+    // Оновлюємо тільки конкретне поле intermediate.name
+    if (updates.intermediate?.name !== undefined && updatedItem.intermediate) {
+      updatedItem.intermediate.name = updates.intermediate.name;
+    }
+    // Оновлюємо тільки конкретне поле intermediate.description
+    if (updates.intermediate?.description !== undefined && updatedItem.intermediate) {
+      updatedItem.intermediate.description = updates.intermediate.description;
+    }
+    if (updates.price !== undefined) {
+      // Для опор оновлюємо ціну в edge/intermediate
+      if (subKey && updatedItem[subKey]) {
+        updatedItem[subKey].price = updates.price;
+      } else {
+        updatedItem.price = updates.price;
+      }
+    }
+    if (updates.weight !== undefined) {
+      // Для опор оновлюємо вагу в edge/intermediate
+      if (subKey && updatedItem[subKey]) {
+        updatedItem[subKey].weight = updates.weight;
+      } else {
+        updatedItem.weight = updates.weight;
+      }
+    }
+    if (updates.description !== undefined) {
+      // Для опор оновлюємо опис в edge/intermediate
+      if (subKey && updatedItem[subKey]) {
+        updatedItem[subKey].description = updates.description;
+      } else {
+        updatedItem.description = updates.description;
+      }
+    }
+
+    // Оновлюємо локальний стан
+    setEditedPrice({
+      ...editedPrice,
+      [category]: {
+        ...categoryData,
+        [itemKey]: updatedItem,
+      },
+    });
   };
 
   return (
-    <AdminLayout
-      title="Управління прайсом"
-      description="Завантаження та оновлення прайс-листу"
-    >
-      <div className="space-y-6">
+    <AdminLayout title='Управління прайсом' description='Завантаження та оновлення прайс-листу'>
+      <div className='space-y-6'>
         {/* Поточний прайс */}
         <Card>
           <CardHeader>
@@ -350,66 +343,51 @@ export const PriceManagementPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className='flex items-center justify-center py-8'>
+                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
               </div>
             ) : currentPrice ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
+              <div className='space-y-4'>
+                <div className='flex justify-between items-center'>
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      Оновлено:{" "}
-                      {new Date(currentPrice.updatedAt).toLocaleString("uk-UA")}
+                    <p className='text-sm text-muted-foreground'>
+                      Оновлено: {new Date(currentPrice.updatedAt).toLocaleString('uk-UA')}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className='flex gap-2'>
                     {!isEditing ? (
                       <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleStartEdit}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
+                        <Button variant='outline' size='sm' onClick={handleStartEdit}>
+                          <Edit className='w-4 h-4 mr-2' />
                           Редагувати прайс
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadTemplate}
-                        >
-                          <FileDown className="w-4 h-4 mr-2" />
+                        <Button variant='outline' size='sm' onClick={handleDownloadTemplate}>
+                          <FileDown className='w-4 h-4 mr-2' />
                           Шаблон CSV
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadPrice}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
+                        <Button variant='outline' size='sm' onClick={handleDownloadPrice}>
+                          <Download className='w-4 h-4 mr-2' />
                           Excel
                         </Button>
                       </>
                     ) : (
                       <>
                         <Button
-                          variant="default"
-                          size="sm"
+                          variant='default'
+                          size='sm'
                           onClick={handleSaveEdit}
                           disabled={updateMutation.isPending}
                         >
-                          <Save className="w-4 h-4 mr-2" />
-                          {updateMutation.isPending
-                            ? "Збереження..."
-                            : "Зберегти"}
+                          <Save className='w-4 h-4 mr-2' />
+                          {updateMutation.isPending ? 'Збереження...' : 'Зберегти'}
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant='outline'
+                          size='sm'
                           onClick={handleCancelEdit}
                           disabled={updateMutation.isPending}
                         >
-                          <X className="w-4 h-4 mr-2" />
+                          <X className='w-4 h-4 mr-2' />
                           Скасувати
                         </Button>
                       </>
@@ -417,40 +395,31 @@ export const PriceManagementPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {Object.entries(currentPrice.data).map(
-                    ([category, items]) => {
-                      const count = Object.keys(items).length;
-                      // Пропускаємо порожні категорії
-                      if (count === 0) return null;
+                <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
+                  {Object.entries(currentPrice.data).map(([category, items]) => {
+                    const count = Object.keys(items).length;
+                    // Пропускаємо порожні категорії
+                    if (count === 0) return null;
 
-                      const categoryNames: Record<string, string> = {
-                        supports: "Опори",
-                        spans: "Балки",
-                        vertical_supports: "Вертикальні опори",
-                        diagonal_brace: "Розкоси",
-                        isolator: "Ізолятори",
-                      };
-                      return (
-                        <div
-                          key={category}
-                          className="p-3 bg-muted rounded-lg text-center"
-                        >
-                          <p className="text-2xl font-bold text-primary">
-                            {count}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {categoryNames[category] || category}
-                          </p>
-                        </div>
-                      );
-                    },
-                  )}
+                    const categoryNames: Record<string, string> = {
+                      supports: 'Опори',
+                      spans: 'Балки',
+                      vertical_supports: 'Вертикальні опори',
+                      diagonal_brace: 'Розкоси',
+                      isolator: 'Ізолятори',
+                    };
+                    return (
+                      <div key={category} className='p-3 bg-muted rounded-lg text-center'>
+                        <p className='text-2xl font-bold text-primary'>{count}</p>
+                        <p className='text-xs text-muted-foreground mt-1'>{categoryNames[category] || category}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <AlertCircle className="w-5 h-5" />
+              <div className='flex items-center gap-2 text-muted-foreground'>
+                <AlertCircle className='w-5 h-5' />
                 <p>Прайс ще не завантажено</p>
               </div>
             )}
@@ -460,29 +429,26 @@ export const PriceManagementPage: React.FC = () => {
         {/* Таблиця прайсу */}
         {currentPrice && (
           <PriceTable
-            priceData={currentPrice.data}
+            priceData={isEditing && editedPrice ? editedPrice : currentPrice.data}
             onUpdate={handleUpdatePrice}
+            isEditing={isEditing}
           />
         )}
 
         {/* Завантаження нового прайсу */}
-        {uploadStatus === "idle" && (
-          <PriceUpload
-            onFileSelected={handleFileSelected}
-            onError={(error) => toast.error(error)}
-          />
+        {uploadStatus === 'idle' && (
+          <PriceUpload onFileSelected={handleFileSelected} onError={(error) => toast.error(error)} />
         )}
 
         {/* Попередній перегляд */}
-        {(uploadStatus === "preview" || uploadStatus === "uploading") &&
-          parsedData && (
-            <PricePreview
-              data={parsedData as any}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-              isUploading={uploadStatus === "uploading"}
-            />
-          )}
+        {(uploadStatus === 'preview' || uploadStatus === 'uploading') && parsedData && (
+          <PricePreview
+            data={parsedData as any}
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+            isUploading={uploadStatus === 'uploading'}
+          />
+        )}
 
         {/* Історія змін */}
         <PriceHistory

@@ -69,7 +69,6 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

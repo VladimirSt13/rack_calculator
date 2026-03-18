@@ -11,10 +11,7 @@ export class PricesRepository extends BaseRepository<IPriceDocument> {
   private priceModel: Model<IPriceDocument>;
   private priceComponentModel: Model<IPriceComponentDocument>;
 
-  constructor(
-    priceModel: Model<IPriceDocument>,
-    priceComponentModel: Model<IPriceComponentDocument>,
-  ) {
+  constructor(priceModel: Model<IPriceDocument>, priceComponentModel: Model<IPriceComponentDocument>) {
     super(priceModel);
     this.priceModel = priceModel;
     this.priceComponentModel = priceComponentModel;
@@ -38,12 +35,13 @@ export class PricesRepository extends BaseRepository<IPriceDocument> {
   /**
    * Отримати історію прайсів
    */
-  async getPriceHistory(category?: string, limit: number = 10): Promise<IPriceDocument[]> {
+  async getPriceHistory(category?: string, limit: number = 100): Promise<IPriceDocument[]> {
     const query: any = { deleted: false };
     if (category) {
       query.category = category;
     }
-    return this.priceModel.find(query).sort({ updatedAt: -1 }).limit(limit).exec();
+    // Отримуємо повні Mongoose документи (не plain objects)
+    return this.priceModel.find(query).sort({ updatedAt: -1 }).limit(limit).lean(false).exec();
   }
 
   /**
@@ -131,9 +129,7 @@ export class PricesRepository extends BaseRepository<IPriceDocument> {
     id: string | Types.ObjectId,
     data: Partial<IPriceComponentDocument>,
   ): Promise<IPriceComponentDocument | null> {
-    return this.priceComponentModel
-      .findByIdAndUpdate(id, data, { new: true, runValidators: true })
-      .exec();
+    return this.priceComponentModel.findByIdAndUpdate(id, data, { new: true, runValidators: true }).exec();
   }
 
   /**
@@ -153,6 +149,64 @@ export class PricesRepository extends BaseRepository<IPriceDocument> {
       { $sort: { _id: 1 } },
     ]);
     return result.map((item: any) => item._id).filter(Boolean);
+  }
+
+  /**
+   * Отримати версію прайсу за ID
+   */
+  async getPriceVersion(versionId: number): Promise<IPriceDocument | null> {
+    return this.priceModel.findById(versionId).exec();
+  }
+
+  /**
+   * Отримати версію прайсу за ObjectId
+   */
+  async getPriceVersionById(id: string): Promise<IPriceDocument | null> {
+    return this.priceModel.findById(id).exec();
+  }
+
+  /**
+   * Відновити версію прайсу (створити новий запис з даними старої версії)
+   */
+  async restorePriceVersion(versionId: number): Promise<IPriceDocument> {
+    const version = await this.getPriceVersion(versionId);
+
+    if (!version) {
+      throw new Error('Version not found');
+    }
+
+    const restored = new this.priceModel({
+      data: version.data,
+      category: version.category,
+    });
+
+    return restored.save();
+  }
+
+  /**
+   * Відновити версію прайсу за ObjectId
+   */
+  async restorePriceVersionById(id: string): Promise<IPriceDocument> {
+    const version = await this.getPriceVersionById(id);
+
+    if (!version) {
+      throw new Error('Version not found');
+    }
+
+    const restored = new this.priceModel({
+      data: version.data,
+      category: version.category,
+    });
+
+    return restored.save();
+  }
+
+  /**
+   * Оновити поточний прайс
+   */
+  async updateCurrentPrice(data: any, category?: string): Promise<IPriceDocument> {
+    const updated = new this.priceModel({ data, category });
+    return updated.save();
   }
 }
 

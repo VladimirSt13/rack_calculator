@@ -4,35 +4,16 @@
 
 // ===== User Types =====
 
-export type UserRole = "admin" | "manager" | "user" | "other";
-
 export interface User {
-  id: number;
+  id: string;
   email: string;
-  role: UserRole;
-  permissions?: UserPermissions;
-  companyDomain?: string;
-  emailVerified?: boolean;
+  role: string; // Назва ролі з сервера (admin, manager, user, тощо)
+  roleName: string; // Людина-читабельна назва
+  permissions: string[]; // Масив дозволів (USERS_CREATE, PRICES_READ, тощо)
+  emailVerified: boolean;
+  firstName?: string;
+  lastName?: string;
   createdAt?: string;
-  updatedAt?: string;
-}
-
-// ===== Permissions Types =====
-
-export interface UserPermissions {
-  show_retail?: boolean;
-  show_wholesale?: boolean;
-  show_zero?: boolean;
-  show_no_isolators?: boolean;
-  show_cost_price?: boolean;
-  show_all?: boolean;
-}
-
-export interface RolePermissions {
-  name: string;
-  description?: string;
-  permissions: UserPermissions;
-  priceTypes?: string[];
 }
 
 // ===== Auth Types =====

@@ -53,7 +53,6 @@ const priceComponentSchema = new mongoose.Schema<IPriceComponentDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

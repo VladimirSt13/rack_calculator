@@ -13,9 +13,19 @@ export const initDatabase = async (): Promise<void> => {
 
   connectionPromise = (async () => {
     try {
-      await mongoose.connect(databaseConfig.uri, {
+      console.log('[Database] Connecting to MongoDB...');
+      console.log('[Database] URI:', databaseConfig.uri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:***@'));
+
+      const connectOptions: mongoose.ConnectOptions = {
         dbName: databaseConfig.dbName,
-      });
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+        retryWrites: true,
+        w: 'majority',
+      };
+
+      await mongoose.connect(databaseConfig.uri, connectOptions);
 
       isConnected = true;
       console.log('[Database] MongoDB connected:', mongoose.connection.name);

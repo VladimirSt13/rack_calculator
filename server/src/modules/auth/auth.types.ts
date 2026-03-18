@@ -123,8 +123,9 @@ export interface AuthResult {
     email: string;
     firstName?: string;
     lastName?: string;
-    role: string;
-    permissions: string[];
+    role: string; // Назва ролі (ADMIN, MANAGER, USER)
+    roleName: string; // Дубль для зручності клієнта
+    permissions: string[]; // Масив дозволів (USERS_CREATE, PRICES_READ, тощо)
     emailVerified: boolean;
     createdAt?: Date;
   };
@@ -184,6 +185,7 @@ export class AuthError extends Error {
 export interface AuthJwtPayload {
   userId: string;
   email: string;
-  roleId?: string;
-  permissions?: string[];
+  roleId?: string; // ObjectId ролі
+  roleName?: string; // Назва ролі (admin, manager, user)
+  permissions?: string[]; // Дозволи ролі
 }

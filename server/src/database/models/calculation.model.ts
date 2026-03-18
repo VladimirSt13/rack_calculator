@@ -55,7 +55,6 @@ const calculationSchema = new mongoose.Schema<ICalculationDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,
@@ -106,9 +105,6 @@ calculationSchema.statics.cleanupDeleted = async function (days: number) {
   return result.deletedCount;
 };
 
-export const Calculation = mongoose.model<ICalculationDocument>(
-  'Calculation',
-  calculationSchema,
-);
+export const Calculation = mongoose.model<ICalculationDocument>('Calculation', calculationSchema);
 
 export default Calculation;

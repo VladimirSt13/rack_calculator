@@ -201,17 +201,21 @@ export class UsersService {
    * Маппінг документу в результат
    */
   private mapToResult(user: IUserDocument): UserResult {
+    const roleDoc = user.roleId as any;
+
     return {
       id: user._id.toHexString(),
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: (user.roleId as any)
+      role: roleDoc
         ? {
-            id: (user.roleId as any)._id.toHexString(),
-            name: (user.roleId as any).name,
+            id: roleDoc._id.toHexString(),
+            name: roleDoc.name,
           }
         : null,
+      roleName: roleDoc?.name || 'user',
+      permissions: roleDoc?.permissions?.map((p: any) => p.name) || [],
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
       deleted: user.deleted,

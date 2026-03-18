@@ -3,10 +3,12 @@
   "version": "2.0.0",
   "description": "Калькулятор стелажів та підбору акумуляторів (React + Express)",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "node scripts/dev.js",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
+    "dev:concurrent": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "build": "npm run build --prefix client",
     "build:client": "npm run build --prefix client",
     "test": "npm run test --prefix client && npm run test --prefix server",
@@ -31,7 +33,6 @@
     "npm": ">=9.0.0"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "prettier": "^3.2.0"
   }
 }

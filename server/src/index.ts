@@ -1,3 +1,6 @@
+// Reflect metadata for decorators
+import 'reflect-metadata';
+
 import { createApp } from './app';
 import { appConfig } from './config/app.config';
 
@@ -26,7 +29,6 @@ const startServer = async () => {
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
   } catch (error) {
     console.error('[Server] Failed to start:', error);
     process.exit(1);

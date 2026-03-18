@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { JwtService } from '../../common/utils/jwt.service';
 import { AuthRepository } from './auth.repository';
 import {
@@ -77,6 +77,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: (user.roleId as any)?.name || 'user',
+        roleName: (user.roleId as any)?.name || 'user', // Дублюємо для зручності клієнта
         permissions: (user.roleId as any)?.permissions?.map((p: any) => p.name) || [],
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
@@ -327,10 +328,32 @@ export class AuthService {
    * Згенерувати пару токенів для користувача
    */
   private async generateTokens(user: any): Promise<TokenPair> {
+    // Отримуємо roleId та roleName
+    let roleId: string | undefined;
+    let roleName: string | undefined;
+
+    if (user.roleId) {
+      if (typeof user.roleId.toHexString === 'function') {
+        // Це ObjectId (не populate-нутий)
+        roleId = user.roleId.toHexString();
+        roleName = undefined; // Назву ролі отримаємо з БД при наступному запиті
+      } else if (user.roleId._id) {
+        // Це populate-нутий об'єкт Role
+        roleId = user.roleId._id.toHexString();
+        roleName = user.roleId.name?.toLowerCase() || 'user';
+      } else {
+        // Це вже рядок
+        roleId = user.roleId;
+        roleName = undefined;
+      }
+    }
+
     return this.jwtService.generateTokenPair({
       userId: user._id.toHexString(),
       email: user.email,
-      roleId: user.roleId?.toHexString(),
+      roleId,
+      roleName: roleName || 'user',
+      permissions: (user.roleId as any)?.permissions?.map((p: any) => p.name) || [],
     });
   }
 

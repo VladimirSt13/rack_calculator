@@ -50,12 +50,10 @@ const emailVerificationSchema = new mongoose.Schema<IEmailVerificationDocument>(
     expiresAt: {
       type: Date,
       required: [true, 'Expiration date is required'],
-      index: true,
     },
     verified: {
       type: Boolean,
       default: false,
-      index: true,
     },
     verifiedAt: {
       type: Date,

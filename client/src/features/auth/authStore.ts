@@ -1,49 +1,10 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { authApi } from "./authApi";
-
-/**
- * Інтерфейс користувача
- *
- * @property id - Унікальний ID користувача
- * @property email - Email адреса
- * @property role - Роль користувача (admin, manager, user)
- * @property permissions - Дозволи користувача
- * @property permissions.price_types - Доступні типи цін
- * @property emailVerified - Чи підтверджено email
- */
-export interface User {
-  id: number;
-  email: string;
-  role: "admin" | "manager" | "user";
-  permissions?: {
-    price_types: string[];
-  };
-  emailVerified: boolean;
-}
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { authApi } from './authApi';
+import { User } from './types/auth.types';
 
 /**
  * Стан та дії для управління аутентифікацією
- *
- * @property user - Поточний користувач або null
- * @property accessToken - JWT access token
- * @property refreshToken - JWT refresh token
- * @property isLoading - Чи триває завантаження
- * @property error - Остання помилка
- *
- * @example
- * ```typescript
- * const { login, logout, user } = useAuthStore();
- *
- * // Логін
- * await login('user@accu-energo.com.ua', 'password');
- *
- * // Перевірка авторизації
- * if (user?.role === 'admin') { ... }
- *
- * // Логаут
- * await logout();
- * ```
  */
 export interface AuthState {
   user: User | null;
@@ -60,44 +21,61 @@ export interface AuthState {
   resendVerification: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string,
-  ) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   refreshAuth: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
+
+  // Permission helpers
+  hasPermission: (permission: string) => boolean;
+  hasAnyPermission: (permissions: string[]) => boolean;
+  hasAllPermissions: (permissions: string[]) => boolean;
+  isAdmin: () => boolean;
 }
 
 /**
- * Zustand store для управління аутентифікацією
- *
- * @features
- * - Persist middleware для збереження токенів в localStorage
- * - Повний набір auth actions (login, register, logout, etc.)
- * - Обробка помилок та loading states
- * - Email verification
- * - Password reset
- *
- * @example
- * ```typescript
- * import { useAuthStore } from '@/features/auth/authStore';
- *
- * // Отримання даних
- * const { user, accessToken, isLoading } = useAuthStore();
- *
- * // Використання actions
- * const { login, logout, checkAuth } = useAuthStore();
- *
- * // Перевірка прав
- * if (user?.role === 'admin') { ... }
- *
- * // Перевірка дозволів
- * if (user?.permissions?.price_types?.includes('нульова')) { ... }
- * ```
- *
- * @see {@link https://zustand-demo.pmnd.rs/ Zustand Documentation}
+ * Permission helpers для перевірки дозволів
  */
+const createPermissionHelpers = (user: User | null) => ({
+  /**
+   * Перевірити чи має користувач конкретний дозвіл
+   * Адмін завжди має всі дозволи
+   */
+  hasPermission: (permission: string): boolean => {
+    if (!user) return false;
+    // Адмін має всі дозволи автоматично
+    if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+    return user.permissions?.includes(permission) ?? false;
+  },
+
+  /**
+   * Перевірити чи має хоча б один дозвіл зі списку
+   */
+  hasAnyPermission: (permissions: string[]): boolean => {
+    if (!user) return false;
+    // Адмін має всі дозволи автоматично
+    if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+    return permissions.some((p) => user.permissions?.includes(p) ?? false);
+  },
+
+  /**
+   * Перевірити чи має всі дозволи зі списку
+   */
+  hasAllPermissions: (permissions: string[]): boolean => {
+    if (!user) return false;
+    // Адмін має всі дозволи автоматично
+    if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+    return permissions.every((p) => user.permissions?.includes(p) ?? false);
+  },
+
+  /**
+   * Перевірити чи є адміном
+   */
+  isAdmin: (): boolean => {
+    return user?.roleName?.toUpperCase() === 'ADMIN';
+  },
+});
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -111,26 +89,36 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login(email, password);
-          // authApi повертає { user, accessToken, refreshToken, emailVerified }
+          // Сервер повертає { user, tokens: { accessToken, refreshToken, expiresIn } }
           const newUser = response.user;
-          const newAccessToken = response.accessToken;
-          const newRefreshToken = response.refreshToken;
+          const newAccessToken = response.tokens.accessToken;
+          const newRefreshToken = response.tokens.refreshToken;
+
+          // Нормалізуємо roleName до нижнього регістру для зручності
+          const normalizedUser: User = {
+            ...newUser,
+            roleName: newUser.roleName?.toLowerCase() || newUser.role?.toLowerCase() || 'user',
+          };
 
           // Явне збереження в localStorage для надійності
-          localStorage.setItem("accessToken", newAccessToken);
-          localStorage.setItem("refreshToken", newRefreshToken);
+          localStorage.setItem('accessToken', newAccessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
 
           set({
-            user: newUser,
+            user: normalizedUser,
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             isLoading: false,
           });
         } catch (error) {
+          const errorData = (error as any).response?.data;
+          const errorMessage =
+            typeof errorData?.error === 'string'
+              ? errorData.error
+              : errorData?.error?.message || errorData?.message || 'Помилка входу';
+
           set({
-            error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка входу",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -141,17 +129,33 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.register(email, password);
+          const newAccessToken = response.tokens.accessToken;
+          const newRefreshToken = response.tokens.refreshToken;
+
+          // Явне збереження в localStorage для надійності
+          localStorage.setItem('accessToken', newAccessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
+
+          const normalizedUser: User = {
+            ...response.user,
+            roleName: response.user.roleName?.toLowerCase() || response.user.role?.toLowerCase() || 'user',
+          };
+
           set({
-            user: response.user,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
+            user: normalizedUser,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
             isLoading: false,
           });
         } catch (error) {
+          const errorData = (error as any).response?.data;
+          const errorMessage =
+            typeof errorData?.error === 'string'
+              ? errorData.error
+              : errorData?.error?.message || errorData?.message || 'Помилка реєстрації';
+
           set({
-            error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка реєстрації",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -165,8 +169,8 @@ export const useAuthStore = create<AuthState>()(
           // Ігноруємо помилки logout
         } finally {
           // Явне очищення localStorage
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
 
           set({
             user: null,
@@ -185,8 +189,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка підтвердження",
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка підтвердження',
             isLoading: false,
           });
           throw error;
@@ -201,8 +205,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка відправки",
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -217,8 +221,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка відправки",
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка відправки',
             isLoading: false,
           });
           throw error;
@@ -233,8 +237,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка скидання пароля",
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка скидання пароля',
             isLoading: false,
           });
           throw error;
@@ -249,8 +253,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error:
-              (error as unknown as { response?: { data?: { error?: string } } })
-                .response?.data?.error || "Помилка зміни пароля",
+              (error as unknown as { response?: { data?: { error?: string } } }).response?.data?.error ||
+              'Помилка зміни пароля',
             isLoading: false,
           });
           throw error;
@@ -258,12 +262,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refreshAuth: async () => {
-        // Refresh token обробляється автоматично через axios interceptor
         try {
           const response = await authApi.me();
-          set({ user: response.user });
+          // Сервер повертає просто користувача
+          set({ user: response });
         } catch {
-          // Якщо не вдалося отримати користувача - очищаємо стан
           set({
             user: null,
             accessToken: null,
@@ -278,16 +281,44 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await authApi.me();
-          set({ user: response.user });
+          // Сервер повертає просто користувача
+          set({ user: response });
         } catch {
           // Помилка обробляється автоматично через axios interceptor
         }
       },
 
       clearError: () => set({ error: null }),
+
+      // Permission helpers
+      hasPermission: (permission: string) => {
+        const { user } = get();
+        if (!user) return false;
+        if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+        return user.permissions?.includes(permission) ?? false;
+      },
+
+      hasAnyPermission: (permissions: string[]) => {
+        const { user } = get();
+        if (!user) return false;
+        if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+        return permissions.some((p) => user.permissions?.includes(p) ?? false);
+      },
+
+      hasAllPermissions: (permissions: string[]) => {
+        const { user } = get();
+        if (!user) return false;
+        if (user.roleName?.toUpperCase() === 'ADMIN') return true;
+        return permissions.every((p) => user.permissions?.includes(p) ?? false);
+      },
+
+      isAdmin: () => {
+        const { user } = get();
+        return user?.roleName?.toUpperCase() === 'ADMIN';
+      },
     }),
     {
-      name: "auth-storage",
+      name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

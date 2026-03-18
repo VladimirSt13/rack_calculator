@@ -48,7 +48,6 @@ const rackSetSchema = new mongoose.Schema<IRackSetDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

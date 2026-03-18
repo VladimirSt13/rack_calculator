@@ -44,7 +44,6 @@ const roleSchema = new mongoose.Schema<IRoleDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

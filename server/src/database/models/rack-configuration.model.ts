@@ -89,7 +89,6 @@ const rackConfigurationSchema = new mongoose.Schema<IRackConfigurationDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

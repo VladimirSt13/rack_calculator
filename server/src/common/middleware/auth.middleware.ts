@@ -40,6 +40,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       userId: payload.userId,
       email: payload.email,
       roleId: payload.roleId,
+      roleName: payload.roleName,
       permissions: payload.permissions,
     };
 
@@ -66,6 +67,7 @@ export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextF
         userId: payload.userId,
         email: payload.email,
         roleId: payload.roleId,
+        roleName: payload.roleName,
         permissions: payload.permissions,
       };
     }
@@ -80,10 +82,11 @@ export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextF
 /**
  * Middleware для перевірки ролі
  *
- * @param roles - Масив дозволених ролей
+ * @param roles - Масив дозволених ролей (напр, ['admin', 'manager'])
  *
  * @example
  * router.delete('/users/:id', authenticate, authorizeRole('admin'), usersController.deleteUser);
+ * router.get('/data', authenticate, authorizeRole('admin', 'manager'), controller.getData);
  */
 export const authorizeRole = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -92,9 +95,15 @@ export const authorizeRole = (...roles: string[]) => {
       return;
     }
 
-    const userRole = req.user.roleId;
+    const userRole = req.user.roleName?.toLowerCase();
 
-    if (!userRole || !roles.includes(userRole)) {
+    // Адмін має повні права на все
+    if (userRole === 'admin') {
+      next();
+      return;
+    }
+
+    if (!userRole || !roles.map((r) => r.toLowerCase()).includes(userRole)) {
       ApiResponder.forbidden(res, 'Insufficient permissions');
       return;
     }
@@ -115,6 +124,12 @@ export const authorizePermission = (permission: string) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       ApiResponder.unauthorized(res, 'Authentication required');
+      return;
+    }
+
+    // Адмін має повні права на все
+    if (req.user.roleName === 'admin') {
+      next();
       return;
     }
 

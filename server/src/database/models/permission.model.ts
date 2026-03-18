@@ -55,7 +55,6 @@ const permissionSchema = new mongoose.Schema<IPermissionDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

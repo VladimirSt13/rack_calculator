@@ -65,6 +65,8 @@ export interface UserResult {
     id: string;
     name: string;
   } | null;
+  roleName?: string; // Назва ролі для зручності
+  permissions?: string[]; // Масив дозволів
   emailVerified: boolean;
   createdAt: Date;
   deleted?: boolean;

@@ -1,4 +1,4 @@
-import api from "@/features/auth/authApi";
+import api from '@/lib/axios';
 
 export interface SupportComponent {
   code: string;
@@ -29,8 +29,8 @@ export const priceComponentsApi = {
    * Отримати список комплектуючих з прайсу
    */
   getAll: async () => {
-    const { data } = await api.get("/price/components");
-    return data as ComponentsResponse;
+    const { data } = await api.get('/prices/rack-components');
+    return data.data;
   },
 };
 

@@ -35,7 +35,6 @@ const priceSchema = new mongoose.Schema<IPriceDocument>(
     deleted: {
       type: Boolean,
       default: false,
-      index: true,
     },
     deletedAt: {
       type: Date,

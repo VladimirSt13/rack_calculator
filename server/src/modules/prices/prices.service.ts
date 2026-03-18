@@ -8,6 +8,7 @@ import {
   PriceComponentResult,
 } from './prices.types';
 import { AuthError } from '../auth/auth.types';
+import { parsePriceExcel, type ParsedPriceData } from '../../common/utils/priceExcelParser';
 
 /**
  * Prices Service
@@ -170,6 +171,126 @@ export class PricesService {
     return await this.pricesRepository.getComponentCategories();
   }
 
+  /**
+   * Отримати компоненти стелажів з поточного прайсу
+   * Конвертує структуру прайсу в формат для клієнта
+   */
+  async getRackComponents(): Promise<{
+    components: {
+      supports: Array<{ code: string; name: string }>;
+      spans: Array<{ code: string; name: string }>;
+      verticalSupports: Array<{ code: string; name: string }>;
+    };
+    updatedAt: string;
+  }> {
+    // Спочатку пробуємо отримати прайс категорії 'rack'
+    let price = await this.pricesRepository.getCurrentPrice('rack');
+
+    // Якщо не знайдено, пробуємо отримати прайс без категорії (default)
+    if (!price) {
+      price = await this.pricesRepository.getCurrentPrice();
+    }
+
+    if (!price) {
+      throw new Error('Price not found');
+    }
+
+    const priceData = price.data;
+
+    // Трансформація об'єктів в масиви
+    const supports = Object.entries(priceData.supports || {}).map(([code, item]: [string, any]) => ({
+      code: item.code || code,
+      name: item.name || code,
+    }));
+
+    const spans = Object.entries(priceData.spans || {}).map(([code, item]: [string, any]) => ({
+      code: item.code || code,
+      name: item.name || code,
+    }));
+
+    const verticalSupports = Object.entries(priceData.vertical_supports || {}).map(([code, item]: [string, any]) => ({
+      code: item.code || code,
+      name: item.name || code,
+    }));
+
+    return {
+      components: {
+        supports,
+        spans,
+        verticalSupports,
+      },
+      updatedAt: price.updatedAt.toISOString(),
+    };
+  }
+
+  // ==========================================
+  // PRICE UPLOAD/EXPORT METHODS
+  // ==========================================
+
+  /**
+   * Розпарсити Excel файл з прайсом
+   */
+  async parseExcelFile(buffer: Buffer): Promise<ParsedPriceData> {
+    return await parsePriceExcel(buffer);
+  }
+
+  /**
+   * Завантажити прайс з Excel файлу
+   */
+  async uploadPriceFromExcel(buffer: Buffer): Promise<PriceResult> {
+    const parsedData = await parsePriceExcel(buffer);
+
+    // Перевірка на помилки парсингу
+    if (parsedData.errors.length > 0) {
+      throw new Error('Parsing errors: ' + JSON.stringify(parsedData.errors));
+    }
+
+    // Перевірка чи є дані
+    const totalItems =
+      Object.keys(parsedData.supports || {}).length +
+      Object.keys(parsedData.spans || {}).length +
+      Object.keys(parsedData.vertical_supports || {}).length +
+      Object.keys(parsedData.diagonal_brace || {}).length +
+      Object.keys(parsedData.isolator || {}).length;
+
+    if (totalItems === 0) {
+      throw new Error('No valid data found in file');
+    }
+
+    // Збереження прайсу
+    const price = await this.pricesRepository.createPrice(parsedData, 'rack');
+    return this.mapPriceToResult(price);
+  }
+
+  /**
+   * Відновити версію прайсу
+   */
+  async restorePriceVersion(id: string): Promise<PriceResult> {
+    const restored = await this.pricesRepository.restorePriceVersionById(id);
+    return this.mapPriceToResult(restored);
+  }
+
+  /**
+   * Отримати версію прайсу за ID
+   */
+  async getPriceVersion(id: string): Promise<PriceResult> {
+    const version = await this.pricesRepository.getPriceVersionById(id);
+
+    if (!version) {
+      throw new Error('Version not found');
+    }
+
+    return this.mapPriceToResult(version);
+  }
+
+  /**
+   * Оновити поточний прайс
+   */
+  async updateCurrentPrice(data: any, category?: string): Promise<PriceResult> {
+    const updated = await this.pricesRepository.updateCurrentPrice(data, category);
+    return this.mapPriceToResult(updated);
+  }
+
   // ==========================================
   // HELPER METHODS
   // ==========================================
@@ -179,7 +300,7 @@ export class PricesService {
    */
   private mapPriceToResult(price: any): PriceResult {
     return {
-      id: price._id.toHexString(),
+      id: price._id?.toHexString() || price.id || price._id,
       data: price.data,
       category: price.category,
       updatedAt: price.updatedAt,

@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useAuthStore } from "@/features/auth/authStore";
-import { Input } from "@/shared/components/Input";
-import { Button } from "@/shared/components/Button";
-import { Label } from "@/shared/components/Label";
-import { Loader2, LogIn } from "lucide-react";
-import { toast } from "sonner";
-import { DEFAULT_REDIRECT_ROUTE, PUBLIC_ROUTES } from "@/core/constants/routes";
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useAuthStore } from '@/features/auth/authStore';
+import { Input } from '@/shared/components/Input';
+import { Button } from '@/shared/components/Button';
+import { Label } from '@/shared/components/Label';
+import { Loader2, LogIn } from 'lucide-react';
+import { toast } from 'sonner';
+import { DEFAULT_REDIRECT_ROUTE, PUBLIC_ROUTES } from '@/core/constants/routes';
 
 const loginSchema = z.object({
-  email: z.string().email("Невірний формат email"),
-  password: z.string().min(6, "Пароль має бути не менше 6 символів"),
+  email: z.string().email('Невірний формат email'),
+  password: z.string().min(6, 'Пароль має бути не менше 6 символів'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -24,8 +24,7 @@ export const LoginPage: React.FC = () => {
   const { login, isLoading, error, clearError } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const from = (location.state as { from?: { pathname: string } })?.from
-    ?.pathname;
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
 
   const {
     register,
@@ -41,20 +40,21 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login(data.email, data.password);
-      toast.success("Вхід успішний");
+      toast.success('Вхід успішний');
 
       // Визначаємо куди редиректити після логіну
       const redirectPath = from || DEFAULT_REDIRECT_ROUTE;
       navigate(redirectPath, { replace: true });
     } catch (err) {
+      const errorData = (err as any).response?.data;
       const errorMessage =
-        (err as any).response?.data?.error ||
-        (err as any).response?.data?.message ||
-        "Помилка входу";
+        typeof errorData?.error === 'string'
+          ? errorData.error
+          : errorData?.error?.message || errorData?.message || 'Помилка входу';
 
       // Спеціальна обробка для непідтвердженого email
-      if ((err as any).response?.data?.code === "EMAIL_NOT_VERIFIED") {
-        toast.error("Підтвердіть email будь ласка");
+      if (errorData?.code === 'EMAIL_NOT_VERIFIED') {
+        toast.error('Підтвердіть email будь ласка');
         navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, {
           replace: true,
         });
@@ -67,91 +67,73 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-      <div className="w-full max-w-md p-8 space-y-6 bg-background rounded-lg shadow-lg border">
-        <div className="space-y-2 text-center">
-          <div className="flex justify-center">
-            <div className="p-3 bg-primary rounded-full">
-              <LogIn className="w-8 h-8 text-primary-foreground" />
+    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5'>
+      <div className='w-full max-w-md p-8 space-y-6 bg-background rounded-lg shadow-lg border'>
+        <div className='space-y-2 text-center'>
+          <div className='flex justify-center'>
+            <div className='p-3 bg-primary rounded-full'>
+              <LogIn className='w-8 h-8 text-primary-foreground' />
             </div>
           </div>
-          <h1 className="text-3xl font-bold">Вхід</h1>
-          <p className="text-muted-foreground">
-            Введіть свої дані для входу в систему
-          </p>
+          <h1 className='text-3xl font-bold'>Вхід</h1>
+          <p className='text-muted-foreground'>Введіть свої дані для входу в систему</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='email'>Email</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              autoComplete="email"
-              className={errors.email?.message ? "border-destructive" : ""}
-              {...register("email")}
+              id='email'
+              type='email'
+              placeholder='your@email.com'
+              autoComplete='email'
+              className={errors.email?.message ? 'border-destructive' : ''}
+              {...register('email')}
               disabled={isSubmitting}
             />
-            {errors.email?.message && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
+            {errors.email?.message && <p className='text-sm text-destructive'>{errors.email.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Пароль</Label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
+          <div className='space-y-2'>
+            <div className='flex items-center justify-between'>
+              <Label htmlFor='password'>Пароль</Label>
+              <Link to='/forgot-password' className='text-sm text-primary hover:underline'>
                 Забули пароль?
               </Link>
             </div>
             <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className={errors.password?.message ? "border-destructive" : ""}
-              {...register("password")}
+              id='password'
+              type='password'
+              placeholder='••••••••'
+              autoComplete='current-password'
+              className={errors.password?.message ? 'border-destructive' : ''}
+              {...register('password')}
               disabled={isSubmitting}
             />
-            {errors.password?.message && (
-              <p className="text-sm text-destructive">
-                {errors.password.message}
-              </p>
-            )}
+            {errors.password?.message && <p className='text-sm text-destructive'>{errors.password.message}</p>}
           </div>
 
           {error && (
-            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-              {error}
+            <div className='p-3 text-sm text-destructive bg-destructive/10 rounded-md'>
+              {typeof error === 'string' ? error : error?.message || 'Помилка входу'}
             </div>
           )}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || isLoading}
-            className="w-full"
-          >
+          <Button type='submit' disabled={isSubmitting || isLoading} className='w-full'>
             {isSubmitting || isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className='w-4 h-4 mr-2 animate-spin' />
                 Вхід...
               </>
             ) : (
-              "Увійти"
+              'Увійти'
             )}
           </Button>
         </form>
 
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">Немає акаунту? </span>
-          <Link
-            to={PUBLIC_ROUTES.REGISTER}
-            className="text-primary hover:underline font-medium"
-          >
+        <div className='text-center text-sm'>
+          <span className='text-muted-foreground'>Немає акаунту? </span>
+          <Link to={PUBLIC_ROUTES.REGISTER} className='text-primary hover:underline font-medium'>
             Зареєструватися
           </Link>
         </div>
