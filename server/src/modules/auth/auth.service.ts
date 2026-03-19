@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { JwtService } from '../../common/utils/jwt.service';
 import { AuthRepository } from './auth.repository';
@@ -134,6 +135,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: 'user',
+        roleName: 'user',
         permissions: [],
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
@@ -150,35 +152,44 @@ export class AuthService {
    * Оновлення токенів
    */
   async refreshToken(input: RefreshTokenServiceInput): Promise<AuthResult> {
+    console.log('[AuthService] refreshToken() called');
+
     // Знайти refresh token в БД
     const refreshTokenDoc = await this.authRepository.findRefreshToken(input.refreshToken);
+    console.log('[AuthService] refreshTokenDoc found:', !!refreshTokenDoc);
 
     if (!refreshTokenDoc) {
+      console.error('[AuthService] Invalid refresh token');
       throw new AuthError('Invalid refresh token', 'TOKEN_INVALID');
     }
 
     // Перевірка чи токен не закінчився
     if (refreshTokenDoc.isExpired?.()) {
+      console.error('[AuthService] Refresh token expired');
       await this.authRepository.deleteRefreshToken(input.refreshToken);
       throw new AuthError('Refresh token expired', 'TOKEN_EXPIRED');
     }
 
-    // Знайти користувача
+    // Знайти користувача з роллю та дозволами
     const user = await this.authRepository.findById(refreshTokenDoc.userId.toHexString());
+    console.log('[AuthService] User found:', !!user);
 
     if (!user) {
+      console.error('[AuthService] User not found');
       throw new AuthError('User not found', 'USER_NOT_FOUND');
     }
 
-    // Завантажити роль та дозволи
+    // Завантажити роль та дозволи для генерації токенів
     const userWithRole = await this.authRepository.findByEmail({
       email: user.email,
       includeRole: true,
       includePermissions: true,
     });
+    console.log('[AuthService] userWithRole loaded:', !!userWithRole);
 
-    // Генерація нових токенів
-    const tokens = await this.generateTokens(user);
+    // Генерація нових токенів з використанням userWithRole (щоб були roleId та permissions)
+    const tokens = await this.generateTokens(userWithRole || user);
+    console.log('[AuthService] New tokens generated');
 
     // Видалити старий refresh token і зберегти новий
     await this.authRepository.deleteRefreshToken(input.refreshToken);
@@ -195,6 +206,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: (userWithRole?.roleId as any)?.name || 'user',
+        roleName: (userWithRole?.roleId as any)?.name || 'user',
         permissions: (userWithRole?.roleId as any)?.permissions?.map((p: any) => p.name) || [],
         emailVerified: user.emailVerified,
       },
@@ -331,29 +343,41 @@ export class AuthService {
     // Отримуємо roleId та roleName
     let roleId: string | undefined;
     let roleName: string | undefined;
+    let permissions: string[] = [];
 
     if (user.roleId) {
       if (typeof user.roleId.toHexString === 'function') {
         // Це ObjectId (не populate-нутий)
         roleId = user.roleId.toHexString();
-        roleName = undefined; // Назву ролі отримаємо з БД при наступному запиті
+        roleName = 'user'; // Дефолтна роль, якщо не завантажена з БД
+        permissions = []; // Permissions будуть завантажені при наступному запиті
       } else if (user.roleId._id) {
         // Це populate-нутий об'єкт Role
         roleId = user.roleId._id.toHexString();
         roleName = user.roleId.name?.toLowerCase() || 'user';
+        permissions = user.roleId.permissions?.map((p: any) => p.name) || [];
       } else {
         // Це вже рядок
         roleId = user.roleId;
-        roleName = undefined;
+        roleName = 'user';
+        permissions = [];
       }
     }
+
+    console.log('[JwtService] generateTokenPair payload:', {
+      userId: user._id.toHexString(),
+      email: user.email,
+      roleId,
+      roleName,
+      permissions,
+    });
 
     return this.jwtService.generateTokenPair({
       userId: user._id.toHexString(),
       email: user.email,
       roleId,
-      roleName: roleName || 'user',
-      permissions: (user.roleId as any)?.permissions?.map((p: any) => p.name) || [],
+      roleName,
+      permissions,
     });
   }
 
@@ -392,9 +416,8 @@ export class AuthService {
    * Згенерувати випадковий токен
    */
   private async generateRandomToken(length: number): Promise<string> {
-    const crypto = require('crypto');
     return new Promise((resolve, reject) => {
-      crypto.randomBytes(length, (err: Error, buf: Buffer) => {
+      crypto.randomBytes(length, (err: Error | null, buf: Buffer) => {
         if (err) reject(err);
         resolve(buf.toString('hex'));
       });

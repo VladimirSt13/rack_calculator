@@ -17,6 +17,7 @@ import { calculationsRoutes } from './modules/calculations/calculations.routes';
 import { batteryRoutes } from './modules/battery/battery.routes';
 import { exportRoutes } from './modules/export/export.routes';
 import { auditRoutes } from './modules/audit/audit.routes';
+import { rackRoutes } from './modules/rack/rack.routes';
 
 /**
  * Створення Express додатку
@@ -55,6 +56,7 @@ export const createApp = async (): Promise<Application> => {
   app.use('/api/battery', batteryRoutes);
   app.use('/api/export', exportRoutes);
   app.use('/api/audit', auditRoutes);
+  app.use('/api/rack', rackRoutes);
 
   // 404 handler
   app.use((_req, res) => {

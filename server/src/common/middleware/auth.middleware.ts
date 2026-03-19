@@ -12,6 +12,7 @@ export interface AuthRequest extends Request {
     userId: string;
     email: string;
     roleId?: string;
+    roleName?: string;
     permissions?: string[];
   };
 }
@@ -24,16 +25,25 @@ export interface AuthRequest extends Request {
  */
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    console.log('[AuthMiddleware] authenticate() called');
+
     // Отримати токен з заголовка
     const token = extractTokenFromHeader(req);
+    console.log('[AuthMiddleware] token exists:', !!token);
 
     if (!token) {
+      console.error('[AuthMiddleware] No token provided');
       ApiResponder.unauthorized(res, 'Access token is required');
       return;
     }
 
     // Верифікувати токен
     const payload = await jwtService.verifyAccessToken(token);
+    console.log('[AuthMiddleware] token verified, payload:', {
+      userId: payload.userId,
+      email: payload.email,
+      roleName: payload.roleName,
+    });
 
     // Додати дані користувача до request
     req.user = {
@@ -43,9 +53,15 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       roleName: payload.roleName,
       permissions: payload.permissions,
     };
+    console.log('[AuthMiddleware] req.user set:', {
+      userId: req.user.userId,
+      roleName: req.user.roleName,
+      permissions: req.user.permissions,
+    });
 
     next();
   } catch (error) {
+    console.error('[AuthMiddleware] token verification failed:', error);
     ApiResponder.unauthorized(res, 'Invalid or expired access token');
   }
 };

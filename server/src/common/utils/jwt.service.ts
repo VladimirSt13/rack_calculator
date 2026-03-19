@@ -10,6 +10,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   roleId?: string;
+  roleName?: string;
   permissions?: string[];
 }
 
@@ -59,8 +60,16 @@ export class JwtService {
   async verifyAccessToken(token: string): Promise<JwtPayload> {
     try {
       const payload = jwt.verify(token, jwtConfig.secret) as JwtPayload;
+      console.log('[JwtService] verifyAccessToken() payload:', {
+        userId: payload.userId,
+        email: payload.email,
+        roleId: payload.roleId,
+        roleName: payload.roleName,
+        permissions: payload.permissions,
+      });
       return payload;
     } catch (error) {
+      console.error('[JwtService] verifyAccessToken() error:', error);
       throw new Error('Invalid or expired access token');
     }
   }

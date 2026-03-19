@@ -1,17 +1,12 @@
-import api from "@/features/auth/authApi";
-import type {
-  RackCalculationRequest,
-  RackCalculationResponse,
-} from "@/shared/types/api.types";
+import axiosInstance from '@/lib/axios';
+import type { RackCalculationRequest, RackCalculationResponse } from '@/shared/types/api.types';
 
 export const rackApi = {
   /**
    * Розрахунок стелажа (старий API, для сумісності)
    */
-  calculate: async (
-    config: RackCalculationRequest,
-  ): Promise<RackCalculationResponse> => {
-    const { data } = await api.post("/rack/calculate", config);
+  calculate: async (config: RackCalculationRequest): Promise<RackCalculationResponse> => {
+    const { data } = await axiosInstance.post('/rack/calculate', config);
     return data;
   },
 
@@ -27,10 +22,7 @@ export const rackApi = {
     verticalSupports?: string;
     spans?: Array<{ item: string; quantity: number }>;
   }) => {
-    const { data } = await api.post(
-      "/rack-configurations/find-or-create",
-      config,
-    );
+    const { data } = await axiosInstance.post('/rack-configurations/find-or-create', config);
     return data;
   },
 
@@ -38,21 +30,15 @@ export const rackApi = {
    * Масовий розрахунок стелажів
    */
   calculateBatch: async (racks: RackCalculationRequest[]) => {
-    const { data } = await api.post("/rack/calculate-batch", { racks });
+    const { data } = await axiosInstance.post('/rack/calculate-batch', { racks });
     return data;
   },
 
   /**
    * Розрахувати ціни для конфігурації за ID
    */
-  calculatePricesForConfiguration: async (
-    rackConfigId: number,
-    quantity: number = 1,
-  ) => {
-    const { data } = await api.post(
-      `/rack-configurations/${rackConfigId}/calculate-prices`,
-      { quantity },
-    );
+  calculatePricesForConfiguration: async (rackConfigId: number, quantity: number = 1) => {
+    const { data } = await axiosInstance.post(`/rack-configurations/${rackConfigId}/calculate-prices`, { quantity });
     return data;
   },
 };

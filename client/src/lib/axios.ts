@@ -1,11 +1,7 @@
-import axios, {
-  AxiosInstance,
-  InternalAxiosRequestConfig,
-  AxiosError,
-} from "axios";
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import { useAuthStore } from '@/features/auth/authStore';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 /**
  * Axios інстанс з автоматичним refresh token
@@ -30,7 +26,7 @@ const API_BASE_URL =
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
@@ -83,7 +79,13 @@ const processQueue = (error: Error | null, token: string | null = null) => {
  */
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("accessToken");
+    // Якщо токен вже є в headers (наприклад, після refresh), не перезаписуємо
+    if (config.headers?.Authorization) {
+      return config;
+    }
+
+    // Беремо токен з authStore (надійніше ніж localStorage)
+    const token = useAuthStore.getState().accessToken || localStorage.getItem('accessToken');
 
     if (token) {
       // Гарантовано додаємо Authorization header
@@ -96,7 +98,7 @@ axiosInstance.interceptors.request.use(
     // Видаляємо Content-Type для FormData (axios сам встановить multipart/form-data з boundary)
     if (config.data instanceof FormData) {
       if (config.headers) {
-        delete config.headers["Content-Type"];
+        delete config.headers['Content-Type'];
       }
     }
 
@@ -127,13 +129,12 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // Якщо помилка 401 і запит ще не був retry
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry
-    ) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      console.log('[Axios] 401 error, attempting refresh token...');
+
       // Якщо вже триває refresh, додаємо запит в чергу
       if (isRefreshing) {
+        console.log('[Axios] Refresh already in progress, queueing request');
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -150,48 +151,72 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        // Беремо refresh token з authStore (надійніше ніж localStorage)
+        const refreshToken = useAuthStore.getState().refreshToken || localStorage.getItem('refreshToken');
+        console.log('[Axios] Refresh token exists:', !!refreshToken);
 
         if (!refreshToken) {
-          throw new Error("No refresh token");
+          throw new Error('No refresh token');
         }
 
         // Не редиректимо якщо вже на login
-        if (window.location.pathname === "/login") {
-          return Promise.reject(new Error("No refresh token"));
+        if (window.location.pathname === '/login') {
+          return Promise.reject(new Error('No refresh token'));
         }
 
+        console.log('[Axios] Calling /auth/refresh...');
+
         // Використовуємо axios.create без interceptor для запиту refresh
-        const refreshResponse = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          {
-            refreshToken,
-          },
-        );
+        const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken,
+        });
 
-        const { accessToken, refreshToken: newRefreshToken } =
-          refreshResponse.data;
+        console.log('[Axios] Refresh response:', refreshResponse.data);
 
-        // Зберігаємо нові токени
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", newRefreshToken);
+        // Сервер повертає { success: true, data: { user, tokens } }
+        // Тому токени знаходяться в refreshResponse.data.data.tokens
+        const responseData = refreshResponse.data.data || refreshResponse.data;
+        const accessToken = responseData.tokens?.accessToken || responseData.accessToken;
+        const newRefreshToken = responseData.tokens?.refreshToken || responseData.refreshToken;
+
+        if (!accessToken || !newRefreshToken) {
+          console.error('[Axios] Invalid refresh response format:', refreshResponse.data);
+          throw new Error('Invalid refresh response');
+        }
+
+        // Оновлюємо токени в authStore (який також збереже в localStorage)
+        useAuthStore.setState({ accessToken, refreshToken: newRefreshToken });
+        console.log('[Axios] Tokens updated in authStore');
 
         // Обробляємо чергу запитів
         processQueue(null, accessToken);
 
-        // Повторюємо оригінальний запит з новим токеном
+        // Повторюємо оригінальний запит з НОВИМ токеном
+        // Важливо: повністю перезаписуємо Authorization header
+        console.log('[Axios] Retrying original request with new token');
+        console.log('[Axios] New access token:', accessToken.substring(0, 20) + '...');
+
+        // Використовуємо оригінальний запит з оновленим header
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          // Для AxiosHeaders використовуємо set метод
+          if (typeof originalRequest.headers.set === 'function') {
+            originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
+          } else {
+            // Для звичайних об'єктів
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          }
         }
+        console.log('[Axios] Authorization header updated');
+
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        console.error('[Axios] Refresh token failed:', refreshError);
         // Якщо refresh не вдався - очищаємо токени та редиректимо на login
         processQueue(refreshError as Error, null);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        useAuthStore.setState({ accessToken: null, refreshToken: null, user: null });
         // Не редиректимо якщо вже на login
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       } finally {

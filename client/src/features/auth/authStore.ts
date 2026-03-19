@@ -90,22 +90,17 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await authApi.login(email, password);
           // Сервер повертає { user, tokens: { accessToken, refreshToken, expiresIn } }
+          // authApi вже нормалізував user
           const newUser = response.user;
           const newAccessToken = response.tokens.accessToken;
           const newRefreshToken = response.tokens.refreshToken;
-
-          // Нормалізуємо roleName до нижнього регістру для зручності
-          const normalizedUser: User = {
-            ...newUser,
-            roleName: newUser.roleName?.toLowerCase() || newUser.role?.toLowerCase() || 'user',
-          };
 
           // Явне збереження в localStorage для надійності
           localStorage.setItem('accessToken', newAccessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
 
           set({
-            user: normalizedUser,
+            user: newUser,
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             isLoading: false,
@@ -129,6 +124,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.register(email, password);
+          // authApi вже нормалізував user
+          const newUser = response.user;
           const newAccessToken = response.tokens.accessToken;
           const newRefreshToken = response.tokens.refreshToken;
 
@@ -136,13 +133,8 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('accessToken', newAccessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
 
-          const normalizedUser: User = {
-            ...response.user,
-            roleName: response.user.roleName?.toLowerCase() || response.user.role?.toLowerCase() || 'user',
-          };
-
           set({
-            user: normalizedUser,
+            user: newUser,
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             isLoading: false,
